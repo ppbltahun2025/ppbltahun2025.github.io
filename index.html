@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071b3a">
+  <meta name="description" content="Daftar link serbaguna SIMBG Gresik.">
+  <title>SIMBG Gresik — Daftar Link</title>
+
+  <style>
+    :root{
+      --navy:#071b3a;
+      --blue:#0b4b91;
+      --gold:#f0b429;
+      --cream:#f6f3ea;
+      --text:#10213b;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:"Segoe UI",Arial,sans-serif;
+      color:#fff;
+      background:
+        linear-gradient(180deg,rgba(4,15,32,.42),rgba(4,15,32,.92)),
+        url("assets/wallpaper.webp") center top/cover fixed no-repeat;
+      padding:0 16px 38px;
+    }
+
+    /* Hero menggunakan kolase 3 foto rapat.
+       Di desktop menjadi header visual; di mobile tetap proporsional. */
+    .hero{
+      width:min(1100px,100%);
+      height:clamp(230px,42vw,500px);
+      margin:0 auto;
+      border-radius:0 0 28px 28px;
+      overflow:hidden;
+      box-shadow:0 16px 45px rgba(0,0,0,.30);
+      background:
+        linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)),
+        url("assets/wallpaper.webp") center/cover no-repeat;
+    }
+
+    .card{
+      width:100%;
+      max-width:480px;
+      margin:-72px auto 0;
+      position:relative;
+      z-index:2;
+      text-align:center;
+      padding:28px 20px 20px;
+      border:1px solid rgba(255,255,255,.22);
+      border-radius:24px;
+      background:rgba(7,27,58,.88);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      box-shadow:0 18px 45px rgba(0,0,0,.35);
+    }
+
+    .logo{
+      width:92px;
+      height:92px;
+      object-fit:contain;
+      margin:-72px auto 8px;
+      display:block;
+      filter:drop-shadow(0 8px 12px rgba(0,0,0,.28));
+    }
+
+    h1{
+      color:#ffd873;
+      font-size:21px;
+      margin:8px 0 6px;
+    }
+
+    .subtitle{
+      color:#eaf1ff;
+      font-size:13.5px;
+      line-height:1.55;
+      margin:0 0 22px;
+      opacity:.94;
+    }
+
+    .link-btn{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+      background:var(--cream);
+      color:var(--text);
+      font-weight:650;
+      font-size:14.5px;
+      text-decoration:none;
+      padding:14px 16px;
+      margin-bottom:12px;
+      border-left:4px solid var(--gold);
+      border-radius:12px;
+      box-shadow:0 5px 15px rgba(0,0,0,.12);
+      transition:transform .18s ease,background .18s ease,box-shadow .18s ease;
+    }
+
+    .link-btn:hover{
+      background:#fff;
+      transform:translateY(-2px);
+      box-shadow:0 9px 20px rgba(0,0,0,.18);
+    }
+
+    .link-btn .icon{
+      font-size:18px;
+      flex:0 0 auto;
+    }
+
+    footer{
+      margin-top:18px;
+      color:rgba(255,255,255,.62);
+      font-size:11.5px;
+    }
+
+    .music-btn{
+      position:fixed;
+      top:16px;
+      right:16px;
+      width:46px;
+      height:46px;
+      border-radius:50%;
+      background:rgba(246,243,234,.96);
+      border:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      z-index:999;
+      box-shadow:0 2px 10px rgba(0,0,0,.28);
+    }
+
+    .music-btn:hover{transform:scale(1.05)}
+    .music-btn svg{width:20px;height:20px;fill:#0a1628}
+    .music-btn.playing{animation:pulse 1.5s infinite ease-in-out}
+
+    @keyframes pulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(240,180,41,.45)}
+      50%{box-shadow:0 0 0 8px rgba(240,180,41,0)}
+    }
+
+    @media (max-width:600px){
+      body{
+        padding:0 10px 28px;
+        background-attachment:scroll;
+      }
+
+      .hero{
+        height:240px;
+        border-radius:0 0 22px 22px;
+      }
+
+      .card{
+        margin:-52px auto 0;
+        padding:22px 15px 16px;
+        border-radius:20px;
+      }
+
+      .logo{
+        width:82px;
+        height:82px;
+        margin:-58px auto 6px;
+      }
+
+      h1{font-size:19px}
+      .subtitle{font-size:13px}
+      .music-btn{top:12px;right:12px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hero" aria-label="Kolase dokumentasi kegiatan SIMBG Gresik"></div>
+
+  <!-- Musik opsional: letakkan lagu.mp3 di folder assets jika ingin dipakai. -->
+  <audio id="bgMusic" src="assets/lagu.mp3" loop preload="none"></audio>
+
+  <button class="music-btn" id="musicBtn"
+          title="Putar musik" aria-label="Putar atau jeda musik">
+    <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="iconPause" viewBox="0 0 24 24" style="display:none">
+      <path d="M6 5h4v14H6zM14 5h4v14h-4z"/>
+    </svg>
+  </button>
+
+  <main class="card">
+    <img class="logo" src="assets/logo.png" alt="Logo SIMBG Gresik">
+
+    <h1>Daftar Link Serbaguna SIMBG</h1>
+    <p class="subtitle">
+      Tetap semangat melayani dan memastikan keandalan bangunan di Gresik
+    </p>
+
+    <a class="link-btn"
+       href="https://script.google.com/macros/s/AKfycbxXC-2BswevKByrrXRBLpfSsUJf1khqJkAGDQMqMpkrb0EcrtEvs2g83ioXFRTdMMgs/exec"
+       target="_blank" rel="noopener">
+      <span class="icon">📱</span>
+      <span>Website Aplikasi Super Master SIMBG</span>
+    </a>
+
+    <a class="link-btn"
+       href="https://drive.google.com/drive/folders/17WOt-qZilYArpQeI-JsOscskflPXW_kK"
+       target="_blank" rel="noopener">
+      <span class="icon">🔗</span>
+      <span>Drive SIMBG 2026</span>
+    </a>
+
+    <a class="link-btn"
+       href="https://docs.google.com/spreadsheets/d/1m7r3SLQZbnjBEhdrR9BRTtzNx0RzENA37smcVQrkbrk"
+       target="_blank" rel="noopener">
+      <span class="icon">✉️</span>
+      <span>Master Agenda SIMBG 2026</span>
+    </a>
+
+    <footer>© 2026 SIMBG Gresik</footer>
+  </main>
+
+  <script>
+    const musicBtn = document.getElementById("musicBtn");
+    const bgMusic = document.getElementById("bgMusic");
+    const iconPlay = document.getElementById("iconPlay");
+    const iconPause = document.getElementById("iconPause");
+
+    function showPlayingUI(){
+      iconPlay.style.display = "none";
+      iconPause.style.display = "block";
+      musicBtn.classList.add("playing");
+    }
+
+    function showPausedUI(){
+      iconPlay.style.display = "block";
+      iconPause.style.display = "none";
+      musicBtn.classList.remove("playing");
+    }
+
+    musicBtn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      if(bgMusic.paused){
+        bgMusic.play().then(showPlayingUI).catch(showPausedUI);
+      }else{
+        bgMusic.pause();
+        showPausedUI();
+      }
+    });
+
+    // Browser modern biasanya memblokir autoplay audio.
+    document.addEventListener("click", ()=>{
+      if(bgMusic.paused && !musicBtn.contains(document.activeElement)){
+        bgMusic.play().then(showPlayingUI).catch(()=>{});
+      }
+    }, {once:true});
+  </script>
+</body>
+</html>
