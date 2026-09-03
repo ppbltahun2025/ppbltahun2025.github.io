@@ -28,33 +28,17 @@
       min-height:100vh;
       font-family:"Segoe UI",Arial,sans-serif;
       color:#fff;
+      /* Foto kolase jadi background PENUH di belakang, bukan strip terpisah lagi.
+         Card diletakkan mengambang utuh di tengahnya. */
       background:
-        linear-gradient(180deg,rgba(4,15,32,.42),rgba(4,15,32,.92)),
-        var(--hero-bg-url, url("assets/image.png")) center top/cover fixed no-repeat;
-      padding:0 16px 38px;
-      transition:background-image .5s ease;
+        linear-gradient(180deg,rgba(4,15,32,.55),rgba(4,15,32,.85)),
+        var(--hero-bg-url, url("assets/image.png")) center/cover fixed no-repeat;
+      padding:32px 16px 38px;
       overflow-x:hidden;
-    }
-
-    /* ===== HERO / kolase foto, berganti sesuai segmen aktif ===== */
-    .hero-wrap{
-      position:relative;
-      width:min(1100px,100%);
-      height:clamp(230px,42vw,500px);
-      margin:0 auto;
-    }
-
-    .hero{
-      position:absolute;
-      inset:0;
-      border-radius:0 0 28px 28px;
-      overflow:hidden;
-      box-shadow:0 16px 45px rgba(0,0,0,.30);
-      background:
-        linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)),
-        url("assets/image.png") center/cover no-repeat;
-      opacity:1;
-      transition:opacity .55s ease, background-image .1s linear;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
     }
 
     /* ===== Tombol navigasi kiri/kanan ===== */
@@ -82,32 +66,14 @@
     .nav-left{left:10px}
     .nav-right{right:10px}
 
-    /* ===== Dots indikator segmen ===== */
-    .dots{
-      display:flex;
-      justify-content:center;
-      gap:8px;
-      margin:14px 0 -6px;
-      position:relative;
-      z-index:3;
-    }
-    .dot{
-      width:8px;height:8px;border-radius:50%;
-      background:rgba(255,255,255,.35);
-      cursor:pointer;
-      transition:background .2s ease, transform .2s ease;
-    }
-    .dot.active{background:var(--gold);transform:scale(1.25)}
-
-    /* ===== Slider kartu (Segmen A / B) ===== */
+    /* ===== Slider kartu (Segmen A / B) — utuh, di tengah, foto ada di belakang sebagai background ===== */
     .card-slider{
       width:100%;
       max-width:480px;
-      margin:-72px auto 0;
+      margin:0 auto;
       position:relative;
       z-index:2;
-      /* FIX: overflow horizontal saja supaya slide tetap rapi,
-         tapi logo yang menonjol ke atas (margin-top negatif) tidak ikut kepotong */
+      /* overflow-x untuk slide antar segmen; overflow-y visible supaya logo (badge) di atas card tidak kepotong */
       overflow-x:hidden;
       overflow-y:visible;
       border-radius:24px;
@@ -136,7 +102,7 @@
       width:92px;
       height:92px;
       object-fit:contain;
-      margin:-72px auto 8px;
+      margin:-46px auto 8px;
       display:block;
       filter:drop-shadow(0 8px 12px rgba(0,0,0,.28));
     }
@@ -218,26 +184,19 @@
 
     @media (max-width:600px){
       body{
-        padding:0 10px 28px;
+        padding:24px 10px 28px;
         background-attachment:scroll;
       }
-
-      .hero{
-        height:240px;
-        border-radius:0 0 22px 22px;
-      }
-      .hero-wrap{height:240px}
 
       .card{
         padding:22px 15px 16px;
         border-radius:20px;
       }
-      .card-slider{margin:-52px auto 0}
 
       .logo{
         width:82px;
         height:82px;
-        margin:-58px auto 6px;
+        margin:-42px auto 6px;
       }
 
       h1{font-size:19px}
@@ -255,10 +214,6 @@
   <button class="nav-btn nav-left" id="prevBtn" aria-label="Segmen sebelumnya">&#10094;</button>
   <button class="nav-btn nav-right" id="nextBtn" aria-label="Segmen berikutnya">&#10095;</button>
 
-  <div class="hero-wrap">
-    <div class="hero" id="hero" aria-label="Kolase dokumentasi kegiatan"></div>
-  </div>
-
   <!-- Musik: id="bgMusic" src akan diganti otomatis sesuai segmen aktif -->
   <audio id="bgMusic" loop preload="none"></audio>
 
@@ -269,11 +224,6 @@
       <path d="M6 5h4v14H6zM14 5h4v14h-4z"/>
     </svg>
   </button>
-
-  <div class="dots" id="dots">
-    <span class="dot active" data-index="0"></span>
-    <span class="dot" data-index="1"></span>
-  </div>
 
   <div class="card-slider">
     <div class="card-track" id="cardTrack">
@@ -381,9 +331,6 @@
 
   // ================== CAROUSEL A/B ==================
   const track = document.getElementById("cardTrack");
-  const hero = document.getElementById("hero");
-  const dotsWrap = document.getElementById("dots");
-  const dots = Array.from(dotsWrap.querySelectorAll(".dot"));
   const panels = Array.from(track.querySelectorAll(".card"));
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
@@ -397,18 +344,9 @@
     // geser track
     track.style.transform = `translateX(-${current * (100/total)}%)`;
 
-    // update hero background (crossfade sederhana)
+    // update background foto halaman sesuai segmen aktif
     const panel = panels[current];
-    hero.style.opacity = 0;
-    setTimeout(() => {
-      hero.style.backgroundImage =
-        `linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)), url("${panel.dataset.hero}")`;
-      document.body.style.setProperty("--hero-bg-url", `url("${panel.dataset.hero}")`);
-      hero.style.opacity = 1;
-    }, 180);
-
-    // update dots
-    dots.forEach((d,i) => d.classList.toggle("active", i === current));
+    document.body.style.setProperty("--hero-bg-url", `url("${panel.dataset.hero}")`);
 
     // update musik (ganti sumber, lanjutkan main jika sebelumnya sedang main)
     const wasPlaying = !bgMusic.paused;
@@ -428,10 +366,6 @@
 
   nextBtn.addEventListener("click", () => next({userAction:true}));
   prevBtn.addEventListener("click", () => prevSlide({userAction:true}));
-
-  dots.forEach(d => {
-    d.addEventListener("click", () => goTo(parseInt(d.dataset.index,10), {userAction:true}));
-  });
 
   // ================== AUTO-SLIDE SAAT IDLE ==================
   const IDLE_MS = 6000; // 6 detik tanpa gerakan cursor -> otomatis geser
