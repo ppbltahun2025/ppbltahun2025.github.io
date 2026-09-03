@@ -52,7 +52,7 @@
       box-shadow:0 16px 45px rgba(0,0,0,.30);
       background:
         linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)),
-        url("assets/image.png") center/cover no-repeat;
+        url("assets/wallpaper.png") center/cover no-repeat;
       opacity:1;
       transition:opacity .55s ease, background-image .1s linear;
     }
@@ -106,7 +106,10 @@
       margin:-72px auto 0;
       position:relative;
       z-index:2;
-      overflow:hidden;
+      /* FIX: overflow horizontal saja supaya slide tetap rapi,
+         tapi logo yang menonjol ke atas (margin-top negatif) tidak ikut kepotong */
+      overflow-x:hidden;
+      overflow-y:visible;
       border-radius:24px;
     }
 
@@ -345,7 +348,7 @@
         <a class="link-btn" href="https://docs.google.com/spreadsheets/d/1pVh735Ig9Ch20dfa6zVQSSX3kFN-BZ_jrbQD2DoR8X4" target="_blank" rel="noopener">
           <span class="icon">📋</span>
           <span>MASTER PROYEK PPBL 2026</span>
-        
+        </a>
 
         <footer>© 2026 Penataan Bangunan Gedung</footer>
       </main>
@@ -354,6 +357,28 @@
   </div>
 
  <script>
+  // ================== ELEMEN AUDIO & TOMBOL MUSIK ==================
+  // FIX: elemen-elemen ini HARUS diambil sebelum goTo() didefinisikan/dipanggil,
+  // karena goTo() memakai bgMusic. Sebelumnya bgMusic di-const di bagian bawah
+  // sehingga goTo(0) di akhir script error (temporal dead zone) dan
+  // menghentikan seluruh script -> itu sebabnya musik & auto-slide tidak jalan.
+  const musicBtn = document.getElementById("musicBtn");
+  const bgMusic = document.getElementById("bgMusic");
+  const iconPlay = document.getElementById("iconPlay");
+  const iconPause = document.getElementById("iconPause");
+
+  function showPlayingUI(){
+    iconPlay.style.display = "none";
+    iconPause.style.display = "block";
+    musicBtn.classList.add("playing");
+  }
+
+  function showPausedUI(){
+    iconPlay.style.display = "block";
+    iconPause.style.display = "none";
+    musicBtn.classList.remove("playing");
+  }
+
   // ================== CAROUSEL A/B ==================
   const track = document.getElementById("cardTrack");
   const hero = document.getElementById("hero");
@@ -428,24 +453,7 @@
   goTo(0);
   resetIdleTimer();
 
-  // ================== MUSIK ==================
-  const musicBtn = document.getElementById("musicBtn");
-  const bgMusic = document.getElementById("bgMusic");
-  const iconPlay = document.getElementById("iconPlay");
-  const iconPause = document.getElementById("iconPause");
-
-  function showPlayingUI(){
-    iconPlay.style.display = "none";
-    iconPause.style.display = "block";
-    musicBtn.classList.add("playing");
-  }
-
-  function showPausedUI(){
-    iconPlay.style.display = "block";
-    iconPause.style.display = "none";
-    musicBtn.classList.remove("playing");
-  }
-
+  // ================== MUSIK: interaksi tombol & autoplay ==================
   musicBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     if (bgMusic.paused) {
