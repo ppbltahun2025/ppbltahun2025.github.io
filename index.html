@@ -214,6 +214,29 @@
       50%{box-shadow:0 0 0 8px rgba(240,180,41,0)}
     }
 
+    /* ===== Badge penghitung pengunjung (tersimpan permanen online) ===== */
+    .visitor-counter{
+      position:fixed;
+      top:16px;
+      left:16px;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      background:rgba(246,243,234,.96);
+      color:var(--text);
+      font-weight:700;
+      font-size:12.5px;
+      padding:9px 15px 9px 12px;
+      border-radius:999px;
+      box-shadow:0 2px 10px rgba(0,0,0,.28);
+      z-index:999;
+      border-left:3px solid var(--gold);
+      white-space:nowrap;
+    }
+    .visitor-counter .v-icon{font-size:14px;flex:0 0 auto}
+    .visitor-counter .v-label{opacity:.7;font-weight:600}
+    .visitor-counter .v-count{color:var(--blue);font-weight:800}
+
     @media (max-width:600px){
       body{
         padding:0 10px 28px;
@@ -244,6 +267,7 @@
       .nav-btn{width:38px;height:38px;font-size:17px}
       .nav-left{left:6px}
       .nav-right{right:6px}
+      .visitor-counter{top:12px;left:12px;font-size:11.5px;padding:7px 12px 7px 10px}
     }
   </style>
 </head>
@@ -268,6 +292,14 @@
     </svg>
   </button>
 
+  <!-- Badge total pengunjung: nilainya diambil & ditambah dari server counter,
+       jadi tersimpan permanen dan sama untuk semua orang yang membuka web ini -->
+  <div class="visitor-counter" id="visitorCounter" title="Total pengunjung web ini">
+    <span class="v-icon">👁️</span>
+    <span class="v-label">Pengunjung:</span>
+    <span class="v-count" id="visitorCount">…</span>
+  </div>
+
   <div class="card-slider">
     <div class="card-track" id="cardTrack">
 
@@ -286,7 +318,7 @@
         </p>
 
         <a class="link-btn"
-           href="https://script.google.com/macros/s/AKfycbw_TLMufA_-S3qpa4r6MPURR2bwC-zNbLisct3GVqY6ydsRY_h-pNba_xPz8D4InuEL/exec"
+           href="https://script.google.com/macros/s/AKfycbyY684FDdbQpkx_QmcH9Q_wMg8-e18i924FQxRg4pvUjl-n6gyTBK32db7GeclRgOjU/exec"
            target="_blank" rel="noopener">
           <span class="icon">📱</span>
           <span>SUPERMASTER SIMBG</span>
@@ -339,11 +371,11 @@
           <span>DRIVE PPBL</span>
         </a>
         <a class="link-btn" href="https://docs.google.com/spreadsheets/d/1TY-Lo9vXqowYkz5ok3A3GEdq3-M7OcLn2busfwjTovA" target="_blank" rel="noopener">
-          <span class="icon">📋</span>
+          <span class="icon">🏢</span>
           <span>CHECKLIST PROYEK 2026</span>
         </a>
         <a class="link-btn" href="https://docs.google.com/spreadsheets/d/1pVh735Ig9Ch20dfa6zVQSSX3kFN-BZ_jrbQD2DoR8X4" target="_blank" rel="noopener">
-          <span class="icon">🏢</span>
+          <span class="icon">📋</span>
           <span>MASTER PROYEK PPBL 2026</span>
         </a>
 
@@ -418,7 +450,7 @@
   prevBtn.addEventListener("click", () => prevSlide({userAction:true}));
 
   // ================== AUTO-SLIDE SAAT IDLE ==================
-  const IDLE_MS = 13000; // 6 detik tanpa gerakan cursor -> otomatis geser
+  const IDLE_MS = 6000; // 6 detik tanpa gerakan cursor -> otomatis geser
   let idleTimer = null;
 
   function resetIdleTimer(){
@@ -456,6 +488,31 @@
       bgMusic.play().then(showPlayingUI).catch(() => {});
     }
   }, { once: true });
+
+  // ================== PENGHITUNG PENGUNJUNG (tersimpan permanen di server) ==================
+  // Setiap kali web ini dibuka, angkanya nambah 1 lewat CountAPI (layanan hit-counter
+  // gratis, tanpa perlu backend/login sendiri) lalu tersimpan permanen di server mereka.
+  // Semua pengunjung melihat angka yang sama karena datanya dari satu sumber, bukan
+  // disimpan lokal di browser masing-masing.
+  (function initVisitorCounter(){
+    const countEl = document.getElementById("visitorCount");
+    // Ganti NAMESPACE ini kalau mau dipakai untuk web lain, biar hitungannya tidak nyampur
+    const NAMESPACE = "simbg-gresik-ppbltahun2025";
+    const KEY = "total-pengunjung";
+
+    fetch(`https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}`)
+      .then(res => res.json())
+      .then(data => {
+        if (countEl && typeof data.value !== "undefined"){
+          countEl.textContent = data.value.toLocaleString("id-ID");
+        } else if (countEl){
+          countEl.textContent = "-";
+        }
+      })
+      .catch(() => {
+        if (countEl) countEl.textContent = "-";
+      });
+  })();
 </script>
 </body>
 </html>
