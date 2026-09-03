@@ -28,17 +28,33 @@
       min-height:100vh;
       font-family:"Segoe UI",Arial,sans-serif;
       color:#fff;
-      /* Foto kolase jadi background PENUH di belakang, bukan strip terpisah lagi.
-         Card diletakkan mengambang utuh di tengahnya. */
       background:
-        linear-gradient(180deg,rgba(4,15,32,.55),rgba(4,15,32,.85)),
-        var(--hero-bg-url, url("assets/image.png")) center/cover fixed no-repeat;
-      padding:32px 16px 38px;
+        linear-gradient(180deg,rgba(4,15,32,.42),rgba(4,15,32,.92)),
+        var(--hero-bg-url, url("assets/image.png")) center center/cover fixed no-repeat;
+      padding:0 16px 38px;
+      transition:background-image .5s ease;
       overflow-x:hidden;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
+    }
+
+    /* ===== HERO / kolase foto, berganti sesuai segmen aktif ===== */
+    .hero-wrap{
+      position:relative;
+      width:min(1100px,100%);
+      height:clamp(230px,42vw,500px);
+      margin:0 auto;
+    }
+
+    .hero{
+      position:absolute;
+      inset:0;
+      border-radius:0 0 28px 28px;
+      overflow:hidden;
+      box-shadow:0 16px 45px rgba(0,0,0,.30);
+      background:
+        linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)),
+        url("assets/image.png") center center/cover no-repeat;
+      opacity:1;
+      transition:opacity .55s ease, background-image .1s linear;
     }
 
     /* ===== Tombol navigasi kiri/kanan ===== */
@@ -66,14 +82,15 @@
     .nav-left{left:10px}
     .nav-right{right:10px}
 
-    /* ===== Slider kartu (Segmen A / B) — utuh, di tengah, foto ada di belakang sebagai background ===== */
+    /* ===== Slider kartu (Segmen A / B) ===== */
     .card-slider{
       width:100%;
       max-width:480px;
-      margin:0 auto;
+      margin:-72px auto 0;
       position:relative;
       z-index:2;
-      /* overflow-x untuk slide antar segmen; overflow-y visible supaya logo (badge) di atas card tidak kepotong */
+      /* FIX: overflow horizontal saja supaya slide tetap rapi,
+         tapi logo yang menonjol ke atas (margin-top negatif) tidak ikut kepotong */
       overflow-x:hidden;
       overflow-y:visible;
       border-radius:24px;
@@ -96,15 +113,30 @@
       backdrop-filter:blur(14px);
       -webkit-backdrop-filter:blur(14px);
       box-shadow:0 18px 45px rgba(0,0,0,.35);
+      overflow:visible;
+    }
+
+    /* ===== Logo: dibungkus lingkaran tetap supaya logo APAPUN rasio/ukurannya
+       selalu utuh, tidak pernah kepotong, dan posisinya rapi di tengah atas kartu ===== */
+    .logo-wrap{
+      width:96px;
+      height:96px;
+      margin:-48px auto 10px;
+      border-radius:50%;
+      background:var(--cream);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      box-shadow:0 8px 18px rgba(0,0,0,.32), 0 0 0 4px rgba(255,255,255,.12);
+      flex-shrink:0;
     }
 
     .logo{
-      width:92px;
-      height:92px;
+      width:82%;
+      height:82%;
       object-fit:contain;
-      margin:-46px auto 8px;
       display:block;
-      filter:drop-shadow(0 8px 12px rgba(0,0,0,.28));
     }
 
     h1{
@@ -184,19 +216,26 @@
 
     @media (max-width:600px){
       body{
-        padding:24px 10px 28px;
+        padding:0 10px 28px;
         background-attachment:scroll;
       }
+
+      .hero{
+        height:240px;
+        border-radius:0 0 22px 22px;
+      }
+      .hero-wrap{height:240px}
 
       .card{
         padding:22px 15px 16px;
         border-radius:20px;
       }
+      .card-slider{margin:-52px auto 0}
 
-      .logo{
-        width:82px;
-        height:82px;
-        margin:-42px auto 6px;
+      .logo-wrap{
+        width:84px;
+        height:84px;
+        margin:-40px auto 8px;
       }
 
       h1{font-size:19px}
@@ -213,6 +252,10 @@
 
   <button class="nav-btn nav-left" id="prevBtn" aria-label="Segmen sebelumnya">&#10094;</button>
   <button class="nav-btn nav-right" id="nextBtn" aria-label="Segmen berikutnya">&#10095;</button>
+
+  <div class="hero-wrap">
+    <div class="hero" id="hero" aria-label="Kolase dokumentasi kegiatan"></div>
+  </div>
 
   <!-- Musik: id="bgMusic" src akan diganti otomatis sesuai segmen aktif -->
   <audio id="bgMusic" loop preload="none"></audio>
@@ -233,7 +276,9 @@
             data-hero="assets/image.png"
             data-logo="assets/logo.png"
             data-audio="assets/lagu.mp3">
-        <img class="logo" src="assets/logo.png" alt="Logo SIMBG Gresik">
+        <div class="logo-wrap">
+          <img class="logo" src="assets/logo.png" alt="Logo SIMBG Gresik">
+        </div>
 
         <h1>Daftar Link Serbaguna SIMBG</h1>
         <p class="subtitle">
@@ -279,7 +324,9 @@
             data-hero="assets/image2.png"
             data-logo="assets/logo2.png"
             data-audio="assets/lagu2.mp3">
-        <img class="logo" src="assets/logo2.png" alt="Logo Penataan Bangunan Gedung">
+        <div class="logo-wrap">
+          <img class="logo" src="assets/logo2.png" alt="Logo Penataan Bangunan Gedung">
+        </div>
 
         <h1>Daftar Link Penataan Bangunan Gedung</h1>
         <p class="subtitle">
@@ -308,10 +355,6 @@
 
  <script>
   // ================== ELEMEN AUDIO & TOMBOL MUSIK ==================
-  // FIX: elemen-elemen ini HARUS diambil sebelum goTo() didefinisikan/dipanggil,
-  // karena goTo() memakai bgMusic. Sebelumnya bgMusic di-const di bagian bawah
-  // sehingga goTo(0) di akhir script error (temporal dead zone) dan
-  // menghentikan seluruh script -> itu sebabnya musik & auto-slide tidak jalan.
   const musicBtn = document.getElementById("musicBtn");
   const bgMusic = document.getElementById("bgMusic");
   const iconPlay = document.getElementById("iconPlay");
@@ -331,6 +374,7 @@
 
   // ================== CAROUSEL A/B ==================
   const track = document.getElementById("cardTrack");
+  const hero = document.getElementById("hero");
   const panels = Array.from(track.querySelectorAll(".card"));
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
@@ -344,9 +388,15 @@
     // geser track
     track.style.transform = `translateX(-${current * (100/total)}%)`;
 
-    // update background foto halaman sesuai segmen aktif
+    // update hero background (crossfade sederhana)
     const panel = panels[current];
-    document.body.style.setProperty("--hero-bg-url", `url("${panel.dataset.hero}")`);
+    hero.style.opacity = 0;
+    setTimeout(() => {
+      hero.style.backgroundImage =
+        `linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)), url("${panel.dataset.hero}")`;
+      document.body.style.setProperty("--hero-bg-url", `url("${panel.dataset.hero}")`);
+      hero.style.opacity = 1;
+    }, 180);
 
     // update musik (ganti sumber, lanjutkan main jika sebelumnya sedang main)
     const wasPlaying = !bgMusic.paused;
