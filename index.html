@@ -236,42 +236,41 @@
     <footer>© 2026 SIMBG Gresik</footer>
   </main>
 
-  <script>
-    const musicBtn = document.getElementById("musicBtn");
-    const bgMusic = document.getElementById("bgMusic");
-    const iconPlay = document.getElementById("iconPlay");
-    const iconPause = document.getElementById("iconPause");
+ <script>
+  const musicBtn = document.getElementById("musicBtn");
+  const bgMusic = document.getElementById("bgMusic");
+  const iconPlay = document.getElementById("iconPlay");
+  const iconPause = document.getElementById("iconPause");
 
-    function showPlayingUI(){
-      iconPlay.style.display = "none";
-      iconPause.style.display = "block";
-      musicBtn.classList.add("playing");
+  function showPlayingUI(){
+    iconPlay.style.display = "none";
+    iconPause.style.display = "block";
+    musicBtn.classList.add("playing");
+  }
+
+  function showPausedUI(){
+    iconPlay.style.display = "block";
+    iconPause.style.display = "none";
+    musicBtn.classList.remove("playing");
+  }
+
+  // Toggle play/pause saat tombol musik diklik
+  musicBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (bgMusic.paused) {
+      bgMusic.play().then(showPlayingUI).catch(showPausedUI);
+    } else {
+      bgMusic.pause();
+      showPausedUI();
     }
+  });
 
-    function showPausedUI(){
-      iconPlay.style.display = "block";
-      iconPause.style.display = "none";
-      musicBtn.classList.remove("playing");
+  // Autoplay saat pengguna pertama kali mengklik area mana saja di halaman
+  document.addEventListener("click", () => {
+    if (bgMusic.paused) {
+      bgMusic.play().then(showPlayingUI).catch(() => {});
     }
-
-    musicBtn.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      if(bgMusic.paused){
-        bgMusic.play().then(showPlayingUI).catch(showPausedUI);
-      }else{
-        bgMusic.pause();
-        showPausedUI();
-      }
-    });
-
-    // Browser modern biasanya memblokir autoplay audio.
-    document.addEventListener("click", ()=>{
-      if(bgMusic.paused && !musicBtn.contains(document.activeElement)){
-        bgMusic.play().then(showPlayingUI).catch(()=>{});
-      }
-    }, {once:true});
-    async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2710424249080203"
-     crossorigin="anonymous"
-  </script>
+  }, { once: true });
+</script>
 </body>
 </html>
