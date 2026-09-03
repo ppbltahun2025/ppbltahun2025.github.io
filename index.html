@@ -30,30 +30,95 @@
       color:#fff;
       background:
         linear-gradient(180deg,rgba(4,15,32,.42),rgba(4,15,32,.92)),
-        url("assets/wallpaper.png") center top/cover fixed no-repeat;
+        var(--hero-bg-url, url("assets/wallpaper.png")) center top/cover fixed no-repeat;
       padding:0 16px 38px;
+      transition:background-image .5s ease;
+      overflow-x:hidden;
     }
 
-    /* Hero menggunakan kolase 3 foto rapat.
-       Di desktop menjadi header visual; di mobile tetap proporsional. */
-    .hero{
+    /* ===== HERO / kolase foto, berganti sesuai segmen aktif ===== */
+    .hero-wrap{
+      position:relative;
       width:min(1100px,100%);
       height:clamp(230px,42vw,500px);
       margin:0 auto;
+    }
+
+    .hero{
+      position:absolute;
+      inset:0;
       border-radius:0 0 28px 28px;
       overflow:hidden;
       box-shadow:0 16px 45px rgba(0,0,0,.30);
       background:
         linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)),
         url("assets/wallpaper.png") center/cover no-repeat;
+      opacity:1;
+      transition:opacity .55s ease, background-image .1s linear;
     }
 
-    .card{
+    /* ===== Tombol navigasi kiri/kanan ===== */
+    .nav-btn{
+      position:fixed;
+      top:50%;
+      transform:translateY(-50%);
+      width:44px;
+      height:44px;
+      border-radius:50%;
+      border:none;
+      background:rgba(7,27,58,.55);
+      color:#ffd873;
+      font-size:20px;
+      line-height:1;
+      cursor:pointer;
+      z-index:1000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+      transition:background .18s ease, transform .18s ease;
+    }
+    .nav-btn:hover{background:rgba(7,27,58,.85);transform:translateY(-50%) scale(1.06)}
+    .nav-left{left:10px}
+    .nav-right{right:10px}
+
+    /* ===== Dots indikator segmen ===== */
+    .dots{
+      display:flex;
+      justify-content:center;
+      gap:8px;
+      margin:14px 0 -6px;
+      position:relative;
+      z-index:3;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:rgba(255,255,255,.35);
+      cursor:pointer;
+      transition:background .2s ease, transform .2s ease;
+    }
+    .dot.active{background:var(--gold);transform:scale(1.25)}
+
+    /* ===== Slider kartu (Segmen A / B) ===== */
+    .card-slider{
       width:100%;
       max-width:480px;
       margin:-72px auto 0;
       position:relative;
       z-index:2;
+      overflow:hidden;
+      border-radius:24px;
+    }
+
+    .card-track{
+      display:flex;
+      width:200%;
+      transition:transform .55s cubic-bezier(.4,0,.2,1);
+    }
+
+    .card{
+      width:50%;
+      flex:0 0 50%;
       text-align:center;
       padding:28px 20px 20px;
       border:1px solid rgba(255,255,255,.22);
@@ -158,12 +223,13 @@
         height:240px;
         border-radius:0 0 22px 22px;
       }
+      .hero-wrap{height:240px}
 
       .card{
-        margin:-52px auto 0;
         padding:22px 15px 16px;
         border-radius:20px;
       }
+      .card-slider{margin:-52px auto 0}
 
       .logo{
         width:82px;
@@ -174,16 +240,24 @@
       h1{font-size:19px}
       .subtitle{font-size:13px}
       .music-btn{top:12px;right:12px}
+      .nav-btn{width:38px;height:38px;font-size:17px}
+      .nav-left{left:6px}
+      .nav-right{right:6px}
     }
   </style>
 </head>
 
 <body>
-    
-  <div class="hero" aria-label="Kolase dokumentasi kegiatan SIMBG Gresik"></div>
 
-  <!-- Musik opsional: letakkan lagu.mp3 di folder assets jika ingin dipakai. -->
-  <audio id="bgMusic" src="assets/lagu.mp3" loop preload="none"></audio>
+  <button class="nav-btn nav-left" id="prevBtn" aria-label="Segmen sebelumnya">&#10094;</button>
+  <button class="nav-btn nav-right" id="nextBtn" aria-label="Segmen berikutnya">&#10095;</button>
+
+  <div class="hero-wrap">
+    <div class="hero" id="hero" aria-label="Kolase dokumentasi kegiatan"></div>
+  </div>
+
+  <!-- Musik: id="bgMusic" src akan diganti otomatis sesuai segmen aktif -->
+  <audio id="bgMusic" loop preload="none"></audio>
 
   <button class="music-btn" id="musicBtn"
           title="Putar musik" aria-label="Putar atau jeda musik">
@@ -193,50 +267,168 @@
     </svg>
   </button>
 
-  <main class="card">
-    <img class="logo" src="assets/logo.png" alt="Logo SIMBG Gresik">
+  <div class="dots" id="dots">
+    <span class="dot active" data-index="0"></span>
+    <span class="dot" data-index="1"></span>
+  </div>
 
-    <h1>Daftar Link Serbaguna SIMBG</h1>
-    <p class="subtitle">
-      Tetap semangat melayani dan memastikan keandalan bangunan di Gresik
-    </p>
+  <div class="card-slider">
+    <div class="card-track" id="cardTrack">
 
-    <a class="link-btn"
-       href="https://script.google.com/macros/s/AKfycbyY684FDdbQpkx_QmcH9Q_wMg8-e18i924FQxRg4pvUjl-n6gyTBK32db7GeclRgOjU/exec"
-       target="_blank" rel="noopener">
-      <span class="icon">📱</span>
-      <span>SUPERMASTER SIMBG</span>
-    </a>
-<a class="link-btn"
-       href="https://docs.google.com/spreadsheets/d/1DXYwiOmHVvjwkL_QQPEyZhEHXwkhtc98jMJ6fPW89l0"
-       target="_blank" rel="noopener">
-      <span class="icon">✉️</span>
-      <span>Master SIMBG 2026</span>
-    </a>
-    <a class="link-btn"
-       href="https://drive.google.com/drive/folders/17WOt-qZilYArpQeI-JsOscskflPXW_kK"
-       target="_blank" rel="noopener">
-      <span class="icon">🔗</span>
-      <span>Drive SIMBG 2026</span>
-    </a>
+      <!-- ===== SEGMEN A ===== -->
+      <main class="card"
+            data-hero="assets/wallpaper.png"
+            data-logo="assets/logo.png"
+            data-audio="assets/lagu.mp3">
+        <img class="logo" src="assets/logo.png" alt="Logo SIMBG Gresik">
 
-    <a class="link-btn"
-       href="https://docs.google.com/spreadsheets/d/1m7r3SLQZbnjBEhdrR9BRTtzNx0RzENA37smcVQrkbrk"
-       target="_blank" rel="noopener">
-      <span class="icon">✉️</span>
-      <span>Master Agenda SIMBG 2026</span>
-    </a>
-    <a class="link-btn"
-       href="https://docs.google.com/spreadsheets/d/1f0xtcx1sN5F5uZ4bWmvzUNB96B9p_tCZ4HNBkPf3H8Q/"
-       target="_blank" rel="noopener">
-      <span class="icon">🔥</span>
-      <span>Rekap Bola Genih </span>
-    </a>
+        <h1>Daftar Link Serbaguna SIMBG</h1>
+        <p class="subtitle">
+          Tetap semangat melayani dan memastikan keandalan bangunan di Gresik
+        </p>
 
-    <footer>© 2026 SIMBG Gresik</footer>
-  </main>
+        <a class="link-btn"
+           href="https://script.google.com/macros/s/AKfycbyY684FDdbQpkx_QmcH9Q_wMg8-e18i924FQxRg4pvUjl-n6gyTBK32db7GeclRgOjU/exec"
+           target="_blank" rel="noopener">
+          <span class="icon">📱</span>
+          <span>SUPERMASTER SIMBG</span>
+        </a>
+        <a class="link-btn"
+           href="https://docs.google.com/spreadsheets/d/1DXYwiOmHVvjwkL_QQPEyZhEHXwkhtc98jMJ6fPW89l0"
+           target="_blank" rel="noopener">
+          <span class="icon">✉️</span>
+          <span>Master SIMBG 2026</span>
+        </a>
+        <a class="link-btn"
+           href="https://drive.google.com/drive/folders/17WOt-qZilYArpQeI-JsOscskflPXW_kK"
+           target="_blank" rel="noopener">
+          <span class="icon">🔗</span>
+          <span>Drive SIMBG 2026</span>
+        </a>
+        <a class="link-btn"
+           href="https://docs.google.com/spreadsheets/d/1m7r3SLQZbnjBEhdrR9BRTtzNx0RzENA37smcVQrkbrk"
+           target="_blank" rel="noopener">
+          <span class="icon">✉️</span>
+          <span>Master Agenda SIMBG 2026</span>
+        </a>
+        <a class="link-btn"
+           href="https://docs.google.com/spreadsheets/d/1f0xtcx1sN5F5uZ4bWmvzUNB96B9p_tCZ4HNBkPf3H8Q/"
+           target="_blank" rel="noopener">
+          <span class="icon">🔥</span>
+          <span>Rekap Bola Genih</span>
+        </a>
+
+        <footer>© 2026 SIMBG Gresik</footer>
+      </main>
+
+      <!-- ===== SEGMEN B — GANTI link, logo, wallpaper, lagu sesuai punyamu ===== -->
+      <main class="card"
+            data-hero="assets/image2.png"
+            data-logo="assets/logo2.png"
+            data-audio="assets/lagu2.mp3">
+        <img class="logo" src="assets/logo2.png" alt="Logo Penataan Bangunan Gedung">
+
+        <h1>Daftar Link Penataan Bangunan Gedung</h1>
+        <p class="subtitle">
+          Mendukung tata kelola dan penataan bangunan gedung yang tertib dan berkelanjutan
+        </p>
+
+        <!-- Placeholder: ganti href & teks sesuai link aslimu -->
+        <a class="link-btn" href="https://drive.google.com/drive/folders/1oO_Zc5SuTDP43Uk8CYOWvK2w3W-KI_5q" target="_blank" rel="noopener">
+          <span class="icon">🗂️</span>
+          <span>DRIVE PPBL</span>
+        </a>
+        <a class="link-btn" href="https://docs.google.com/spreadsheets/d/1TY-Lo9vXqowYkz5ok3A3GEdq3-M7OcLn2busfwjTovA" target="_blank" rel="noopener">
+          <span class="icon">🏢</span>
+          <span>CHECKLIST PROYEK 2026</span>
+        </a>
+        <a class="link-btn" href="https://docs.google.com/spreadsheets/d/1pVh735Ig9Ch20dfa6zVQSSX3kFN-BZ_jrbQD2DoR8X4" target="_blank" rel="noopener">
+          <span class="icon">📋</span>
+          <span>MASTER PROYEK PPBL 2026</span>
+        
+
+        <footer>© 2026 Penataan Bangunan Gedung</footer>
+      </main>
+
+    </div>
+  </div>
 
  <script>
+  // ================== CAROUSEL A/B ==================
+  const track = document.getElementById("cardTrack");
+  const hero = document.getElementById("hero");
+  const dotsWrap = document.getElementById("dots");
+  const dots = Array.from(dotsWrap.querySelectorAll(".dot"));
+  const panels = Array.from(track.querySelectorAll(".card"));
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  let current = 0;
+  const total = panels.length; // saat ini 2 (A & B), tapi kode ini otomatis mendukung lebih
+
+  function goTo(index, {userAction=false} = {}){
+    current = (index + total) % total;
+
+    // geser track
+    track.style.transform = `translateX(-${current * (100/total)}%)`;
+
+    // update hero background (crossfade sederhana)
+    const panel = panels[current];
+    hero.style.opacity = 0;
+    setTimeout(() => {
+      hero.style.backgroundImage =
+        `linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)), url("${panel.dataset.hero}")`;
+      document.body.style.setProperty("--hero-bg-url", `url("${panel.dataset.hero}")`);
+      hero.style.opacity = 1;
+    }, 180);
+
+    // update dots
+    dots.forEach((d,i) => d.classList.toggle("active", i === current));
+
+    // update musik (ganti sumber, lanjutkan main jika sebelumnya sedang main)
+    const wasPlaying = !bgMusic.paused;
+    const newSrc = panel.dataset.audio;
+    if (bgMusic.getAttribute("src") !== newSrc){
+      bgMusic.setAttribute("src", newSrc);
+      if (wasPlaying){
+        bgMusic.play().then(showPlayingUI).catch(showPausedUI);
+      }
+    }
+
+    if (userAction) resetIdleTimer();
+  }
+
+  function next(opts){ goTo(current + 1, opts); }
+  function prevSlide(opts){ goTo(current - 1, opts); }
+
+  nextBtn.addEventListener("click", () => next({userAction:true}));
+  prevBtn.addEventListener("click", () => prevSlide({userAction:true}));
+
+  dots.forEach(d => {
+    d.addEventListener("click", () => goTo(parseInt(d.dataset.index,10), {userAction:true}));
+  });
+
+  // ================== AUTO-SLIDE SAAT IDLE ==================
+  const IDLE_MS = 6000; // 6 detik tanpa gerakan cursor -> otomatis geser
+  let idleTimer = null;
+
+  function resetIdleTimer(){
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      next({userAction:false});
+      resetIdleTimer();
+    }, IDLE_MS);
+  }
+
+  ["mousemove","touchstart","keydown","wheel"].forEach(evt => {
+    document.addEventListener(evt, resetIdleTimer, {passive:true});
+  });
+
+  // inisialisasi posisi awal
+  goTo(0);
+  resetIdleTimer();
+
+  // ================== MUSIK ==================
   const musicBtn = document.getElementById("musicBtn");
   const bgMusic = document.getElementById("bgMusic");
   const iconPlay = document.getElementById("iconPlay");
@@ -254,10 +446,10 @@
     musicBtn.classList.remove("playing");
   }
 
-  // Toggle play/pause saat tombol musik diklik
   musicBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     if (bgMusic.paused) {
+      if (!bgMusic.getAttribute("src")) bgMusic.setAttribute("src", panels[current].dataset.audio);
       bgMusic.play().then(showPlayingUI).catch(showPausedUI);
     } else {
       bgMusic.pause();
@@ -268,6 +460,7 @@
   // Autoplay saat pengguna pertama kali mengklik area mana saja di halaman
   document.addEventListener("click", () => {
     if (bgMusic.paused) {
+      if (!bgMusic.getAttribute("src")) bgMusic.setAttribute("src", panels[current].dataset.audio);
       bgMusic.play().then(showPlayingUI).catch(() => {});
     }
   }, { once: true });
