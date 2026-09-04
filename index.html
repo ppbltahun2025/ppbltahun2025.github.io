@@ -30,7 +30,7 @@
       color:#fff;
       background:
         linear-gradient(180deg,rgba(4,15,32,.42),rgba(4,15,32,.92)),
-        var(--hero-bg-url, url("assets/image.png")) center center/cover fixed no-repeat;
+        var(--hero-bg-url, url("assets/hero-home.png")) center center/cover fixed no-repeat;
       padding:0 16px 38px;
       transition:background-image .5s ease;
       overflow-x:hidden;
@@ -52,7 +52,7 @@
       box-shadow:0 16px 45px rgba(0,0,0,.30);
       background:
         linear-gradient(180deg,rgba(7,27,58,.05),rgba(7,27,58,.35)),
-        url("assets/image.png") center center/cover no-repeat;
+        url("assets/hero-home.png") center center/cover no-repeat;
       opacity:1;
       transition:opacity .55s ease, background-image .1s linear;
     }
@@ -67,6 +67,7 @@
     }
 
     .card{
+      position:relative;
       text-align:center;
       padding:28px 20px 20px;
       border:1px solid rgba(255,255,255,.22);
@@ -84,7 +85,7 @@
       to{opacity:1; transform:translateY(0)}
     }
 
-    /* ===== Logo tunggal (halaman detail) ===== */
+    /* ===== Logo tunggal (lingkaran, dipakai di Home & halaman detail) ===== */
     .logo-wrap{
       width:96px;
       height:96px;
@@ -120,117 +121,125 @@
       opacity:.94;
     }
 
-    .link-btn{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      width:100%;
-      background:var(--cream);
-      color:var(--text);
-      font-weight:650;
-      font-size:14.5px;
-      text-decoration:none;
-      padding:14px 16px;
-      margin-bottom:12px;
-      border-left:4px solid var(--gold);
-      border-radius:12px;
-      box-shadow:0 5px 15px rgba(0,0,0,.12);
-      transition:transform .18s ease,background .18s ease,box-shadow .18s ease;
-    }
-
-    .link-btn:hover{
-      background:#fff;
-      transform:translateY(-2px);
-      box-shadow:0 9px 20px rgba(0,0,0,.18);
-    }
-
-    .link-btn .icon{
-      font-size:18px;
-      flex:0 0 auto;
-    }
-
     footer{
       margin-top:18px;
       color:rgba(255,255,255,.62);
       font-size:11.5px;
     }
 
-    /* ===== Tombol kembali (halaman detail) ===== */
+    /* ===== Tombol kembali (halaman detail) =====
+       Diletakkan mengambang (absolute) di pojok kiri atas kartu,
+       BUKAN sebagai blok yang mendorong logo ke bawah — supaya logo
+       tetap di tengah, tombol cuma nempel di pinggir. */
     .back-btn{
-      display:inline-flex;
+      position:absolute;
+      top:16px;
+      left:16px;
+      z-index:5;
+      display:flex;
       align-items:center;
-      gap:6px;
-      background:transparent;
+      justify-content:center;
+      width:36px;
+      height:36px;
+      background:rgba(255,255,255,.12);
       border:1px solid rgba(255,255,255,.35);
       color:#eaf1ff;
-      font-size:12.5px;
-      font-weight:600;
-      padding:7px 14px;
-      border-radius:999px;
+      font-size:16px;
+      border-radius:50%;
       cursor:pointer;
-      margin:0 0 16px;
       transition:background .18s ease, transform .18s ease;
     }
-    .back-btn:hover{background:rgba(255,255,255,.14); transform:translateX(-2px)}
+    .back-btn:hover{background:rgba(255,255,255,.22); transform:translateX(-2px)}
 
-    /* ===== Grid pilihan hexagon (halaman home) ===== */
+    /* ===== HONEYCOMB GRID (meniru teknik asli Kedaton di main1.css) =====
+       Kedaton memakai hexagon pointy-top dengan rasio lebar:tinggi =
+       1 : 1.1547 (height = width / (√3/2)), lalu:
+         - baris genap digeser ke kanan sejauh SETENGAH lebar hex
+         - tiap baris ditumpuk naik sejauh 3/4 TINGGI hex
+       Itulah rumus matematis honeycomb asli, bukan margin kira-kira.
+       Semua posisi (left/top per item) dihitung & ditulis oleh JS
+       (lihat layoutHoneycomb()) berdasarkan rumus yang sama, supaya
+       tetap presisi di berbagai lebar layar / jumlah item — bukan
+       di-hardcode ke nth-child seperti punya Kedaton yang rawan pecah
+       kalau container-nya berubah lebar. ===== */
     .hex-grid{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:26px 20px;
-      margin:6px 0 6px;
-      padding:0 4px;
+      position:relative;
+      margin:6px auto 10px;
     }
 
     .hex-item{
       appearance:none;
       background:none;
       border:none;
-      padding:6px;
-      width:128px;
+      padding:0;
+      position:absolute;
       display:flex;
       flex-direction:column;
       align-items:center;
+      justify-content:center;
       color:inherit;
       font:inherit;
+      text-decoration:none;
       cursor:pointer;
-      border-radius:18px;
+      z-index:1;
+      transition:transform .2s cubic-bezier(.165,.84,.44,1), z-index 0s;
     }
     .hex-item:focus-visible{
       outline:2px solid var(--gold);
       outline-offset:3px;
     }
+    .hex-item:hover{
+      transform:scale(1.08);
+      z-index:2;
+    }
 
+    /* bentuk hex pointy-top asli (titik di atas & bawah, sisi rata
+       kiri-kanan) via clip-path — setara dengan polygon SVG Kedaton
+       (86.6,0 173.2,50 173.2,150 86.6,200 0,150 0,50) hanya diskalakan
+       ke 0-100 */
     .hex-shape{
-      width:110px;
-      height:126px;
+      position:absolute;
+      inset:0;
       clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
       background:var(--cream);
       display:flex;
       align-items:center;
       justify-content:center;
-      box-shadow:0 10px 24px rgba(0,0,0,.35);
-      transition:transform .2s ease, box-shadow .2s ease;
+      box-shadow:0 10px 22px rgba(0,0,0,.35);
+      transition:box-shadow .2s ease, background .2s ease;
     }
     .hex-item:hover .hex-shape{
-      transform:translateY(-4px) scale(1.05);
-      box-shadow:0 14px 30px rgba(0,0,0,.45);
+      box-shadow:0 14px 28px rgba(0,0,0,.5);
     }
 
     .hex-shape img{
-      width:64%;
-      height:64%;
+      width:46%;
+      height:46%;
       object-fit:contain;
       display:block;
     }
 
+    .hex-icon{
+      font-size:26px;
+      line-height:1;
+    }
+
     .hex-label{
-      margin-top:10px;
-      font-size:13px;
+      position:relative;
+      z-index:1;
+      margin-top:6px;
+      font-size:10.5px;
       font-weight:700;
-      color:#ffd873;
-      line-height:1.3;
+      color:var(--blue);
+      line-height:1.2;
+      text-align:center;
+      padding:0 6px;
+      transition:color .2s ease;
+    }
+    /* saat hover, label ganti warna seperti .hex-content:hover Kedaton
+       (dari #c77f37 jadi #038987) — di sini dari biru ke emas */
+    .hex-item:hover .hex-label{
+      color:var(--gold);
     }
 
     .music-btn{
@@ -288,7 +297,7 @@
     .visitor-counter .v-caret{opacity:.55;font-size:10px;margin-left:1px;transition:transform .2s ease}
     .visitor-counter.open .v-caret{transform:rotate(180deg)}
 
-    /* ===== Panel rincian pengunjung per hari ===== */
+    /* ===== Panel rincian pengunjung (harian / bulanan) ===== */
     .visitor-panel{
       position:fixed;
       top:66px;
@@ -306,7 +315,7 @@
       padding:0 14px;
     }
     .visitor-panel.open{
-      max-height:340px;
+      max-height:400px;
       opacity:1;
       padding:12px 14px 14px;
     }
@@ -320,6 +329,30 @@
     }
     .visitor-panel-total{font-size:12px;margin-bottom:8px;opacity:.85}
     .visitor-panel-total b{color:var(--blue)}
+
+    .visitor-tabs{
+      display:flex;
+      gap:6px;
+      margin-bottom:8px;
+    }
+    .v-tab{
+      flex:1;
+      font-size:11px;
+      font-weight:700;
+      padding:6px 0;
+      border-radius:8px;
+      border:1px solid rgba(11,75,145,.28);
+      background:transparent;
+      color:var(--blue);
+      cursor:pointer;
+      transition:background .15s ease, color .15s ease;
+    }
+    .v-tab.active{
+      background:var(--blue);
+      color:#fff;
+      border-color:var(--blue);
+    }
+
     .visitor-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
     .visitor-table th{
       text-align:left;
@@ -362,9 +395,8 @@
       .visitor-counter{top:12px;left:12px;font-size:11.5px;padding:7px 12px 7px 10px}
       .visitor-panel{top:58px;left:12px;width:min(236px,calc(100vw - 24px))}
 
-      .hex-grid{gap:20px 14px}
-      .hex-item{width:104px}
-      .hex-shape{width:92px;height:106px}
+      .hex-icon{font-size:20px}
+      .hex-label{font-size:9.5px}
     }
   </style>
 </head>
@@ -398,8 +430,14 @@
   <div class="visitor-panel" id="visitorPanel">
     <div class="visitor-panel-head">Statistik Pengunjung</div>
     <div class="visitor-panel-total">Total sepanjang waktu: <b id="visitorTotalDetail">…</b></div>
+
+    <div class="visitor-tabs">
+      <button class="v-tab active" id="tabDaily" data-tab="daily" type="button">Harian</button>
+      <button class="v-tab" id="tabMonthly" data-tab="monthly" type="button">Bulanan</button>
+    </div>
+
     <table class="visitor-table">
-      <thead><tr><th>Tanggal</th><th>Pengunjung</th></tr></thead>
+      <thead><tr><th id="visitorColHead">Tanggal</th><th>Pengunjung</th></tr></thead>
       <tbody id="visitorTableBody">
         <tr><td colspan="2">Memuat…</td></tr>
       </tbody>
@@ -408,8 +446,12 @@
 
   <div class="view-wrap">
 
-    <!-- ===== HALAMAN HOME: pilih layanan lewat hexagon ===== -->
+    <!-- ===== HALAMAN HOME: logo & lagu sendiri, pilih layanan lewat hexagon ===== -->
     <main class="card" id="homeView">
+      <div class="logo-wrap">
+        <img class="logo" id="homeLogo" src="assets/logo-home.png" alt="Logo Utama">
+      </div>
+
       <h1>Daftar Link Serbaguna</h1>
       <p class="subtitle">Pilih layanan di bawah ini untuk membuka daftar linknya</p>
 
@@ -418,9 +460,10 @@
       <footer>© 2026 Pemerintah Kabupaten Gresik</footer>
     </main>
 
-    <!-- ===== HALAMAN DETAIL: diisi otomatis oleh JS sesuai hexagon yang diklik ===== -->
+    <!-- ===== HALAMAN DETAIL: diisi otomatis oleh JS sesuai hexagon yang diklik.
+         Daftar link di dalamnya juga ditampilkan sebagai hexagon. ===== -->
     <main class="card" id="detailView" style="display:none">
-      <button class="back-btn" id="backBtn">&#8592; Kembali</button>
+      <button class="back-btn" id="backBtn" aria-label="Kembali">&#8592;</button>
 
       <div class="logo-wrap">
         <img class="logo" id="detailLogo" src="" alt="">
@@ -429,7 +472,7 @@
       <h1 id="detailTitle"></h1>
       <p class="subtitle" id="detailSubtitle"></p>
 
-      <div id="detailLinks"></div>
+      <div class="hex-grid" id="detailLinks"></div>
 
       <footer id="detailFooter"></footer>
     </main>
@@ -442,6 +485,16 @@
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
  <script>
+
+  // ================== HALAMAN HOME: logo, hero, lagu SENDIRI ==================
+  // Sengaja beda dari logo/hero/lagu tiap layanan di bawah,
+  // supaya halaman awal punya identitas sendiri, bukan pinjam salah satu layanan.
+  // GANTI 3 path ini sesuai file yang kamu upload ke folder assets/.
+  const HOME = {
+    logo: "assets/logo-home.png",   // logo khusus halaman awal
+    hero: "assets/hero-home.png",   // foto latar khusus halaman awal
+    audio: "assets/lagu-home.mp3"   // lagu khusus halaman awal
+  };
 
   // ================== DATA LAYANAN ==================
   // Tambah layanan baru cukup tambah 1 objek di array ini —
@@ -477,7 +530,7 @@
         { icon: "🗂️", label: "DRIVE PPBL", href: "https://drive.google.com/drive/folders/1oO_Zc5SuTDP43Uk8CYOWvK2w3W-KI_5q" },
         { icon: "📋", label: "CHECKLIST PROYEK 2026", href: "https://docs.google.com/spreadsheets/d/1TY-Lo9vXqowYkz5ok3A3GEdq3-M7OcLn2busfwjTovA" },
         { icon: "🏢", label: "MASTER PROYEK PPBL 2026", href: "https://docs.google.com/spreadsheets/d/1pVh735Ig9Ch20dfa6zVQSSX3kFN-BZ_jrbQD2DoR8X4" },
-        { icon: "🥽", label: "VIRTUAL TOUR 360 BANGUNAN (ON PROGRESS) ", href: "https://ppblnumberone-creator.github.io/Virtual-tour-gresik-v2/" }
+        { icon: "🥽", label: "VIRTUAL TOUR 360 BANGUNAN (ON PROGRESS)", href: "https://ppblnumberone-creator.github.io/Virtual-tour-gresik-v2/" }
       ]
     }
   ];
@@ -513,7 +566,7 @@
   const detailLinks = document.getElementById("detailLinks");
   const detailFooter = document.getElementById("detailFooter");
 
-  let currentSegment = null;
+  let currentSegment = null; // null = sedang di Home
 
   function setHero(url){
     hero.style.opacity = 0;
@@ -525,18 +578,113 @@
     }, 180);
   }
 
+  // Ganti sumber musik, lanjutkan main kalau sebelumnya sedang main
+  function switchAudio(newSrc){
+    const wasPlaying = !bgMusic.paused;
+    if (bgMusic.getAttribute("src") !== newSrc){
+      bgMusic.setAttribute("src", newSrc);
+      if (wasPlaying){
+        bgMusic.play().then(showPlayingUI).catch(showPausedUI);
+      }
+    }
+  }
+
+  // ================== HONEYCOMB — rumus persis teknik Kedaton ==================
+  // Kedaton pakai hex pointy-top dgn rasio W:H = 1 : 1.1547 (H = W / (√3/2)).
+  // Packing pointy-top hexagon yang saling bertautan sempurna:
+  //   - jarak antar kolom (searah baris)      = W (lebar hex, sisi rata bersentuhan)
+  //   - jarak antar baris (vertikal)          = H * 0.75
+  //   - baris ganjil (index 1,3,5,...) digeser = W / 2 ke kanan
+  // Ini dihitung ulang tiap kali grid dibangun (bukan hardcode nth-child)
+  // supaya tetap presisi walau jumlah item atau lebar layar berubah.
+
+  function chunkIntoRows(items, perRow){
+    const rows = [];
+    for (let i = 0; i < items.length; i += perRow){
+      rows.push(items.slice(i, i + perRow));
+    }
+    return rows;
+  }
+
+  // Hitung lebar hex (W) otomatis dari lebar container yang tersedia,
+  // supaya perRow hex selalu muat rapat tanpa overflow di layar manapun.
+  function computeHexWidth(containerEl, perRow){
+    const available = containerEl.clientWidth || 300;
+    // total lebar grid = perRow*W + W/2  ->  W = available / (perRow + 0.5)
+    const w = available / (perRow + 0.5);
+    return Math.max(58, Math.min(112, Math.floor(w)));
+  }
+
+  function layoutHoneycomb(containerEl, items, itemHtmlFn, perRow){
+    const hexW = computeHexWidth(containerEl, perRow);
+    const hexH = hexW / (Math.sqrt(3) / 2);   // rasio asli Kedaton: H = W / (√3/2)
+    const colStep = hexW;                     // jarak antar kolom dalam 1 baris
+    const rowStep = hexH * 0.75;              // baris ditumpuk naik 3/4 tinggi hex
+    const offsetX = hexW / 2;                 // baris ganjil digeser setengah lebar
+
+    const rows = chunkIntoRows(items, perRow);
+    const hasOffsetRow = rows.length > 1;     // cuma ada geseran kalau lebih dari 1 baris
+
+    // Lebar total = lebar baris terlebar (baris genap TANPA offset dianggap
+    // mulai dari 0; baris ganjil DENGAN offset berakhir di offsetX + lebarnya).
+    // Kalau cuma 1 baris, tidak ada offset sama sekali -> grid presisi
+    // selebar isinya saja, supaya margin:auto benar-benar menengahkannya.
+    let totalWidth = 0;
+    rows.forEach((row, r) => {
+      const rowOffset = (hasOffsetRow && r % 2 === 1) ? offsetX : 0;
+      const rowWidth = row.length * colStep + rowOffset;
+      if (rowWidth > totalWidth) totalWidth = rowWidth;
+    });
+    const totalHeight = (rows.length - 1) * rowStep + hexH;
+
+    containerEl.style.width = totalWidth + "px";
+    containerEl.style.height = totalHeight + "px";
+
+    containerEl.innerHTML = rows.map((row, r) => row.map((item, c) => {
+      const x = c * colStep + (hasOffsetRow && r % 2 === 1 ? offsetX : 0);
+      const y = r * rowStep;
+      return itemHtmlFn(item, x, y, hexW, hexH);
+    }).join("")).join("");
+  }
+
+  // ---- Hexagon pilihan layanan (halaman Home) ----
   function buildHexGrid(){
-    hexGrid.innerHTML = segments.map(seg => `
-      <button class="hex-item" type="button" data-id="${seg.id}" aria-label="Buka ${seg.hexLabel}">
+    const perRow = Math.min(3, segments.length) || 1;
+    layoutHoneycomb(hexGrid, segments, (seg, x, y, w, h) => `
+      <button class="hex-item" type="button" data-id="${seg.id}" aria-label="Buka ${seg.hexLabel}"
+              style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
         <span class="hex-shape"><img src="${seg.logo}" alt="Logo ${seg.hexLabel}"></span>
         <span class="hex-label">${seg.hexLabel}</span>
       </button>
-    `).join("");
+    `, perRow);
 
     hexGrid.querySelectorAll(".hex-item").forEach(btn => {
       btn.addEventListener("click", () => openSegment(btn.dataset.id));
     });
   }
+
+  // ---- Hexagon daftar link (halaman Detail) ----
+  function buildLinkHexGrid(seg){
+    const perRow = seg.links.length <= 4 ? 2 : 3;
+    layoutHoneycomb(detailLinks, seg.links, (l, x, y, w, h) => `
+      <a class="hex-item" href="${l.href}" target="_blank" rel="noopener" aria-label="${l.label}"
+         style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
+        <span class="hex-shape"><span class="hex-icon">${l.icon}</span></span>
+        <span class="hex-label">${l.label}</span>
+      </a>
+    `, perRow);
+  }
+
+  // Bangun ulang grid yang sedang tampil saat layar diresize, supaya
+  // tetap presisi rapat (lebar hex dihitung ulang dari lebar container).
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (currentSegment) buildLinkHexGrid(currentSegment);
+      else buildHexGrid();
+    }, 150);
+  });
 
   function openSegment(id){
     const seg = segments.find(s => s.id === id);
@@ -548,23 +696,10 @@
     detailTitle.textContent = seg.title;
     detailSubtitle.textContent = seg.subtitle;
     detailFooter.textContent = seg.footer;
-    detailLinks.innerHTML = seg.links.map(l => `
-      <a class="link-btn" href="${l.href}" target="_blank" rel="noopener">
-        <span class="icon">${l.icon}</span>
-        <span>${l.label}</span>
-      </a>
-    `).join("");
+    buildLinkHexGrid(seg);
 
     setHero(seg.hero);
-
-    // lanjutkan musik ke lagu segmen ini kalau sedang main
-    const wasPlaying = !bgMusic.paused;
-    if (bgMusic.getAttribute("src") !== seg.audio){
-      bgMusic.setAttribute("src", seg.audio);
-      if (wasPlaying){
-        bgMusic.play().then(showPlayingUI).catch(showPausedUI);
-      }
-    }
+    switchAudio(seg.audio);
 
     homeView.style.display = "none";
     detailView.style.display = "block";
@@ -575,20 +710,21 @@
     currentSegment = null;
     homeView.style.display = "block";
     detailView.style.display = "none";
-    setHero(segments[0].hero);
+    setHero(HOME.hero);
+    switchAudio(HOME.audio);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   backBtn.addEventListener("click", goHome);
 
   buildHexGrid();
-  setHero(segments[0].hero);
+  setHero(HOME.hero);
 
   // ================== MUSIK: interaksi tombol & autoplay ==================
   musicBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     if (bgMusic.paused) {
-      if (!bgMusic.getAttribute("src")) bgMusic.setAttribute("src", (currentSegment || segments[0]).audio);
+      if (!bgMusic.getAttribute("src")) bgMusic.setAttribute("src", (currentSegment || HOME).audio);
       bgMusic.play().then(showPlayingUI).catch(showPausedUI);
     } else {
       bgMusic.pause();
@@ -599,33 +735,43 @@
   // Autoplay saat pengguna pertama kali mengklik area mana saja di halaman
   document.addEventListener("click", () => {
     if (bgMusic.paused) {
-      if (!bgMusic.getAttribute("src")) bgMusic.setAttribute("src", (currentSegment || segments[0]).audio);
+      if (!bgMusic.getAttribute("src")) bgMusic.setAttribute("src", (currentSegment || HOME).audio);
       bgMusic.play().then(showPlayingUI).catch(() => {});
     }
   }, { once: true });
 
-  // ================== PENGHITUNG & REKAP HARIAN PENGUNJUNG (Supabase) ==================
+  // ================== PENGHITUNG & REKAP PENGUNJUNG — HARIAN & BULANAN (Supabase) ==================
   // Setiap kunjungan dicatat lewat 1 pemanggilan fungsi database (RPC) yang atomik:
-  // dalam SATU eksekusi yang sama, +1 ke "total sepanjang waktu" DAN +1 ke "hari ini".
-  // Tidak ada logika "unique visitor per sesi" seperti analytics tool (GoatCounter dkk) —
-  // ini murni angka mentah, jadi dijamin: total selalu = jumlah semua angka harian.
+  // dalam SATU eksekusi yang sama, +1 ke "total sepanjang waktu", +1 ke "hari ini",
+  // DAN +1 ke "bulan ini". Tidak ada logika "unique visitor per sesi" seperti
+  // analytics tool (GoatCounter dkk) — ini murni angka mentah, jadi dijamin:
+  // total selalu = jumlah semua angka harian = jumlah semua angka bulanan.
   //
   // WAJIB DIISI — cuma 2 nilai, ambil dari dashboard Supabase-mu:
   //   Project Settings (ikon gerigi) -> API -> "Project URL" dan "anon public" key.
   const SUPABASE_URL = "https://kvcnbyasnvpmnrbvkjjg.supabase.co";      // contoh: https://xxxxx.supabase.co
   const SUPABASE_ANON_KEY = "sb_publishable_J9EFLRjCWE9gaLgsQLKeLQ_x-Wwu3wF";       // key panjang, aman dipasang di frontend
 
-  // WAJIB DIJALANKAN SEKALI di Supabase -> menu "SQL Editor" -> New query -> paste
+  // WAJIB DIJALANKAN di Supabase -> menu "SQL Editor" -> New query -> paste
   // semua isi blok SQL di bawah ini -> klik Run. (Ini komentar, bukan kode JS yang jalan.)
+  // Kalau kamu SUDAH pernah menjalankan versi SQL sebelumnya (yang cuma total & harian),
+  // tinggal jalankan blok ini lagi — tabel lama dibiarkan (create table if not exists),
+  // dan fungsi record_visit() akan DIGANTI (create or replace) supaya ikut mencatat bulanan.
   /*
-    create table visit_total (
+    create table if not exists visit_total (
       id int primary key default 1,
       count bigint not null default 0
     );
-    insert into visit_total (id, count) values (1, 0);
+    insert into visit_total (id, count) values (1, 0)
+      on conflict (id) do nothing;
 
-    create table visit_daily (
+    create table if not exists visit_daily (
       day date primary key,
+      count bigint not null default 0
+    );
+
+    create table if not exists visit_monthly (
+      month date primary key,       -- disimpan sebagai tanggal 1 tiap bulan, mis. 2026-09-01
       count bigint not null default 0
     );
 
@@ -636,34 +782,55 @@
     as $$
     begin
       update visit_total set count = count + 1 where id = 1;
+
       insert into visit_daily (day, count) values (current_date, 1)
         on conflict (day) do update set count = visit_daily.count + 1;
+
+      insert into visit_monthly (month, count)
+        values (date_trunc('month', current_date)::date, 1)
+        on conflict (month) do update set count = visit_monthly.count + 1;
     end;
     $$;
 
     alter table visit_total enable row level security;
     alter table visit_daily enable row level security;
+    alter table visit_monthly enable row level security;
+
+    drop policy if exists "publik boleh baca total" on visit_total;
     create policy "publik boleh baca total" on visit_total for select using (true);
+
+    drop policy if exists "publik boleh baca harian" on visit_daily;
     create policy "publik boleh baca harian" on visit_daily for select using (true);
-    -- catatan: publik TIDAK diberi izin insert/update langsung ke tabel;
+
+    drop policy if exists "publik boleh baca bulanan" on visit_monthly;
+    create policy "publik boleh baca bulanan" on visit_monthly for select using (true);
+    -- catatan: publik TIDAK diberi izin insert/update langsung ke tabel manapun;
     -- satu-satunya jalan menambah angka adalah lewat fungsi record_visit() di atas,
-    -- dan fungsi ini SELALU menambah total & harian bersamaan, jadi tidak akan pernah
-    -- nyimpang seperti kasus GoatCounter kemarin.
+    -- dan fungsi ini SELALU menambah total, harian, & bulanan bersamaan.
   */
 
-  const HARI_DITAMPILKAN = 7; // jumlah hari ke belakang yang direkap di tabel
+  const HARI_DITAMPILKAN = 7;   // jumlah hari ke belakang yang direkap
+  const BULAN_DITAMPILKAN = 6; // jumlah bulan ke belakang yang direkap
 
   function formatTanggalID(isoDate){
     const [y, m, d] = isoDate.split("-").map(Number);
     return new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   }
 
+  function formatBulanID(isoMonth){
+    const [y, m] = isoMonth.split("-").map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  }
+
   (function initVisitorBadge(){
     const countEl = document.getElementById("visitorCount");
     const totalDetailEl = document.getElementById("visitorTotalDetail");
     const tableBody = document.getElementById("visitorTableBody");
+    const colHead = document.getElementById("visitorColHead");
     const counterBtn = document.getElementById("visitorCounter");
     const panel = document.getElementById("visitorPanel");
+    const tabDaily = document.getElementById("tabDaily");
+    const tabMonthly = document.getElementById("tabMonthly");
 
     // Panel bisa dibuka/tutup lewat klik badge, terlepas dari Supabase siap atau belum
     counterBtn.addEventListener("click", () => {
@@ -671,11 +838,49 @@
       panel.classList.toggle("open");
     });
 
+    let activeTab = "daily";
+    let dailyRows = [];
+    let monthlyRows = [];
+
+    function renderTable(){
+      if (activeTab === "daily"){
+        colHead.textContent = "Tanggal";
+        tableBody.innerHTML = dailyRows.length
+          ? dailyRows.map(row => `
+              <tr>
+                <td>${formatTanggalID(row.day)}${row.day === todayKey ? " (hari ini)" : ""}</td>
+                <td>${Number(row.count).toLocaleString("id-ID")}</td>
+              </tr>
+            `).join("")
+          : '<tr><td colspan="2">Belum ada data</td></tr>';
+      } else {
+        colHead.textContent = "Bulan";
+        tableBody.innerHTML = monthlyRows.length
+          ? monthlyRows.map(row => `
+              <tr>
+                <td>${formatBulanID(row.month)}</td>
+                <td>${Number(row.count).toLocaleString("id-ID")}</td>
+              </tr>
+            `).join("")
+          : '<tr><td colspan="2">Belum ada data</td></tr>';
+      }
+    }
+
+    function setActiveTab(tab){
+      activeTab = tab;
+      tabDaily.classList.toggle("active", tab === "daily");
+      tabMonthly.classList.toggle("active", tab === "monthly");
+      renderTable();
+    }
+
+    tabDaily.addEventListener("click", () => setActiveTab("daily"));
+    tabMonthly.addEventListener("click", () => setActiveTab("monthly"));
+
     const isConfigured = !SUPABASE_URL.startsWith("GANTI_") && !SUPABASE_ANON_KEY.startsWith("GANTI_");
     if (!isConfigured){
       countEl.textContent = "-";
       if (totalDetailEl) totalDetailEl.textContent = "-";
-      if (tableBody) tableBody.innerHTML = '<tr><td colspan="2">SUPABASE_URL / KEY belum diisi</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="2">SUPABASE_URL / KEY belum diisi</td></tr>';
       console.error("Isi dulu SUPABASE_URL dan SUPABASE_ANON_KEY di kode sebelum badge pengunjung bisa jalan.");
       return;
     }
@@ -692,7 +897,6 @@
     }
 
     async function fetchDailyRecap(){
-      if (!tableBody) return;
       const { data, error } = await sb
         .from("visit_daily")
         .select("day, count")
@@ -700,23 +904,28 @@
         .limit(HARI_DITAMPILKAN);
 
       if (error) console.error("Supabase (visit_daily):", error.message);
-      if (error || !data || data.length === 0){
-        tableBody.innerHTML = '<tr><td colspan="2">Belum ada data</td></tr>';
-        return;
-      }
-      tableBody.innerHTML = data.map(row => `
-        <tr>
-          <td>${formatTanggalID(row.day)}${row.day === todayKey ? " (hari ini)" : ""}</td>
-          <td>${Number(row.count).toLocaleString("id-ID")}</td>
-        </tr>
-      `).join("");
+      dailyRows = (!error && data) ? data : [];
+      renderTable();
+    }
+
+    async function fetchMonthlyRecap(){
+      const { data, error } = await sb
+        .from("visit_monthly")
+        .select("month, count")
+        .order("month", { ascending: false })
+        .limit(BULAN_DITAMPILKAN);
+
+      if (error) console.error("Supabase (visit_monthly):", error.message, "— pastikan sudah menjalankan SQL setup tabel visit_monthly.");
+      monthlyRows = (!error && data) ? data : [];
+      renderTable();
     }
 
     async function recordAndLoad(){
-      const { error } = await sb.rpc("record_visit"); // +1 total & +1 hari ini, dalam 1 transaksi database
+      const { error } = await sb.rpc("record_visit"); // +1 total, +1 harian, +1 bulanan — 1 transaksi database
       if (error) console.error("Supabase (record_visit):", error.message, "— pastikan sudah menjalankan SQL setup di SQL Editor.");
       await fetchTotal();
       await fetchDailyRecap();
+      await fetchMonthlyRecap();
     }
 
     recordAndLoad();
