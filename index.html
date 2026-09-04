@@ -214,7 +214,7 @@
       50%{box-shadow:0 0 0 8px rgba(240,180,41,0)}
     }
 
-    /* ===== Badge penghitung pengunjung (tersimpan permanen di GoatCounter) ===== */
+    /* ===== Badge penghitung pengunjung (tersimpan permanen di Supabase) ===== */
     .visitor-counter{
       position:fixed;
       top:16px;
@@ -286,19 +286,6 @@
     }
     .visitor-table td{padding:4px 0;border-top:1px dashed rgba(16,33,59,.12)}
     .visitor-table td:last-child{text-align:right;font-weight:700;color:var(--blue)}
-    .visitor-dashboard-btn{
-      display:block;
-      text-align:center;
-      background:var(--blue);
-      color:#fff;
-      text-decoration:none;
-      font-size:11.5px;
-      font-weight:700;
-      padding:9px 10px;
-      border-radius:10px;
-      transition:background .18s ease;
-    }
-    .visitor-dashboard-btn:hover{background:#093a72}
 
     @media (max-width:600px){
       body{
@@ -356,7 +343,7 @@
     </svg>
   </button>
 
-  <!-- Badge total pengunjung: nilainya tersimpan permanen di GoatCounter (server),
+  <!-- Badge total pengunjung: nilainya tersimpan permanen di Supabase (server),
        sama untuk semua orang, dan klik badge ini untuk buka rinciannya -->
   <div class="visitor-counter" id="visitorCounter" title="Klik untuk lihat rincian">
     <span class="v-icon">👁️</span>
@@ -374,9 +361,6 @@
         <tr><td colspan="2">Memuat…</td></tr>
       </tbody>
     </table>
-    <a class="visitor-dashboard-btn" id="visitorDashboardLink" href="https://ppbltahun2025.goatcounter.com" target="_blank" rel="noopener">
-      Lihat dashboard lengkap →
-    </a>
   </div>
 
   <div class="card-slider">
@@ -464,12 +448,10 @@
     </div>
   </div>
 
- <!-- GoatCounter: pencatat pengunjung gratis untuk situs statis.
-      data-goatcounter-settings no_onload:true -> supaya pencatatan hit dikontrol manual
-      lewat script di bawah (biar sekalian bisa catat & tarik rekap per tanggal) -->
- <script data-goatcounter="https://ppbltahun2025.goatcounter.com/count"
-         data-goatcounter-settings='{"no_onload": true}'
-         async src="//gc.zgo.at/count.js" id="goatcounterScript"></script>
+ <!-- Supabase JS client: catat & tarik data pengunjung dari database Supabase-mu
+      sendiri — angka mentah, tanpa logika "unique visitor/session" seperti
+      analytics tool, jadi total selalu = jumlah semua angka harian. -->
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
  <script>
 
@@ -576,32 +558,57 @@
     }
   }, { once: true });
 
-  // ================== PENGHITUNG & REKAP HARIAN PENGUNJUNG (GoatCounter) ==================
-  // Trik: setiap kunjungan dicatat GoatCounter ke 2 path semu —
-  //  1) "/log-total"             -> dipakai buat rekap TOTAL sepanjang waktu
-  //  2) "/log-harian/YYYY-MM-DD" -> dipakai buat rekap per tanggal
-  // Kedua path ini ditarik lagi lewat endpoint publik GoatCounter
-  // (/counter{PATH}.json, PATH termasuk "/" di depan, tanpa perlu API token),
-  // lalu ditampilkan langsung sebagai tabel di panel web ini.
+  // ================== PENGHITUNG & REKAP HARIAN PENGUNJUNG (Supabase) ==================
+  // Setiap kunjungan dicatat lewat 1 pemanggilan fungsi database (RPC) yang atomik:
+  // dalam SATU eksekusi yang sama, +1 ke "total sepanjang waktu" DAN +1 ke "hari ini".
+  // Tidak ada logika "unique visitor per sesi" seperti analytics tool (GoatCounter dkk) —
+  // ini murni angka mentah, jadi dijamin: total selalu = jumlah semua angka harian.
   //
-  // WAJIB: nyalakan 1 checkbox di dashboard GoatCounter (defaultnya OFF) —
-  //   Masuk ke ppbltahun2025.goatcounter.com/settings/main -> cari checkbox
-  //   persis berjudul "Allow adding visitor counts on your website" -> centang -> Save.
-  // Tanpa ini, semua request /counter/*.json akan selalu gagal 403 Forbidden.
-  const GOATCOUNTER_CODE = "ppbltahun2025";
+  // WAJIB DIISI — cuma 2 nilai, ambil dari dashboard Supabase-mu:
+  //   Project Settings (ikon gerigi) -> API -> "Project URL" dan "anon public" key.
+  const SUPABASE_URL = "https://kvcnbyasnvpmnrbvkjjg.supabase.co/rest/v1/";      // contoh: https://xxxxx.supabase.co
+  const SUPABASE_ANON_KEY = "sb_publishable_J9EFLRjCWE9gaLgsQLKeLQ_x-Wwu3wF";       // key panjang, aman dipasang di frontend
+
+  // WAJIB DIJALANKAN SEKALI di Supabase -> menu "SQL Editor" -> New query -> paste
+  // semua isi blok SQL di bawah ini -> klik Run. (Ini komentar, bukan kode JS yang jalan.)
+  /*
+    create table visit_total (
+      id int primary key default 1,
+      count bigint not null default 0
+    );
+    insert into visit_total (id, count) values (1, 0);
+
+    create table visit_daily (
+      day date primary key,
+      count bigint not null default 0
+    );
+
+    create or replace function record_visit()
+    returns void
+    language plpgsql
+    security definer
+    as $$
+    begin
+      update visit_total set count = count + 1 where id = 1;
+      insert into visit_daily (day, count) values (current_date, 1)
+        on conflict (day) do update set count = visit_daily.count + 1;
+    end;
+    $$;
+
+    alter table visit_total enable row level security;
+    alter table visit_daily enable row level security;
+    create policy "publik boleh baca total" on visit_total for select using (true);
+    create policy "publik boleh baca harian" on visit_daily for select using (true);
+    -- catatan: publik TIDAK diberi izin insert/update langsung ke tabel;
+    -- satu-satunya jalan menambah angka adalah lewat fungsi record_visit() di atas,
+    -- dan fungsi ini SELALU menambah total & harian bersamaan, jadi tidak akan pernah
+    -- nyimpang seperti kasus GoatCounter kemarin.
+  */
+
   const HARI_DITAMPILKAN = 7; // jumlah hari ke belakang yang direkap di tabel
 
-  function todayKeyLocal(offsetDays = 0){
-    const d = new Date();
-    d.setDate(d.getDate() - offsetDays);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  }
-
-  function formatTanggalID(key){
-    const [y, m, d] = key.split("-").map(Number);
+  function formatTanggalID(isoDate){
+    const [y, m, d] = isoDate.split("-").map(Number);
     return new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   }
 
@@ -611,80 +618,62 @@
     const tableBody = document.getElementById("visitorTableBody");
     const counterBtn = document.getElementById("visitorCounter");
     const panel = document.getElementById("visitorPanel");
-    const gcScript = document.getElementById("goatcounterScript");
 
-    // Panel bisa dibuka/tutup lewat klik badge, terlepas dari GoatCounter siap atau belum
+    // Panel bisa dibuka/tutup lewat klik badge, terlepas dari Supabase siap atau belum
     counterBtn.addEventListener("click", () => {
       counterBtn.classList.toggle("open");
       panel.classList.toggle("open");
     });
 
-    const base = `https://${GOATCOUNTER_CODE}.goatcounter.com`;
-    const todayKey = todayKeyLocal();
-    const PATH_TOTAL = "/log-total";               // path semu, dipakai buat rekap total sepanjang waktu
-    const pathHarian = key => `/log-harian/${key}`; // path semu per tanggal
-
-    // Format endpoint yang BENAR menurut dokumentasi GoatCounter:
-    // https://KODE.goatcounter.com/counter{PATH}.json  (PATH sudah termasuk "/" di depan)
-    function fetchCounter(path){
-      return fetch(`${base}/counter${encodeURI(path)}.json`)
-        .then(res => {
-          if (!res.ok){
-            console.error(`GoatCounter ${path}: HTTP ${res.status} — kemungkinan checkbox "Allow adding visitor counts on your website" di Settings belum dicentang/di-save.`);
-            return "0";
-          }
-          return res.json().then(data => (data && data.count) ? data.count : "0");
-        })
-        .catch(err => { console.error(`GoatCounter ${path}:`, err); return "-"; });
+    const isConfigured = !SUPABASE_URL.startsWith("GANTI_") && !SUPABASE_ANON_KEY.startsWith("GANTI_");
+    if (!isConfigured){
+      countEl.textContent = "-";
+      if (totalDetailEl) totalDetailEl.textContent = "-";
+      if (tableBody) tableBody.innerHTML = '<tr><td colspan="2">SUPABASE_URL / KEY belum diisi</td></tr>';
+      console.error("Isi dulu SUPABASE_URL dan SUPABASE_ANON_KEY di kode sebelum badge pengunjung bisa jalan.");
+      return;
     }
 
-    function fetchTotal(){
-      fetchCounter(PATH_TOTAL).then(total => {
-        countEl.textContent = total;
-        if (totalDetailEl) totalDetailEl.textContent = total;
-      });
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const todayKey = new Date().toLocaleDateString("sv-SE"); // format YYYY-MM-DD lokal
+
+    async function fetchTotal(){
+      const { data, error } = await sb.from("visit_total").select("count").eq("id", 1).single();
+      if (error) console.error("Supabase (visit_total):", error.message);
+      const total = (!error && data) ? data.count : "-";
+      countEl.textContent = (typeof total === "number") ? total.toLocaleString("id-ID") : total;
+      if (totalDetailEl) totalDetailEl.textContent = countEl.textContent;
     }
 
-    function fetchDailyRecap(){
+    async function fetchDailyRecap(){
       if (!tableBody) return;
-      const keys = Array.from({ length: HARI_DITAMPILKAN }, (_, i) => todayKeyLocal(i)).reverse();
-      Promise.all(
-        keys.map(key => fetchCounter(pathHarian(key)).then(val => [key, String(val).replace(/\D/g, "") || "0"]))
-      ).then(rows => {
-        tableBody.innerHTML = rows.map(([key, val]) => `
-          <tr>
-            <td>${formatTanggalID(key)}${key === todayKey ? " (hari ini)" : ""}</td>
-            <td>${Number(val || 0).toLocaleString("id-ID")}</td>
-          </tr>
-        `).join("");
-      });
-    }
+      const { data, error } = await sb
+        .from("visit_daily")
+        .select("day, count")
+        .order("day", { ascending: false })
+        .limit(HARI_DITAMPILKAN);
 
-    function recordAndLoad(){
-      if (window.goatcounter && window.goatcounter.count){
-        // catat kunjungan halaman seperti biasa (untuk statistik lengkap di dashboard)
-        window.goatcounter.count({ path: location.pathname || "/" });
-        // catat juga ke 2 path semu ini: satu buat total sepanjang waktu, satu buat hari ini
-        window.goatcounter.count({ path: PATH_TOTAL, title: "Total kunjungan" });
-        window.goatcounter.count({ path: pathHarian(todayKey), title: "Kunjungan harian" });
-      } else {
-        console.error("window.goatcounter belum siap — cek apakah script GoatCounter berhasil dimuat (mungkin diblokir adblocker).");
+      if (error) console.error("Supabase (visit_daily):", error.message);
+      if (error || !data || data.length === 0){
+        tableBody.innerHTML = '<tr><td colspan="2">Belum ada data</td></tr>';
+        return;
       }
-      fetchTotal();
-      // sedikit jeda biar hit barusan sempat kehitung sebelum ditarik lagi
-      setTimeout(fetchDailyRecap, 1200);
+      tableBody.innerHTML = data.map(row => `
+        <tr>
+          <td>${formatTanggalID(row.day)}${row.day === todayKey ? " (hari ini)" : ""}</td>
+          <td>${Number(row.count).toLocaleString("id-ID")}</td>
+        </tr>
+      `).join("");
     }
 
-    if (gcScript.dataset.loaded){
-      recordAndLoad();
-    } else {
-      gcScript.addEventListener("load", () => {
-        gcScript.dataset.loaded = "1";
-        recordAndLoad();
-      });
-      // fallback kalau event "load" terlewat (mis. script dari cache)
-      setTimeout(() => { if (!gcScript.dataset.loaded) recordAndLoad(); }, 1500);
+    async function recordAndLoad(){
+      const { error } = await sb.rpc("record_visit"); // +1 total & +1 hari ini, dalam 1 transaksi database
+      if (error) console.error("Supabase (record_visit):", error.message, "— pastikan sudah menjalankan SQL setup di SQL Editor.");
+      await fetchTotal();
+      await fetchDailyRecap();
     }
+
+    recordAndLoad();
   })();
 </script>
 </body>
