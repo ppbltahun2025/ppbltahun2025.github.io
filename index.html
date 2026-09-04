@@ -227,18 +227,13 @@
       z-index:2;
     }
 
- /* bentuk hex pointy-top asli (titik di atas & bawah, sisi rata
+    /* bentuk hex pointy-top asli (titik di atas & bawah, sisi rata
        kiri-kanan) via clip-path — setara dengan polygon SVG Kedaton
        (86.6,0 173.2,50 173.2,150 86.6,200 0,150 0,50) hanya diskalakan
-       ke 0-100.
-       Tinggi .hex-shape SEKARANG persis tinggi hex asli (dikirim lewat
-       inline style dari JS, bukan 100% dari tombol), supaya .hex-label
-       di bawahnya tidak lagi numpuk/ketiban gambar. */
+       ke 0-100 */
     .hex-shape{
-      position:relative;
-      width:100%;
-      flex:0 0 auto;
-      overflow:hidden;
+      position:absolute;
+      inset:0;
       clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
       background:var(--cream);
       display:flex;
@@ -251,15 +246,18 @@
       box-shadow:0 14px 28px rgba(0,0,0,.5);
     }
 
-    /* Logo home/segmen sekarang MENGISI PENUH bidang hex (bukan cuma
-       ikon kecil 40% di tengah) — object-fit:cover + clip-path pada
-       .hex-shape (overflow:hidden) memastikan logo terpotong rapi
-       mengikuti bentuk hexagon, tanpa sisa area cream di sekitarnya. */
+    /* Logo/gambar & label sekarang jadi flow child terpisah (bukan lagi
+       ditumpuk di dalam .hex-shape yang absolute), supaya keduanya
+       ikut ditata oleh flex column .hex-item: logo di atas, label di
+       bawahnya — tidak lagi saling menimpa di tengah hex. */
     .hex-img{
-      width:81%;
-      height:81%;
-      object-fit:cover;
+      position:relative;
+      z-index:1;
+      width:40%;
+      max-height:32%;
+      object-fit:contain;
       display:block;
+      flex:0 0 auto;
     }
 
     .hex-icon{
