@@ -397,7 +397,7 @@
         </p>
 
         <a class="link-btn"
-           href="https://script.google.com/macros/s/AKfycbw_TLMufA_-S3qpa4r6MPURR2bwC-zNbLisct3GVqY6ydsRY_h-pNba_xPz8D4InuEL/exec"
+           href="https://script.google.com/macros/s/AKfycbyY684FDdbQpkx_QmcH9Q_wMg8-e18i924FQxRg4pvUjl-n6gyTBK32db7GeclRgOjU/exec"
            target="_blank" rel="noopener">
           <span class="icon">📱</span>
           <span>SUPERMASTER SIMBG</span>
@@ -578,12 +578,17 @@
   }, { once: true });
 
   // ================== PENGHITUNG & REKAP HARIAN PENGUNJUNG (GoatCounter) ==================
-  // Trik: setiap kunjungan dicatat GoatCounter dua kali —
-  //  1) sebagai pageview biasa ke path halaman yang dibuka
-  //  2) sebagai hit tambahan ke path semu "log-harian/YYYY-MM-DD" khusus hari itu
-  // Path #2 inilah yang bikin kita bisa TARIK LAGI jumlah kunjungan per tanggal
-  // lewat endpoint publik GoatCounter (/counter/{path}.json, tanpa perlu API token),
-  // lalu ditampilkan langsung sebagai tabel di panel web ini — tidak cuma link keluar.
+  // Trik: setiap kunjungan dicatat GoatCounter ke 2 path semu —
+  //  1) "/log-total"          -> dipakai buat rekap TOTAL sepanjang waktu
+  //  2) "/log-harian/YYYY-MM-DD" -> dipakai buat rekap per tanggal
+  // Kedua path ini ditarik lagi lewat endpoint publik GoatCounter
+  // (/counter{PATH}.json, PATH termasuk "/" di depan, tanpa perlu API token),
+  // lalu ditampilkan langsung sebagai tabel di panel web ini.
+  //
+  // PENTING: harus nyalakan 1 setting di dashboard GoatCounter (defaultnya OFF):
+  //   Masuk ke KODE.goatcounter.com -> Settings -> cari opsi
+  //   "Allow adding visitor counts on your website" -> centang/aktifkan -> Save.
+  // Tanpa ini, endpoint /counter/*.json akan selalu menampilkan "-".
   const GOATCOUNTER_CODE = "ppbltahun2025";
   const HARI_DITAMPILKAN = 7; // jumlah hari ke belakang yang direkap di tabel
 
@@ -617,31 +622,31 @@
 
     const base = `https://${GOATCOUNTER_CODE}.goatcounter.com`;
     const todayKey = todayKeyLocal();
+    const PATH_TOTAL = "/log-total";              // path semu, dipakai buat rekap total sepanjang waktu
+    const pathHarian = key => `/log-harian/${key}`; // path semu per tanggal
+
+    // Format endpoint yang BENAR menurut dokumentasi GoatCounter:
+    // https://KODE.goatcounter.com/counter{PATH}.json  (PATH sudah termasuk "/" di depan)
+    function fetchCounter(path){
+      return fetch(`${base}/counter${encodeURI(path)}.json`)
+        .then(res => res.json())
+        .then(data => (data && data.count) ? data.count : "0")
+        .catch(() => "-");
+    }
 
     function fetchTotal(){
-      fetch(`${base}/counter/TOTAL.json`)
-        .then(res => res.json())
-        .then(data => {
-          const total = (data && data.count) ? data.count : "-";
-          countEl.textContent = total;
-          if (totalDetailEl) totalDetailEl.textContent = total;
-        })
-        .catch(() => {
-          countEl.textContent = "-";
-          if (totalDetailEl) totalDetailEl.textContent = "-";
-        });
+      fetchCounter(PATH_TOTAL).then(total => {
+        countEl.textContent = total;
+        if (totalDetailEl) totalDetailEl.textContent = total;
+      });
     }
 
     function fetchDailyRecap(){
       if (!tableBody) return;
       const keys = Array.from({ length: HARI_DITAMPILKAN }, (_, i) => todayKeyLocal(i)).reverse();
-      const requests = keys.map(key =>
-        fetch(`${base}/counter/log-harian/${key}.json`)
-          .then(res => res.json())
-          .then(data => [key, (data && data.count) ? data.count.replace(/\D/g, "") : "0"])
-          .catch(() => [key, "0"])
-      );
-      Promise.all(requests).then(rows => {
+      Promise.all(
+        keys.map(key => fetchCounter(pathHarian(key)).then(val => [key, val.replace(/\D/g, "") || "0"]))
+      ).then(rows => {
         tableBody.innerHTML = rows.map(([key, val]) => `
           <tr>
             <td>${formatTanggalID(key)}${key === todayKey ? " (hari ini)" : ""}</td>
@@ -653,14 +658,15 @@
 
     function recordAndLoad(){
       if (window.goatcounter && window.goatcounter.count){
-        // catat kunjungan halaman seperti biasa
+        // catat kunjungan halaman seperti biasa (untuk statistik lengkap di dashboard)
         window.goatcounter.count({ path: location.pathname || "/" });
-        // catat juga ke path harian, biar bisa ditarik lagi buat tabel rekap
-        window.goatcounter.count({ path: `log-harian/${todayKey}`, title: "Kunjungan harian" });
+        // catat juga ke 2 path semu ini: satu buat total sepanjang waktu, satu buat hari ini
+        window.goatcounter.count({ path: PATH_TOTAL, title: "Total kunjungan" });
+        window.goatcounter.count({ path: pathHarian(todayKey), title: "Kunjungan harian" });
       }
       fetchTotal();
       // sedikit jeda biar hit barusan sempat kehitung sebelum ditarik lagi
-      setTimeout(fetchDailyRecap, 900);
+      setTimeout(fetchDailyRecap, 1200);
     }
 
     if (gcScript.dataset.loaded){
