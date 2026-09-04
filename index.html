@@ -251,11 +251,9 @@
        ikut ditata oleh flex column .hex-item: logo di atas, label di
        bawahnya — tidak lagi saling menimpa di tengah hex. */
     .hex-img{
-      position:relative;
-      z-index:1;
-      width:40%;
-      max-height:32%;
-      object-fit:contain;
+      width:81%;
+      height:81%;
+      object-fit:cover;
       display:block;
       flex:0 0 auto;
     }
@@ -269,17 +267,17 @@
     }
 
     .hex-label{
-      position:relative;
-      z-index:1;
-      margin-top:0;
+        flex:0 0 auto;
+      width:100%;
+      margin-top:6px;
       font-size:10.5px;
       font-weight:700;
       color:var(--blue);
       line-height:1.15;
       text-align:center;
       padding:0 4px;
+       box-sizing:border-box;
       transition:color .2s ease;
-      flex:0 0 auto;
     }
     /* saat hover, label ganti warna seperti .hex-content:hover Kedaton
        (dari #c77f37 jadi #038987) — di sini dari biru ke emas */
