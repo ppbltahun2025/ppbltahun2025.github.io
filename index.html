@@ -464,8 +464,7 @@
     </div>
   </div>
 
- <!-- GoatCounter: pencatat pengunjung gratis untuk situs statis (tanpa perlu bikin
-      database/config sendiri).
+ <!-- GoatCounter: pencatat pengunjung gratis untuk situs statis.
       data-goatcounter-settings no_onload:true -> supaya pencatatan hit dikontrol manual
       lewat script di bawah (biar sekalian bisa catat & tarik rekap per tanggal) -->
  <script data-goatcounter="https://ppbltahun2025.goatcounter.com/count"
@@ -579,16 +578,16 @@
 
   // ================== PENGHITUNG & REKAP HARIAN PENGUNJUNG (GoatCounter) ==================
   // Trik: setiap kunjungan dicatat GoatCounter ke 2 path semu —
-  //  1) "/log-total"          -> dipakai buat rekap TOTAL sepanjang waktu
+  //  1) "/log-total"             -> dipakai buat rekap TOTAL sepanjang waktu
   //  2) "/log-harian/YYYY-MM-DD" -> dipakai buat rekap per tanggal
   // Kedua path ini ditarik lagi lewat endpoint publik GoatCounter
   // (/counter{PATH}.json, PATH termasuk "/" di depan, tanpa perlu API token),
   // lalu ditampilkan langsung sebagai tabel di panel web ini.
   //
-  // PENTING: harus nyalakan 1 setting di dashboard GoatCounter (defaultnya OFF):
-  //   Masuk ke KODE.goatcounter.com -> Settings -> cari opsi
-  //   "Allow adding visitor counts on your website" -> centang/aktifkan -> Save.
-  // Tanpa ini, endpoint /counter/*.json akan selalu menampilkan "-".
+  // WAJIB: nyalakan 1 checkbox di dashboard GoatCounter (defaultnya OFF) —
+  //   Masuk ke ppbltahun2025.goatcounter.com/settings/main -> cari checkbox
+  //   persis berjudul "Allow adding visitor counts on your website" -> centang -> Save.
+  // Tanpa ini, semua request /counter/*.json akan selalu gagal 403 Forbidden.
   const GOATCOUNTER_CODE = "ppbltahun2025";
   const HARI_DITAMPILKAN = 7; // jumlah hari ke belakang yang direkap di tabel
 
@@ -622,16 +621,21 @@
 
     const base = `https://${GOATCOUNTER_CODE}.goatcounter.com`;
     const todayKey = todayKeyLocal();
-    const PATH_TOTAL = "/log-total";              // path semu, dipakai buat rekap total sepanjang waktu
+    const PATH_TOTAL = "/log-total";               // path semu, dipakai buat rekap total sepanjang waktu
     const pathHarian = key => `/log-harian/${key}`; // path semu per tanggal
 
     // Format endpoint yang BENAR menurut dokumentasi GoatCounter:
     // https://KODE.goatcounter.com/counter{PATH}.json  (PATH sudah termasuk "/" di depan)
     function fetchCounter(path){
       return fetch(`${base}/counter${encodeURI(path)}.json`)
-        .then(res => res.json())
-        .then(data => (data && data.count) ? data.count : "0")
-        .catch(() => "-");
+        .then(res => {
+          if (!res.ok){
+            console.error(`GoatCounter ${path}: HTTP ${res.status} — kemungkinan checkbox "Allow adding visitor counts on your website" di Settings belum dicentang/di-save.`);
+            return "0";
+          }
+          return res.json().then(data => (data && data.count) ? data.count : "0");
+        })
+        .catch(err => { console.error(`GoatCounter ${path}:`, err); return "-"; });
     }
 
     function fetchTotal(){
@@ -645,7 +649,7 @@
       if (!tableBody) return;
       const keys = Array.from({ length: HARI_DITAMPILKAN }, (_, i) => todayKeyLocal(i)).reverse();
       Promise.all(
-        keys.map(key => fetchCounter(pathHarian(key)).then(val => [key, val.replace(/\D/g, "") || "0"]))
+        keys.map(key => fetchCounter(pathHarian(key)).then(val => [key, String(val).replace(/\D/g, "") || "0"]))
       ).then(rows => {
         tableBody.innerHTML = rows.map(([key, val]) => `
           <tr>
@@ -663,6 +667,8 @@
         // catat juga ke 2 path semu ini: satu buat total sepanjang waktu, satu buat hari ini
         window.goatcounter.count({ path: PATH_TOTAL, title: "Total kunjungan" });
         window.goatcounter.count({ path: pathHarian(todayKey), title: "Kunjungan harian" });
+      } else {
+        console.error("window.goatcounter belum siap — cek apakah script GoatCounter berhasil dimuat (mungkin diblokir adblocker).");
       }
       fetchTotal();
       // sedikit jeda biar hit barusan sempat kehitung sebelum ditarik lagi
