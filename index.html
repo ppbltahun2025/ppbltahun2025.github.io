@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" class="home-mode">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,6 +26,8 @@
 
     *{box-sizing:border-box}
 
+    html{ height:100%; }
+
     body{
       margin:0;
       min-height:100vh;
@@ -37,6 +39,41 @@
       padding:0 16px 38px;
       transition:background-image .5s ease;
       overflow-x:hidden;
+    }
+
+    /* ===== Halaman Home: dikunci pas 1 layar penuh, TIDAK PERNAH scroll,
+       di zoom berapa pun. Kontennya dipusatkan vertikal & horizontal, dan
+       kalau ternyata masih kepanjangan, JS (fitHomeToViewport) akan
+       menyusutkannya (transform:scale) supaya tetap muat 100% tanpa
+       memotong apa pun. ===== */
+    html.home-mode, body.home-mode{
+      height:100%;
+      overflow:hidden;
+    }
+    body.home-mode{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 16px;
+    }
+
+    /* ===== Halaman Detail: urutan dibalik — kartu (daftar link) di ATAS,
+       foto hero di BAWAH. Body jadi flex-column supaya order CSS bisa
+       menukar posisi visual tanpa mengubah struktur DOM/JS. ===== */
+    body:not(.home-mode){
+      display:flex;
+      flex-direction:column;
+    }
+    body:not(.home-mode) .view-wrap{
+      order:1;
+      margin:20px auto 0;
+    }
+    body:not(.home-mode) .hero-wrap{
+      order:2;
+      margin:18px auto 0;
+    }
+    body:not(.home-mode) .logo-wrap:not(.pill){
+      margin-top:0;
     }
 
     /* ===== HERO / kolase foto — HANYA dipakai di halaman detail (SIMBG & PPBL) ===== */
@@ -67,7 +104,9 @@
       display:none;
     }
     body.home-mode .view-wrap{
-      margin-top:32px;
+      margin:0 auto;
+      max-width:100%;
+      max-height:100%;
     }
 
     /* ===== Wrapper kartu (Home & Detail) ===== */
@@ -427,6 +466,8 @@
         border-radius:20px;
       }
       .view-wrap{margin:-26px auto 0}
+      body:not(.home-mode) .view-wrap{margin:14px auto 0}
+      body:not(.home-mode) .hero-wrap{margin:14px auto 0}
 
       .logo-wrap{
         width:84px;
@@ -497,7 +538,7 @@
     <!-- ===== HALAMAN HOME: logo & lagu sendiri, pilih layanan lewat hexagon ===== -->
     <main class="card" id="homeView">
       <div class="logo-wrap pill">
-        <img class="logo" id="homeLogo" src="assets/home.jpeg" alt="Logo Utama">
+        <img class="logo" id="homeLogo" src="assets/home.png" alt="Logo Utama">
       </div>
 
       <h1>KENDALI DATA TERINTEGRASI</h1>
@@ -542,7 +583,7 @@
   // dan browser tidak bisa cache-kan terpisah. Biarkan sebagai file
   // eksternal + preload="none" seperti sekarang.
   const HOME = {
-    logo: "assets/home.jpeg",   // logo khusus halaman awal
+    logo: "assets/homes.png",   // logo khusus halaman awal
     audio: "assets/lagu-homes.mpeg"   // lagu khusus halaman awal (tetap file, bukan base64)
   };
 
@@ -714,6 +755,35 @@
     hexGrid.querySelectorAll(".hex-item").forEach(btn => {
       btn.addEventListener("click", () => openSegment(btn.dataset.id));
     });
+
+    fitHomeToViewport();
+  }
+
+  // ================== HALAMAN HOME: kunci muat 1 layar, TANPA SCROLL ==================
+  // Ukur tinggi/lebar asli kartu Home (#homeView) lalu bandingkan dengan
+  // ruang yang tersedia di viewport. Kalau ternyata lebih besar dari layar
+  // (misalnya karena zoom browser diperbesar, atau layar sangat pendek),
+  // kartu diperkecil proporsional (transform:scale) supaya tetap 100% utuh
+  // terlihat tanpa perlu scroll sama sekali — di zoom berapa pun.
+  function fitHomeToViewport(){
+    if (!document.body.classList.contains("home-mode")) return;
+
+    // reset dulu supaya pengukuran natural-size-nya akurat
+    homeView.style.transform = "none";
+
+    const pad = 20; // sedikit jarak aman dari tepi layar
+    const availW = window.innerWidth - pad * 2;
+    const availH = window.innerHeight - pad * 2;
+    const rect = homeView.getBoundingClientRect();
+
+    const scale = Math.min(1, availW / rect.width, availH / rect.height);
+
+    if (scale < 0.999) {
+      homeView.style.transformOrigin = "center center";
+      homeView.style.transform = `scale(${scale})`;
+    } else {
+      homeView.style.transform = "none";
+    }
   }
 
   // ---- Hexagon daftar link (halaman Detail) ----
@@ -737,6 +807,7 @@
     resizeTimer = setTimeout(() => {
       if (currentSegment) buildLinkHexGrid(currentSegment);
       else buildHexGrid();
+      fitHomeToViewport();
     }, 150);
   });
 
@@ -753,6 +824,7 @@
     buildLinkHexGrid(seg);
 
     document.body.classList.remove("home-mode"); // hero (format kolase) tampil hanya di halaman detail
+    document.documentElement.classList.remove("home-mode");
     setHero(seg.hero);
     switchAudio(seg.audio);
 
@@ -766,9 +838,11 @@
     homeView.style.display = "block";
     detailView.style.display = "none";
     document.body.classList.add("home-mode"); // Home: tanpa hero, cuma background + logo
+    document.documentElement.classList.add("home-mode");
     document.body.style.removeProperty("--hero-bg-url"); // pastikan balik ke background home
     switchAudio(HOME.audio);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    fitHomeToViewport();
   }
 
   backBtn.addEventListener("click", goHome);
@@ -777,6 +851,9 @@
   // Home dimulai tanpa hero (lihat body.home-mode) — hero (kolase foto)
   // baru muncul saat openSegment() dipanggil ketika pengguna membuka
   // salah satu layanan (SIMBG / PPBL).
+  window.addEventListener("load", fitHomeToViewport);
+  const homeLogoImg = document.getElementById("homeLogo");
+  if (homeLogoImg) homeLogoImg.addEventListener("load", fitHomeToViewport);
 
   // ================== MUSIK: interaksi tombol & autoplay ==================
   musicBtn.addEventListener("click", (e) => {
