@@ -325,7 +325,116 @@
     .hex-item:hover .hex-label{
       color:var(--gold);
     }
-
+    /* ===== Hub animatif Home: hover untuk membuka pilihan layanan ===== */
+    .home-hub-wrap{
+      position:relative;
+      width:100%;
+      max-width:300px;
+      height:210px;
+      margin:4px auto 4px;
+    }
+    .home-hub{
+      position:absolute;
+      top:50%; left:50%;
+      width:104px; height:104px;
+      margin:-52px 0 0 -52px;
+      border-radius:50%;
+      background:var(--cream);
+      display:flex; align-items:center; justify-content:center;
+      z-index:5;
+      cursor:pointer;
+      box-shadow:0 10px 26px rgba(0,0,0,.4), 0 0 0 5px rgba(255,255,255,.10);
+      transition:box-shadow .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .home-hub img{
+      width:76%; height:76%;
+      object-fit:contain;
+      pointer-events:none;
+    }
+    .home-hub-wrap:hover .home-hub,
+    .home-hub-wrap.pinned .home-hub{
+      transform:scale(1.06);
+      box-shadow:0 14px 32px rgba(0,0,0,.5), 0 0 0 5px rgba(240,180,41,.55);
+    }
+    .home-hub::before{
+      content:"";
+      position:absolute;
+      inset:-10px;
+      border-radius:50%;
+      border:2px solid rgba(240,180,41,.35);
+      animation:hubPulse 2.4s ease-out infinite;
+    }
+    .home-hub-wrap:hover .home-hub::before,
+    .home-hub-wrap.pinned .home-hub::before{
+      animation:none;
+      opacity:0;
+    }
+    @keyframes hubPulse{
+      0%{transform:scale(1); opacity:.55}
+      75%{transform:scale(1.4); opacity:0}
+      100%{opacity:0}
+    }
+    .home-hub-item{
+      appearance:none;
+      background:none;
+      border:none;
+      padding:0;
+      position:absolute;
+      top:50%; left:50%;
+      width:96px; height:110px;
+      margin:-55px 0 0 -48px;
+      z-index:3;
+      cursor:pointer;
+      transform:translate(0,0) scale(.2);
+      opacity:0;
+      pointer-events:none;
+      transition:transform .5s cubic-bezier(.22,1,.36,1), opacity .3s ease;
+    }
+    .home-hub-wrap:hover .home-hub-item,
+    .home-hub-wrap.pinned .home-hub-item{
+      transform:translate(var(--tx), var(--ty)) scale(1);
+      opacity:1;
+      pointer-events:auto;
+      transition-delay:var(--delay, 0s);
+    }
+    .home-hub-shape{
+      position:relative;
+      width:100%; height:100%;
+      clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      background:linear-gradient(160deg,#0c3a6e,var(--blue) 55%,#0e5aa8);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:6px; padding:10px;
+      box-shadow:0 10px 22px rgba(0,0,0,.4);
+      transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease, background .25s ease;
+    }
+    .home-hub-item:hover .home-hub-shape,
+    .home-hub-item:focus-visible .home-hub-shape{
+      transform:scale(1.1);
+      background:linear-gradient(160deg,#0e5aa8,var(--gold) 140%);
+      box-shadow:0 14px 28px rgba(0,0,0,.5);
+    }
+    .home-hub-item-img{
+      width:60%; max-height:44%;
+      object-fit:contain;
+    }
+    .home-hub-item-label{
+      font-size:10.5px;
+      font-weight:700;
+      color:#eaf1ff;
+      text-align:center;
+      line-height:1.2;
+      padding:0 2px;
+      transition:color .2s ease;
+    }
+    .home-hub-item:hover .home-hub-item-label{
+      color:#08182e;
+    }
+    @media (max-width:600px){
+      .home-hub-wrap{height:190px}
+      .home-hub{width:92px;height:92px;margin:-46px 0 0 -46px}
+      .home-hub-item{width:86px;height:98px;margin:-49px 0 0 -43px}
+    }
     .music-btn{
       position:fixed;
       top:16px;
@@ -544,7 +653,7 @@
       <h1>KENDALI DATA TERINTEGRASI</h1>
       <p class="subtitle">Pilih layanan di bawah ini untuk membuka daftar linknya</p>
 
-      <div class="hex-grid" id="hexGrid"></div>
+     <div class="home-hub-wrap" id="hexGrid"></div>
 
       <footer>© 2026 Pemerintah Kabupaten Gresik</footer>
     </main>
@@ -741,19 +850,52 @@
   }
 
   // ---- Hexagon pilihan layanan (halaman Home) ----
+   // ---- Hub animatif: hover ke logo untuk membuka pilihan layanan (Home) ----
   function buildHexGrid(){
-    const perRow = Math.min(3, segments.length) || 1;
-    layoutHoneycomb(hexGrid, segments, (seg, x, y, w, h) => `
-      <button class="hex-item" type="button" data-id="${seg.id}" aria-label="Buka ${seg.hexLabel}"
-              style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
-        <span class="hex-shape"></span>
-        <img class="hex-img" src="${seg.logo}" alt="Logo ${seg.hexLabel}">
-        <span class="hex-label">${seg.hexLabel}</span>
-      </button>
-    `, perRow);
+    const HUB_ICON = "assets/icon-menu.png"; // ikon yang kamu upload tadi
+    const n = segments.length;
+    // kalau cuma 2 layanan -> taruh kiri-kanan; kalau lebih, sebar melingkar
+    const startAngle = (n === 2) ? 180 : -90;
+    const radius = 118;
 
-    hexGrid.querySelectorAll(".hex-item").forEach(btn => {
+    const items = segments.map((seg, i) => {
+      const angleDeg = startAngle + (360 / n) * i;
+      const rad = angleDeg * Math.PI / 180;
+      const tx = Math.round(Math.cos(rad) * radius);
+      const ty = Math.round(Math.sin(rad) * radius);
+      return `
+        <button class="home-hub-item" type="button" data-id="${seg.id}"
+                aria-label="Buka ${seg.hexLabel}"
+                style="--tx:${tx}px; --ty:${ty}px; --delay:${(i * 0.07).toFixed(2)}s">
+          <span class="home-hub-shape">
+            <img class="home-hub-item-img" src="${seg.logo}" alt="Logo ${seg.hexLabel}">
+            <span class="home-hub-item-label">${seg.hexLabel}</span>
+          </span>
+        </button>
+      `;
+    }).join("");
+
+    hexGrid.innerHTML = `
+      <div class="home-hub" id="homeHub" tabindex="0" role="button" aria-label="Buka menu layanan">
+        <img src="${HUB_ICON}" alt="Menu layanan">
+      </div>
+      ${items}
+    `;
+
+    hexGrid.querySelectorAll(".home-hub-item").forEach(btn => {
       btn.addEventListener("click", () => openSegment(btn.dataset.id));
+    });
+
+    // di HP/tablet (tanpa hover), tap logo untuk buka/tutup menunya
+    const homeHub = document.getElementById("homeHub");
+    const isTouchDevice = () => window.matchMedia("(hover: none)").matches;
+    homeHub.addEventListener("click", () => {
+      if (isTouchDevice()) hexGrid.classList.toggle("pinned");
+    });
+    homeHub.addEventListener("focus", () => hexGrid.classList.add("pinned"));
+    homeHub.addEventListener("blur", () => hexGrid.classList.remove("pinned"));
+    document.addEventListener("click", (e) => {
+      if (!hexGrid.contains(e.target)) hexGrid.classList.remove("pinned");
     });
 
     fitHomeToViewport();
