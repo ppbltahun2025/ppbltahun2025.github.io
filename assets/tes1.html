@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Tidak Ada Apa-apa di Sini</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    background: radial-gradient(ellipse at center, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    perspective: 1200px;
+  }
+
+  .stars {
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+      radial-gradient(2px 2px at 60% 70%, #fff, transparent),
+      radial-gradient(1px 1px at 80% 10%, #fff, transparent),
+      radial-gradient(1px 1px at 30% 80%, #fff, transparent),
+      radial-gradient(2px 2px at 90% 40%, #fff, transparent),
+      radial-gradient(1px 1px at 10% 60%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 50% 50%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 70% 20%, #fff, transparent);
+    background-repeat: repeat;
+    background-size: 300px 300px;
+    animation: drift 60s linear infinite;
+    opacity: 0.6;
+  }
+
+  @keyframes drift {
+    from { background-position: 0 0; }
+    to { background-position: 1000px 1000px; }
+  }
+
+  .scene {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-style: preserve-3d;
+  }
+
+  .cube-wrap {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    top: 12%;
+    left: 50%;
+    margin-left: -70px;
+    transform-style: preserve-3d;
+    animation: floatCube 6s ease-in-out infinite, spinCube 14s linear infinite;
+  }
+
+  @keyframes spinCube {
+    from { transform: rotateX(0deg) rotateY(0deg); }
+    to   { transform: rotateX(360deg) rotateY(360deg); }
+  }
+
+  @keyframes floatCube {
+    0%, 100% { margin-top: 0px; }
+    50% { margin-top: -25px; }
+  }
+
+  .cube-wrap .face {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    background: rgba(124, 92, 255, 0.18);
+    border: 2px solid rgba(155, 140, 255, 0.9);
+    box-shadow: 0 0 25px rgba(140, 110, 255, 0.7) inset, 0 0 25px rgba(140, 110, 255, 0.5);
+    backdrop-filter: blur(2px);
+  }
+
+  .cube-wrap .front  { transform: translateZ(70px); }
+  .cube-wrap .back   { transform: translateZ(-70px) rotateY(180deg); }
+  .cube-wrap .right  { transform: rotateY(90deg) translateZ(70px); }
+  .cube-wrap .left   { transform: rotateY(-90deg) translateZ(70px); }
+  .cube-wrap .top    { transform: rotateX(90deg) translateZ(70px); }
+  .cube-wrap .bottom { transform: rotateX(-90deg) translateZ(70px); }
+
+  .card {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    padding: 55px 45px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 25px 60px rgba(0,0,0,0.55),
+      0 0 60px rgba(120, 90, 255, 0.25),
+      inset 0 0 30px rgba(255,255,255,0.03);
+    backdrop-filter: blur(14px);
+    max-width: 520px;
+    transform-style: preserve-3d;
+    animation: cardFloat 5s ease-in-out infinite;
+    margin-top: 60px;
+  }
+
+  @keyframes cardFloat {
+    0%, 100% { transform: translateY(0px) rotateX(0deg); }
+    50% { transform: translateY(-12px) rotateX(2deg); }
+  }
+
+  .emoji {
+    font-size: 64px;
+    display: inline-block;
+    animation: wobble 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 15px rgba(180, 150, 255, 0.8));
+  }
+
+  @keyframes wobble {
+    0%, 100% { transform: rotate(-8deg) scale(1); }
+    50% { transform: rotate(8deg) scale(1.08); }
+  }
+
+  h1 {
+    margin-top: 18px;
+    font-size: 30px;
+    background: linear-gradient(90deg, #a78bfa, #f472b6, #60a5fa);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 4s linear infinite;
+    letter-spacing: 0.5px;
+  }
+
+  @keyframes shine {
+    to { background-position: 200% center; }
+  }
+
+  p {
+    margin-top: 16px;
+    color: rgba(255,255,255,0.75);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .divider {
+    width: 60px;
+    height: 3px;
+    margin: 22px auto;
+    background: linear-gradient(90deg, transparent, #a78bfa, transparent);
+    border-radius: 3px;
+  }
+
+  .info-row {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    transform-style: preserve-3d;
+    cursor: default;
+  }
+
+  .pill:hover {
+    transform: translateY(-4px) rotateX(6deg) scale(1.03);
+    box-shadow: 0 12px 30px rgba(140, 110, 255, 0.35);
+    background: rgba(255,255,255,0.12);
+  }
+
+  .pill span.icon {
+    font-size: 20px;
+  }
+
+  footer {
+    margin-top: 30px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .glow-ring {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    border: 1px solid rgba(160, 130, 255, 0.15);
+    animation: ringPulse 5s ease-in-out infinite;
+  }
+  .glow-ring.r2 {
+    width: 650px;
+    height: 650px;
+    animation-delay: 1s;
+    border-color: rgba(120, 180, 255, 0.12);
+  }
+  .glow-ring.r3 {
+    width: 800px;
+    height: 800px;
+    animation-delay: 2s;
+    border-color: rgba(255, 140, 200, 0.08);
+  }
+
+  @keyframes ringPulse {
+    0%, 100% { transform: scale(0.95); opacity: 0.5; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<div class="scene">
+  <div class="glow-ring"></div>
+  <div class="glow-ring r2"></div>
+  <div class="glow-ring r3"></div>
+
+  <div class="cube-wrap">
+    <div class="face front"></div>
+    <div class="face back"></div>
+    <div class="face right"></div>
+    <div class="face left"></div>
+    <div class="face top"></div>
+    <div class="face bottom"></div>
+  </div>
+
+  <div class="card">
+    <div class="emoji">👀</div>
+    <h1>Hai! Tidak Ada Apa-apa di Sini</h1>
+    <p>Halaman ini sengaja dikosongkan. Belum ada konten yang perlu ditampilkan saat ini.</p>
+
+    <div class="divider"></div>
+
+    <div class="info-row">
+      <div class="pill">
+        <span class="icon">💡</span> Punya ide atau saran? Hubungi tim programmer.
+      </div>
+      <div class="pill">
+        <span class="icon">💬</span> Atau diskusikan langsung di grup chat.
+      </div>
+    </div>
+
+    <footer>Halaman ini akan diperbarui kemudian</footer>
+  </div>
+</div>
+
+</body>
+</html>
