@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cara Pasang Ekstensi SIMBG Gresik</title>
+<!--
+  LETAKKAN FILE INI DI: assets/pasang-ekstensi.html
+  Foto tutorial taruh di: assets/foto/langkah-1.jpg ... langkah-7.jpg
+  Kalau foto belum ada, kotak "Foto belum ditambahkan" tampil otomatis.
+  Ganti nama ekstensi: cari teks NAMA_EKSTENSI di bawah (3 tempat).
+-->
+<style>
+  :root{
+    --navy:#0a2a5e;
+    --biru:#1f7ae0;
+    --langit:#bfe3ff;
+    --oranye:#ff7a2f;
+    --oranye-tua:#e65f12;
+    --bg:#eef6ff;
+    --kertas:#ffffff;
+    --tinta:#0d2037;
+    --lembut:#4c647d;
+    --garis:#cfe0f2;
+    --muda:#e3f1ff;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--tinta);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.65;font-size:17px;overflow-x:hidden;
+  }
+  a{color:var(--biru)}
+  a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--oranye);outline-offset:3px;border-radius:6px}
+
+  /* bilah progres terbang di paling atas */
+  #progres{position:fixed;left:0;top:0;height:4px;width:0;z-index:60;
+    background:linear-gradient(90deg,var(--biru),var(--oranye))}
+
+  /* ===== HERO LANGIT ===== */
+  header.atas{
+    position:relative;overflow:hidden;color:#fff;--s:0;
+    background:linear-gradient(180deg,#071d45 0%,#0a2a5e 35%,#1f7ae0 85%,#7cc2ff 100%);
+    padding-bottom:70px;
+  }
+  header.atas::before{ /* bintang halus di langit atas */
+    content:"";position:absolute;inset:0;opacity:.55;pointer-events:none;
+    background-image:
+      radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent 60%),
+      radial-gradient(1.5px 1.5px at 28% 40%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 46% 12%,#fff,transparent 60%),
+      radial-gradient(1.5px 1.5px at 63% 30%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 78% 16%,#fff,transparent 60%),
+      radial-gradient(1.5px 1.5px at 91% 38%,#fff,transparent 60%);
+  }
+  .awan{
+    position:absolute;border-radius:999px;background:rgba(255,255,255,.88);
+    filter:blur(.3px);will-change:transform;pointer-events:none
+  }
+  .awan::before,.awan::after{content:"";position:absolute;background:inherit;border-radius:50%}
+  .awan.a{width:170px;height:42px;left:62%;top:34%;opacity:.9}
+  .awan.a::before{width:70px;height:70px;left:26px;top:-34px}
+  .awan.a::after{width:54px;height:54px;left:92px;top:-24px}
+  .awan.b{width:240px;height:56px;left:6%;top:70%;opacity:.75}
+  .awan.b::before{width:96px;height:96px;left:38px;top:-48px}
+  .awan.b::after{width:74px;height:74px;left:132px;top:-34px}
+  .awan.c{width:120px;height:30px;left:84%;top:66%;opacity:.55}
+  .awan.c::before{width:50px;height:50px;left:18px;top:-24px}
+  .awan.c::after{width:38px;height:38px;left:62px;top:-16px}
+
+  .pesawat{
+    position:absolute;left:4%;top:56%;display:flex;align-items:center;z-index:2;
+    transform:translate(calc(var(--s) * 72vw),calc(var(--s) * -190px)) rotate(calc(var(--s) * -9deg));
+    will-change:transform;pointer-events:none
+  }
+  .kontrail{
+    height:7px;border-radius:7px;
+    width:calc(120px + var(--s) * 34vw);
+    background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.85));
+    margin-right:-6px
+  }
+  .jet{width:112px;height:auto;color:#dfe6ee;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+  .jet.melayang{animation:melayang 4.5s ease-in-out infinite}
+  @keyframes melayang{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .badan{display:flex;transition:transform .6s ease}
+  .pesawat.balik{flex-direction:row-reverse}
+  .pesawat.balik .badan{transform:scaleX(-1)}
+  .pesawat.balik .kontrail{background:linear-gradient(270deg,rgba(255,255,255,0),rgba(255,255,255,.85));margin-right:0;margin-left:-6px}
+
+  .lebar{max-width:880px;margin:0 auto;padding:0 20px;position:relative;z-index:3}
+  .bar{display:flex;align-items:center;gap:12px;padding:14px 0}
+  .bar img{width:40px;height:40px;object-fit:contain;border-radius:8px;background:#fff;padding:3px}
+  .bar a{color:#fff;text-decoration:none;font-weight:600}
+  .bar .kembali{margin-left:auto;font-weight:500;font-size:15px;opacity:.92}
+  .bar .kembali:hover{text-decoration:underline}
+  .judul{padding:56px 0 30px}
+  .judul h1{margin:0 0 12px;font-size:clamp(30px,5.4vw,50px);line-height:1.12;letter-spacing:-.015em;max-width:15ch}
+  .judul p{margin:0;max-width:46ch;font-size:18px;color:#dcefff}
+
+  .gelombang{position:absolute;left:0;right:0;bottom:-1px;height:56px;z-index:3;display:block;width:100%}
+  .gelombang path{fill:var(--bg)}
+
+  main{padding:0 0 60px}
+
+  /* ===== KARTU UNDUH ===== */
+  .unduh{
+    background:var(--kertas);border-radius:16px;padding:22px;margin-top:-26px;position:relative;z-index:5;
+    display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;
+    box-shadow:0 14px 34px rgba(10,42,94,.18);border:1px solid var(--garis);
+    border-top:5px solid var(--oranye)
+  }
+  .unduh h2{margin:0 0 4px;font-size:20px}
+  .unduh p{margin:0;color:var(--lembut);font-size:15px;max-width:44ch}
+  .aksi{display:flex;gap:10px;flex-wrap:wrap}
+  .tombol{
+    display:inline-flex;align-items:center;gap:9px;background:var(--oranye);color:#fff;text-decoration:none;
+    padding:13px 22px;border-radius:10px;font-weight:700;border:2px solid var(--oranye);font-size:16px;cursor:pointer
+  }
+  .tombol svg{width:40px;height:auto;color:#fff;transition:transform .35s ease}
+  .tombol:hover{background:var(--oranye-tua);border-color:var(--oranye-tua)}
+  .tombol:hover svg{transform:translateX(7px) rotate(-10deg)}
+  .tombol.sekunder{background:transparent;color:var(--biru);border-color:var(--biru)}
+  .tombol.sekunder:hover{background:var(--muda)}
+
+  .catatan{
+    background:#fff3e2;border-left:5px solid var(--oranye);
+    padding:14px 18px;border-radius:8px;margin:24px 0;font-size:15.5px
+  }
+  .catatan strong{display:block;margin-bottom:2px}
+
+  .daftar-isi{margin:0 0 6px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  .daftar-isi a{
+    display:inline-block;padding:6px 14px;border:1px solid var(--garis);border-radius:999px;
+    background:var(--kertas);text-decoration:none;font-size:14.5px;color:var(--tinta)
+  }
+  .daftar-isi a:hover{border-color:var(--biru);color:var(--biru)}
+
+  h2.bagian{margin:46px 0 6px;font-size:27px;line-height:1.25;color:var(--navy)}
+  .pengantar{margin:0 0 22px;color:var(--lembut)}
+
+  /* ===== RUTE PENERBANGAN ===== */
+  .rute{position:relative;padding-left:58px}
+  .rute-garis{
+    position:absolute;left:18px;top:0;bottom:0;width:4px;border-radius:4px;
+    background:repeating-linear-gradient(to bottom,#9cc7ee 0 9px,transparent 9px 18px)
+  }
+  .rute-isi{
+    position:absolute;left:18px;top:0;width:4px;height:0;border-radius:4px;z-index:1;
+    background:linear-gradient(to bottom,var(--biru),var(--oranye));
+    box-shadow:0 0 12px rgba(255,122,47,.55)
+  }
+  .rute-jet{
+    position:absolute;left:20px;top:0;width:54px;height:54px;margin:-27px 0 0 -27px;z-index:4;pointer-events:none;
+    display:grid;place-items:center
+  }
+  .rute-jet.naik svg{transform:rotate(-90deg)}
+  .rute-jet svg{width:64px;height:auto;color:#5f7088;transform:rotate(90deg);transition:transform .6s ease;
+    filter:drop-shadow(0 5px 6px rgba(10,42,94,.35))}
+
+  ol.langkah{list-style:none;margin:0;padding:0;counter-reset:l}
+  ol.langkah > li{
+    counter-increment:l;position:relative;
+    background:var(--kertas);border:1px solid var(--garis);border-radius:14px;
+    padding:20px;margin-bottom:20px;
+    box-shadow:0 6px 18px rgba(10,42,94,.06);
+    transition:border-color .3s,box-shadow .3s
+  }
+  ol.langkah > li:last-child{margin-bottom:0}
+  ol.langkah > li::before{
+    content:counter(l);position:absolute;left:-58px;top:16px;z-index:2;
+    width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;
+    display:grid;place-items:center;font-weight:800;font-size:18px;
+    border:3px solid var(--bg);transition:background .3s,transform .3s
+  }
+  ol.langkah > li.lewat{border-color:#ffc9a6;box-shadow:0 8px 22px rgba(255,122,47,.14)}
+  ol.langkah > li.lewat::before{background:var(--oranye);animation:mendarat .5s ease}
+  @keyframes mendarat{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+  ol.langkah h3{margin:2px 0 6px;font-size:20px;line-height:1.3;color:var(--navy)}
+  ol.langkah p{margin:0 0 10px}
+  ol.langkah p:last-child{margin-bottom:0}
+
+  /* rudal dan sasaran di ujung rute */
+  .peluru{position:absolute;left:20px;top:0;width:13px;height:52px;z-index:5;display:none;pointer-events:none;
+    transform:translate(-50%,0);filter:drop-shadow(0 3px 5px rgba(10,42,94,.4))}
+  .peluru svg{display:block;width:100%;height:100%}
+  .sasaran{display:flex;align-items:center;gap:16px;margin:100px 0 0;min-height:44px}
+  .sasaran-ikon{position:relative;width:40px;height:40px;flex:none}
+  .sasaran-ikon svg{display:block;width:100%;height:100%}
+  .sasaran .cek{display:none}
+  .sasaran.kena .papan{display:none}
+  .sasaran.kena .cek{display:block}
+  .sasaran-teks{font-weight:700;color:var(--navy)}
+  .sasaran .teks-akhir{display:none}
+  .sasaran.kena .teks-awal{display:none}
+  .sasaran.kena .teks-akhir{display:inline;color:#1a8a4b}
+  .ledak{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;
+    pointer-events:none;opacity:0;
+    background:radial-gradient(circle,#fff 0%,#ffd36b 30%,#ff7a2f 55%,rgba(255,60,0,0) 72%)}
+  .ledak::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:3px solid #ffb347}
+  .sasaran.kena .ledak{animation:ledak .9s ease-out}
+  @keyframes ledak{0%{opacity:1;transform:scale(.2)}60%{opacity:1;transform:scale(3.2)}100%{opacity:0;transform:scale(4.4)}}
+
+  /* kartu muncul dari samping saat di-scroll (hanya jika JS aktif) */
+  .js .muncul{opacity:0;transform:translateX(46px) rotate(.6deg);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
+  .js .muncul.tampil{opacity:1;transform:none}
+
+  figure{margin:14px 0 0}
+  figure img{
+    display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--garis);
+    cursor:zoom-in;background:var(--muda)
+  }
+  figcaption{font-size:14px;color:var(--lembut);margin-top:6px}
+  .foto-kosong{
+    border:2px dashed #9cc7ee;border-radius:10px;padding:34px 16px;text-align:center;
+    color:var(--lembut);background:var(--muda);font-size:14.5px
+  }
+
+  code,kbd{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em;
+    background:var(--muda);padding:2px 7px;border-radius:6px;word-break:break-all
+  }
+  .salin{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0}
+  .salin button{
+    font:inherit;font-size:14px;padding:5px 12px;border-radius:8px;cursor:pointer;
+    border:1px solid var(--biru);background:transparent;color:var(--biru);font-weight:600
+  }
+  .salin button:hover{background:var(--muda)}
+
+  details{background:var(--kertas);border:1px solid var(--garis);border-radius:12px;padding:4px 18px;margin-bottom:10px}
+  summary{cursor:pointer;font-weight:700;padding:12px 0;color:var(--navy)}
+  details[open] summary{border-bottom:1px solid var(--garis);margin-bottom:10px}
+  details p,details ul{margin:0 0 12px}
+  details ul{padding-left:20px}
+
+  footer{border-top:1px solid var(--garis);padding:22px 0 40px;color:var(--lembut);font-size:14.5px}
+
+  #pembesar{
+    position:fixed;inset:0;background:rgba(5,15,35,.88);display:none;
+    align-items:center;justify-content:center;padding:18px;z-index:80;cursor:zoom-out
+  }
+  #pembesar.buka{display:flex}
+  #pembesar img{max-width:100%;max-height:100%;border-radius:8px}
+
+  @media (max-width:560px){
+    body{font-size:16px}
+    .jet{width:84px}
+    .rute{padding-left:46px}
+    .rute-garis,.rute-isi{left:14px}
+    .rute-jet{left:16px}
+    .rute-jet svg{width:46px}
+    ol.langkah > li{padding:16px}
+    ol.langkah > li::before{left:-46px;width:34px;height:34px;font-size:16px;top:14px}
+    .judul{padding-top:40px}
+    .sasaran-ikon{width:34px;height:34px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .jet.melayang{animation:none}
+    .js .muncul{opacity:1;transform:none;transition:none}
+    ol.langkah > li.lewat::before{animation:none}
+    .tombol svg,.badan,.rute-jet svg{transition:none}
+    .sasaran.kena .ledak{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="progres" aria-hidden="true"></div>
+
+<!-- gambar jet (dipakai berulang) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="jet" viewBox="0 0 112 60">
+    <path d="M14 28.6 L0 30 L14 31.4 Z" fill="#ffa23c"/>
+    <path fill="currentColor" d="M70 26 L34 2 L22 5 L21 26 Z"/>
+    <path fill="currentColor" d="M70 34 L34 58 L22 55 L21 34 Z"/>
+    <path fill="currentColor" d="M84 25.5 L72 15 L66 15 L74 26 Z"/>
+    <path fill="currentColor" d="M84 34.5 L72 45 L66 45 L74 34 Z"/>
+    <path fill="currentColor" d="M14 28 L22 26.5 L80 25.5 Q102 26.5 111 30 Q102 33.5 80 34.5 L22 33.5 Z"/>
+    <path d="M14 28 L22 26.5 L80 25.5 Q102 26.5 111 30 Q102 33.5 80 34.5 L22 33.5 Z" fill="#000" opacity=".16"/>
+    <rect x="58" y="24.6" width="14" height="1.6" fill="#000" opacity=".35"/>
+    <rect x="58" y="33.8" width="14" height="1.6" fill="#000" opacity=".35"/>
+    <ellipse cx="92" cy="30" rx="8" ry="2.3" fill="#0a2a5e" opacity=".75"/>
+    <circle cx="40" cy="14" r="2.4" fill="#e23b3b"/>
+    <circle cx="40" cy="46" r="2.4" fill="#e23b3b"/>
+  </symbol>
+</svg>
+
+<header class="atas" id="atas">
+  <div class="awan a" data-v="0.22"></div>
+  <div class="awan b" data-v="0.38"></div>
+  <div class="awan c" data-v="0.12"></div>
+
+  <div class="pesawat" aria-hidden="true">
+    <div class="kontrail"></div>
+    <div class="badan"><svg class="jet melayang" viewBox="0 0 112 60"><use href="#jet"/></svg></div>
+  </div>
+
+  <div class="lebar">
+    <div class="bar">
+      <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+      <a href="../index.html">SIMBG Gresik</a>
+      <a class="kembali" href="../index.html">Kembali ke beranda</a>
+    </div>
+    <div class="judul">
+      <h1>Pasang ekstensi NAMA_EKSTENSI di browser</h1>
+      <p>Ikuti rute pemasangannya dari atas sampai mendarat. Tujuh langkah, sekitar lima menit, dan hanya sekali.</p>
+    </div>
+  </div>
+
+  <svg class="gelombang" viewBox="0 0 1200 56" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 56V30C150 6 300 6 450 24s300 28 450 6 225-26 300-12V56Z"/>
+  </svg>
+</header>
+
+<main class="lebar">
+
+  <section class="unduh" aria-labelledby="judul-unduh">
+    <div>
+      <h2 id="judul-unduh">Unduh file ZIP ekstensi</h2>
+      <p>File tersimpan di Google Drive. Jika muncul peringatan pemindaian virus, pilih <em>Tetap download</em>.</p>
+    </div>
+    <div class="aksi">
+      <a class="tombol" href="https://drive.google.com/uc?export=download&id=1j-dCiJNlUmmXjPX4FxcG7FjzNYIuVtZu" rel="noopener">
+        <svg viewBox="0 0 112 60" aria-hidden="true"><use href="#jet"/></svg>Unduh ZIP
+      </a>
+      <a class="tombol sekunder" href="https://drive.google.com/file/d/1j-dCiJNlUmmXjPX4FxcG7FjzNYIuVtZu/view?usp=drive_link" target="_blank" rel="noopener">Buka di Drive</a>
+    </div>
+  </section>
+
+  <div class="catatan">
+    <strong>Pakai komputer, bukan HP.</strong>
+    Ekstensi manual hanya bisa dipasang di Chrome, Edge, atau Brave versi komputer (Windows, Mac, Linux). Chrome di HP tidak mendukungnya.
+  </div>
+
+  <ul class="daftar-isi" aria-label="Loncat ke bagian">
+    <li><a href="#chrome">Langkah pemasangan</a></li>
+    <li><a href="#perbarui">Memperbarui ekstensi</a></li>
+    <li><a href="#masalah">Jika bermasalah</a></li>
+  </ul>
+
+  <h2 class="bagian" id="chrome">Langkah pemasangan di Chrome, Edge, atau Brave</h2>
+  <p class="pengantar">Urutannya sama di ketiga browser. Perbedaannya hanya di alamat halaman ekstensi.</p>
+
+  <div class="rute">
+    <div class="rute-garis" aria-hidden="true"></div>
+    <ol class="langkah">
+
+      <li class="muncul">
+        <h3>Simpan file ZIP</h3>
+        <p>Setelah klik <strong>Unduh ZIP</strong>, file tersimpan di folder <em>Downloads</em>.</p>
+        <figure>
+          <img src="foto/langkah-1.jpg" alt="Hasil unduhan file ZIP di folder Downloads" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>File ZIP di folder Downloads.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Ekstrak ZIP menjadi folder</h3>
+        <p>Klik kanan file ZIP, pilih <strong>Extract All…</strong> (Windows) lalu <strong>Extract</strong>. Hasilnya adalah sebuah folder.</p>
+        <p><strong>Penting:</strong> jangan menjalankan ekstensi langsung dari dalam ZIP, dan jangan hapus atau pindahkan folder hasil ekstrak setelah dipasang. Ekstensi akan berhenti bekerja jika foldernya hilang.</p>
+        <figure>
+          <img src="foto/langkah-2.jpg" alt="Klik kanan ZIP lalu Extract All" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Klik kanan, lalu Extract All.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Buka halaman ekstensi browser</h3>
+        <p>Buka tab baru, salin alamat sesuai browser Anda, tempel di kolom alamat, lalu tekan <kbd>Enter</kbd>.</p>
+        <p>Chrome: <span class="salin"><code>chrome://extensions</code><button type="button" data-salin="chrome://extensions">Salin</button></span></p>
+        <p>Edge: <span class="salin"><code>edge://extensions</code><button type="button" data-salin="edge://extensions">Salin</button></span></p>
+        <p>Brave: <span class="salin"><code>brave://extensions</code><button type="button" data-salin="brave://extensions">Salin</button></span></p>
+        <p>Alamat ini tidak bisa diklik dari website, jadi harus disalin lalu ditempel sendiri.</p>
+        <figure>
+          <img src="foto/langkah-3.jpg" alt="Halaman chrome://extensions" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Halaman Extensions di browser.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Aktifkan Developer mode</h3>
+        <p>Nyalakan saklar <strong>Developer mode</strong>. Letaknya di pojok kanan atas (Chrome, Brave) atau kiri bawah (Edge).</p>
+        <figure>
+          <img src="foto/langkah-4.jpg" alt="Saklar Developer mode di pojok kanan atas" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Saklar Developer mode harus menyala.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Klik Load unpacked</h3>
+        <p>Setelah Developer mode menyala, muncul tombol <strong>Load unpacked</strong> (di Edge juga bernama <strong>Muat tanpa paket</strong>). Klik tombol itu.</p>
+        <figure>
+          <img src="foto/langkah-5.jpg" alt="Tombol Load unpacked" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Tombol Load unpacked.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Pilih folder hasil ekstrak</h3>
+        <p>Pilih folder hasil ekstrak dari langkah 2, lalu klik <strong>Select Folder</strong>. Pilih folder yang di dalamnya langsung ada file <code>manifest.json</code>. Kadang ada folder di dalam folder, jadi masuklah satu tingkat lagi jika <code>manifest.json</code> belum terlihat.</p>
+        <figure>
+          <img src="foto/langkah-6.jpg" alt="Memilih folder ekstensi yang berisi manifest.json" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Folder yang dipilih harus berisi manifest.json.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Sematkan ekstensi ke toolbar</h3>
+        <p>Ekstensi sudah muncul di daftar. Klik ikon <strong>puzzle</strong> di sebelah kolom alamat, lalu klik ikon <strong>pin</strong> di samping NAMA_EKSTENSI agar tombolnya selalu terlihat. Setelah itu buka website SIMBG dan ekstensi siap dipakai.</p>
+        <figure>
+          <img src="foto/langkah-7.jpg" alt="Menyematkan ekstensi lewat ikon puzzle" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Ikon puzzle, lalu pin.</figcaption>
+        </figure>
+      </li>
+
+    </ol>
+  </div>
+
+  <div class="sasaran">
+    <div class="sasaran-ikon" aria-hidden="true">
+      <svg class="papan" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#e23b3b"/><circle cx="20" cy="20" r="12" fill="#fff"/><circle cx="20" cy="20" r="6" fill="#e23b3b"/></svg>
+      <svg class="cek" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#1a8a4b"/><path d="M11 20.5 L17.5 27 L29 14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="ledak"></span>
+    </div>
+    <div class="sasaran-teks"><span class="teks-awal">Tujuan akhir: ekstensi terpasang</span><span class="teks-akhir">Target tercapai. Ekstensi terpasang!</span></div>
+  </div>
+
+  <h2 class="bagian" id="perbarui">Memperbarui ekstensi</h2>
+  <p class="pengantar">Jika ada versi baru, unduh ZIP terbaru dari tombol di bagian atas halaman ini.</p>
+  <div class="rute">
+    <div class="rute-garis" aria-hidden="true"></div>
+    <ol class="langkah">
+      <li class="muncul">
+        <h3>Timpa folder lama</h3>
+        <p>Ekstrak ZIP baru ke folder yang sama dengan folder ekstensi lama, lalu pilih <em>Replace the files</em>.</p>
+      </li>
+      <li class="muncul">
+        <h3>Muat ulang ekstensi</h3>
+        <p>Buka halaman ekstensi, cari NAMA_EKSTENSI, lalu klik ikon <strong>muat ulang</strong> (panah melingkar) pada kartunya. Setelah itu muat ulang tab SIMBG dengan <kbd>Ctrl</kbd> + <kbd>F5</kbd>.</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="sasaran">
+    <div class="sasaran-ikon" aria-hidden="true">
+      <svg class="papan" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#e23b3b"/><circle cx="20" cy="20" r="12" fill="#fff"/><circle cx="20" cy="20" r="6" fill="#e23b3b"/></svg>
+      <svg class="cek" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#1a8a4b"/><path d="M11 20.5 L17.5 27 L29 14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="ledak"></span>
+    </div>
+    <div class="sasaran-teks"><span class="teks-awal">Tujuan akhir: ekstensi versi terbaru</span><span class="teks-akhir">Target tercapai. Ekstensi sudah diperbarui!</span></div>
+  </div>
+
+  <h2 class="bagian" id="masalah">Jika bermasalah</h2>
+  <details>
+    <summary>Tombol Load unpacked tidak muncul</summary>
+    <p>Developer mode belum menyala. Kembali ke langkah 4 dan pastikan saklarnya aktif.</p>
+  </details>
+  <details>
+    <summary>Muncul pesan "Manifest file is missing or unreadable"</summary>
+    <p>Folder yang dipilih salah. Pilih folder yang langsung berisi file <code>manifest.json</code>, biasanya satu tingkat lebih dalam dari folder hasil ekstrak.</p>
+  </details>
+  <details>
+    <summary>Muncul pesan "Disable developer mode extensions"</summary>
+    <p>Ini peringatan standar browser untuk ekstensi yang dipasang manual. Klik <strong>Cancel</strong> atau tanda silang, jangan klik Disable.</p>
+  </details>
+  <details>
+    <summary>Ekstensi hilang atau mati setelah komputer dihidupkan ulang</summary>
+    <ul>
+      <li>Pastikan folder ekstensi tidak dihapus atau dipindahkan.</li>
+      <li>Buka halaman ekstensi dan pastikan saklar ekstensi masih menyala.</li>
+      <li>Jika folder sudah terlanjur dipindah, hapus ekstensi lalu ulangi langkah 5 dan 6.</li>
+    </ul>
+  </details>
+  <details>
+    <summary>File ZIP tidak bisa diunduh dari Drive</summary>
+    <p>Coba klik <strong>Buka di Drive</strong>, lalu pilih ikon unduh di pojok kanan atas. Jika masih gagal, hubungi admin untuk memastikan akses file Drive diatur "Siapa saja yang memiliki link".</p>
+  </details>
+
+</main>
+
+<footer>
+  <div class="lebar">
+    Tutorial ini untuk pemasangan manual. Jika layar berbeda dari foto, ikuti nama tombolnya, karena tampilan browser bisa berubah antar versi.
+  </div>
+</footer>
+
+<div id="pembesar" role="dialog" aria-label="Foto diperbesar"><img alt=""></div>
+
+<script>
+  // Foto belum diunggah: tampilkan kotak pengganti
+  function fotoKosong(img){
+    var kotak = document.createElement('div');
+    kotak.className = 'foto-kosong';
+    kotak.innerHTML = 'Foto belum ditambahkan.<br>Simpan di <code>assets/' +
+      (img.getAttribute('src') || '') + '</code>';
+    img.replaceWith(kotak);
+  }
+
+  document.documentElement.classList.add('js');
+
+  (function(){
+    var kurangGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var hero = document.getElementById('atas');
+    var progres = document.getElementById('progres');
+    var awan = [].slice.call(document.querySelectorAll('.awan'));
+    var NS = 'http://www.w3.org/2000/svg';
+
+    function clamp(n){ return Math.max(0, Math.min(1, n)); }
+
+    // Siapkan rute: isi garis, jet, rudal, dan sasaran di ujung
+    var pesawatHero = hero.querySelector('.pesawat');
+    var SVG_RUDAL = '<svg viewBox="0 -8 12 48"><polygon points="3,4 6,-8 9,4" fill="#ff9d3c"/>' +
+      '<polygon points="4,6 0,12 4,15" fill="#5f7088"/><polygon points="8,6 12,12 8,15" fill="#5f7088"/>' +
+      '<rect x="3.5" y="2" width="5" height="26" rx="1.5" fill="#e8edf3" stroke="#5f7088" stroke-width=".6"/>' +
+      '<rect x="3.5" y="10" width="5" height="2" fill="#e23b3b"/>' +
+      '<polygon points="3.5,28 8.5,28 6,38" fill="#e23b3b"/></svg>';
+
+    var rutes = [].slice.call(document.querySelectorAll('.rute')).map(function(el){
+      var isi = document.createElement('div'); isi.className = 'rute-isi'; isi.setAttribute('aria-hidden','true');
+      var jet = document.createElement('div'); jet.className = 'rute-jet'; jet.setAttribute('aria-hidden','true');
+      jet.innerHTML = '<svg viewBox="0 0 112 60"><use href="#jet"/></svg>';
+      var peluru = document.createElement('div'); peluru.className = 'peluru'; peluru.setAttribute('aria-hidden','true');
+      peluru.innerHTML = SVG_RUDAL;
+      el.appendChild(isi); el.appendChild(jet); el.appendChild(peluru);
+      var sasaran = el.nextElementSibling;
+      if (sasaran && !sasaran.classList.contains('sasaran')) sasaran = null;
+      return { el: el, isi: isi, jet: jet, peluru: peluru, sasaran: sasaran, sudah: false, anim: null,
+               items: [].slice.call(el.querySelectorAll('ol.langkah > li')) };
+    });
+
+    // Jet menembakkan rudal ke sasaran saat sampai di ujung rute
+    function tembak(r){
+      if (r.sudah || r.anim || !r.sasaran) return;
+      if (kurangGerak || !r.peluru.animate){ r.sasaran.classList.add('kena'); r.sudah = true; return; }
+      var ikon = r.sasaran.querySelector('.sasaran-ikon');
+      var rr = r.el.getBoundingClientRect();
+      var ir = ikon.getBoundingClientRect();
+      var awal = rr.height + 8;
+      var jarak = (ir.top + ir.height / 2) - (rr.top + awal + 50);
+      if (jarak < 10) jarak = 10;
+      r.peluru.style.top = awal + 'px';
+      r.peluru.style.display = 'block';
+      r.anim = r.peluru.animate(
+        [{ transform: 'translate(-50%,0)' }, { transform: 'translate(-50%,' + jarak + 'px)' }],
+        { duration: 850, easing: 'cubic-bezier(.45,0,1,.7)' }
+      );
+      r.anim.onfinish = function(){
+        r.peluru.style.display = 'none'; r.anim = null; r.sudah = true;
+        r.sasaran.classList.add('kena');
+      };
+    }
+    function isiUlang(r){
+      if (r.anim){ r.anim.onfinish = null; r.anim.cancel(); r.anim = null; }
+      r.peluru.style.display = 'none';
+      if (r.sasaran) r.sasaran.classList.remove('kena');
+      r.sudah = false;
+    }
+
+    var yLama = window.scrollY || window.pageYOffset || 0;
+    var arah = 1; // 1 = scroll turun, -1 = scroll naik (jet berpaling)
+
+    function perbarui(){
+      var y = window.scrollY || window.pageYOffset;
+      var vh = window.innerHeight;
+      var tinggiDoc = document.documentElement.scrollHeight - vh;
+
+      if (Math.abs(y - yLama) > 2){ arah = y > yLama ? 1 : -1; yLama = y; }
+      pesawatHero.classList.toggle('balik', arah < 0);
+
+      progres.style.width = (tinggiDoc > 0 ? clamp(y / tinggiDoc) * 100 : 0) + '%';
+
+      if (!kurangGerak){
+        var s = clamp(y / (hero.offsetHeight * 1.1));
+        hero.style.setProperty('--s', s.toFixed(4));
+        awan.forEach(function(a){
+          var v = parseFloat(a.getAttribute('data-v')) || 0.2;
+          a.style.transform = 'translate3d(' + (-y * v).toFixed(1) + 'px,0,0)';
+        });
+      }
+
+      rutes.forEach(function(r){
+        var rect = r.el.getBoundingClientRect();
+        var p = clamp((vh * 0.55 - rect.top) / rect.height);
+        var h = p * rect.height;
+        r.isi.style.height = h + 'px';
+        r.jet.style.top = h + 'px';
+        r.jet.classList.toggle('naik', arah < 0);
+        r.items.forEach(function(li){
+          if (li.offsetTop + 34 <= h) li.classList.add('lewat');
+          else li.classList.remove('lewat');
+        });
+        if (p >= 0.985 && arah > 0) tembak(r);
+        else if (p < 0.9 && (r.sudah || r.anim)) isiUlang(r);
+      });
+    }
+
+    var menunggu = false;
+    function jadwal(){
+      if (menunggu) return;
+      menunggu = true;
+      requestAnimationFrame(function(){ menunggu = false; perbarui(); });
+    }
+    window.addEventListener('scroll', jadwal, { passive: true });
+    window.addEventListener('resize', jadwal);
+    window.addEventListener('load', jadwal);
+    perbarui();
+
+    // Kartu muncul saat masuk layar
+    var kartu = [].slice.call(document.querySelectorAll('.muncul'));
+    if ('IntersectionObserver' in window && !kurangGerak){
+      var io = new IntersectionObserver(function(daftar){
+        daftar.forEach(function(d){
+          if (d.isIntersecting){ d.target.classList.add('tampil'); io.unobserve(d.target); }
+        });
+      }, { threshold: 0.12 });
+      kartu.forEach(function(k){ io.observe(k); });
+    } else {
+      kartu.forEach(function(k){ k.classList.add('tampil'); });
+    }
+  })();
+
+  // Tombol salin alamat
+  document.querySelectorAll('button[data-salin]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var teks = b.getAttribute('data-salin');
+      var selesai = function(){
+        var lama = b.textContent; b.textContent = 'Tersalin';
+        setTimeout(function(){ b.textContent = lama; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(teks).then(selesai, function(){ prompt('Salin alamat ini:', teks); });
+      } else { prompt('Salin alamat ini:', teks); }
+    });
+  });
+
+  // Klik foto untuk memperbesar
+  var pembesar = document.getElementById('pembesar');
+  var fotoBesar = pembesar.querySelector('img');
+  document.querySelectorAll('figure img').forEach(function(img){
+    img.addEventListener('click', function(){
+      fotoBesar.src = img.src; fotoBesar.alt = img.alt;
+      pembesar.classList.add('buka');
+    });
+  });
+  pembesar.addEventListener('click', function(){ pembesar.classList.remove('buka'); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') pembesar.classList.remove('buka');
+  });
+</script>
+</body>
+</html>
