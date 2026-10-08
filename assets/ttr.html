@@ -631,7 +631,7 @@
     var api = jetEl.querySelector('.api-k'), spinEl = jetEl.querySelector('.spin');
     var apiK = kawan.querySelector('.api-k'), spinK = kawan.querySelector('.spin');
 
-    var mx = -100, my = -100, px = -100, py = -100, vx = 0, vy = 0, sudut = 0;
+    var mx = -100, my = -100, px = -100, py = -100, vx = 0, vy = 0, sudut = 0, arahTarget = 0;
     var turbo = false, tampil = false, bersih = true;
     var partikel = [], cincin = [], rudal = [], bom = [];
     var tLama = performance.now();
@@ -833,13 +833,17 @@
         var kec = Math.sqrt(vx * vx + vy * vy);
         var gaya = Math.min(1, kec / 28);
 
-        // miring (bank) ke arah gerak kiri/kanan; saat duel tembak, hidung menghadap lawan
-        var target = kurangGerak ? 0 : Math.max(-45, Math.min(45, vx * 2.4));
+        // hidung jet menghadap arah gerak kursor ke segala arah (atas, bawah, kiri, kanan, diagonal);
+        // saat kursor diam, jet mempertahankan arah terakhir. Saat duel tembak, hidung menghadap lawan.
+        if (kec > 2.5) arahTarget = Math.atan2(vx, -vy) / RAD;
+        var target = kurangGerak ? 0 : arahTarget;
         if (duel && duel.tipe === 'tembak' && !duel.dihit.k && (duel.fase === 'kunci' || duel.fase === 'tembak')){
           target = Math.atan2(gx - px, -(gy - py)) / RAD;
         }
-        sudut += (target - sudut) * 0.2;
-        var bank = Math.min(1, Math.abs(sudut) / 45);
+        var beda = selisih(target, sudut);            // belok lewat jalur terpendek
+        sudut += beda * 0.2;
+        if (sudut > 180) sudut -= 360; else if (sudut < -180) sudut += 360;
+        var bank = Math.min(1, Math.abs(beda) / 40);  // sayap menyempit saat sedang berbelok
         var s = turbo ? 1.12 : 1;
         var kuat = turbo || paksaApi > 0 || (duel && duel.tipe === 'manuver' && duel.fase === 'putar');
 
