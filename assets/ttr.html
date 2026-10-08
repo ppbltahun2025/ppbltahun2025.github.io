@@ -11,7 +11,8 @@
   Ikon tab (favicon): download.png, di folder assets.
   Foto tahapan (folder assets): g1.jpeg sampai g7.jpeg, satu foto per langkah pemasangan.
   Suara (folder assets, nama bisa diubah di bagian SUARA pada script di bawah):
-    suarajet.mpeg  suara bising jet tempur (latar, diputar berulang)
+    backsound.mpeg musik latar (diputar berulang)
+    suarajet.mpeg  suara bising jet tempur (hanya terdengar saat kursor bergerak)
     tembak.mp3     suara tembakan rudal
     ledakan.mp3    suara ledakan rudal
   Jika file tembak/ledakan belum ada, halaman memakai suara sintetis bawaan.
@@ -641,7 +642,6 @@
     var gx = 0, gy = 0, gxL = 0, gyL = 0, gSudut = 0, gHidup = false;
     var duelRoll = 1, duelSpin = 0;
 
-    function setVolume(v){ try { if (typeof bgm !== 'undefined' && bgm) bgm.volume = v; } catch (e) {} }
     function selisih(a, b){ return ((a - b + 540) % 360) - 180; }
     function pusatKursor(){
       var r = sudut * RAD;
@@ -803,14 +803,14 @@
       jetEl.classList.toggle('klik', !!(t && t.closest && t.closest('a,button,summary,figure img')));
     });
     document.documentElement.addEventListener('mouseleave', function(){
-      tampil = false; jetEl.style.opacity = '0'; turbo = false; setVolume(0.35);
+      tampil = false; jetEl.style.opacity = '0'; turbo = false;
     });
     document.addEventListener('mousedown', function(){
       if (!tampil) return;
-      turbo = true; setVolume(0.6);
+      turbo = true;
       if (!kurangGerak) cincin.push({ x: px, y: py, l: 0, m: 0.5 });
     });
-    function lepas(){ if (turbo){ turbo = false; setVolume(0.35); } }
+    function lepas(){ if (turbo){ turbo = false; } }
     document.addEventListener('mouseup', lepas);
     window.addEventListener('blur', lepas);
 
@@ -818,6 +818,15 @@
       var dt = Math.min(0.05, (t - tLama) / 1000); tLama = t;
       cooldown -= dt;
       if (paksaApi > 0) paksaApi -= dt;
+
+      // suara jet: makin cepat kursor bergerak makin keras, diam = senyap, tahan klik (turbo) = paling keras
+      var tv = 0;
+      if (suaraAktif && tampil){
+        var kc = Math.sqrt(vx * vx + vy * vy);
+        if (turbo) tv = 0.85; else if (kc > 1.2) tv = Math.min(0.7, kc / 28 * 0.9);
+      }
+      jetVol += (tv - jetVol) * Math.min(1, dt * (tv > jetVol ? 9 : 3));
+      if (jetSuara) jetSuara.volume = Math.max(0, Math.min(1, jetVol));
 
       if (tampil){
         var dx = mx - px, dy = my - py; px = mx; py = my;
@@ -1038,12 +1047,13 @@
   // Ganti nama file di sini jika berbeda. Semua file diletakkan di folder assets,
   // sejajar dengan halaman ini (assets/suarajet.mpeg dst).
   var SUARA = {
-    jet:    'suarajet.mpeg',   // suara bising jet tempur (latar, diputar berulang)
+    backsound: 'backsound.mpeg', // musik latar (diputar berulang)
+    jet:    'suarajet.mpeg',   // suara jet tempur, volumenya mengikuti kecepatan gerak kursor
     tembak: 'tembak.mp3',      // suara rudal ditembakkan
     ledakan:'ledakan.mp3'      // suara rudal meledak
   };
 
-  var suaraAktif = false, bgm = null, ctxAudio = null, dimatikanUser = false;
+  var suaraAktif = false, bgm = null, jetSuara = null, jetVol = 0, ctxAudio = null, dimatikanUser = false;
   try { dimatikanUser = localStorage.getItem('suaraMati') === '1'; } catch (e) {}
   var tombolSuara = document.getElementById('tombol-suara');
 
@@ -1106,13 +1116,16 @@
   }
   function nyalakanSuara(){
     suaraAktif = true; ambilCtx();
-    if (!bgm){ bgm = new Audio(SUARA.jet); bgm.loop = true; bgm.volume = 0.35; }
+    if (!bgm){ bgm = new Audio(SUARA.backsound); bgm.loop = true; bgm.volume = 0.3; }
+    if (!jetSuara){ jetSuara = new Audio(SUARA.jet); jetSuara.loop = true; jetSuara.volume = 0; }
     var pr = bgm.play();
     if (pr && pr.catch) pr.catch(function(){});
+    var pj = jetSuara.play(); // mulai senyap; volume diatur oleh gerak kursor
+    if (pj && pj.catch) pj.catch(function(){});
     perbaruiTombol();
   }
   function matikanSuara(){
-    suaraAktif = false; if (bgm) bgm.pause(); perbaruiTombol();
+    suaraAktif = false; if (bgm) bgm.pause(); if (jetSuara) jetSuara.pause(); jetVol = 0; perbaruiTombol();
   }
   function simpanSuara(mati){ try { localStorage.setItem('suaraMati', mati ? '1' : '0'); } catch (e) {} }
 
