@@ -11,10 +11,10 @@
   Ikon tab (favicon): download.png, di folder assets.
   Foto tahapan (folder assets): g1.jpeg sampai g7.jpeg, satu foto per langkah pemasangan.
   Suara (folder assets, nama bisa diubah di bagian SUARA pada script di bawah):
-    backsound.mp3  musik latar
+    suarajet.mpeg  suara bising jet tempur (latar, diputar berulang)
     tembak.mp3     suara tembakan rudal
     ledakan.mp3    suara ledakan rudal
-  Jika file suara tembak/ledakan belum ada, halaman memakai suara sintetis bawaan.
+  Jika file tembak/ledakan belum ada, halaman memakai suara sintetis bawaan.
 -->
 <style>
   :root{
@@ -31,7 +31,8 @@
     --muda:#e3f1ff;
   }
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
   body{
     margin:0;background:var(--bg);color:var(--tinta);
     font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -121,7 +122,7 @@
   .aksi{display:flex;gap:10px;flex-wrap:wrap}
   .tombol{
     display:inline-flex;align-items:center;gap:9px;background:var(--oranye);color:#fff;text-decoration:none;
-    padding:13px 22px;border-radius:10px;font-weight:700;border:2px solid var(--oranye);font-size:16px;cursor:pointer
+    padding:13px 22px;border-radius:10px;font-weight:700;border:2px solid var(--oranye);font-size:16px
   }
   .tombol svg{width:40px;height:auto;color:#fff;transition:transform .35s ease}
   .tombol:hover{background:var(--oranye-tua);border-color:var(--oranye-tua)}
@@ -186,26 +187,34 @@
   ol.langkah p{margin:0 0 10px}
   ol.langkah p:last-child{margin-bottom:0}
 
-  /* rudal dan sasaran di ujung rute */
+  /* ===== RUDAL DAN KAPAL SASARAN ===== */
   .peluru{position:absolute;left:20px;top:0;width:13px;height:52px;z-index:5;display:none;pointer-events:none;
     transform:translate(-50%,0);filter:drop-shadow(0 3px 5px rgba(10,42,94,.4))}
-  .peluru svg{display:block;width:100%;height:100%}
-  .sasaran{display:flex;align-items:center;gap:16px;margin:100px 0 0;min-height:44px}
-  .sasaran-ikon{position:relative;width:40px;height:40px;flex:none}
-  .sasaran-ikon svg{display:block;width:100%;height:100%}
-  .sasaran .cek{display:none}
-  .sasaran.kena .papan{display:none}
-  .sasaran.kena .cek{display:block}
-  .sasaran-teks{font-weight:700;color:var(--navy)}
+  .peluru svg{display:block;width:100%;height:100%;transform:rotate(180deg)} /* hidung rudal menghadap ke bawah */
+  .sasaran{display:flex;align-items:center;gap:16px;margin:110px 0 0;min-height:56px;flex-wrap:wrap}
+  .sasaran-ikon{position:relative;width:150px;height:52px;flex:none}
+  .sasaran-ikon svg.kapal{display:block;width:100%;height:100%;overflow:visible}
+  .badan-kapal{transform-origin:50% 90%;transition:transform 1.2s ease .3s}
+  .api{display:none}
+  .sasaran.kena .api{display:block}
+  .sasaran.kena .badan-kapal{transform:rotate(3.5deg) translateY(2px)}
+  .api .nyala{transform-box:fill-box;transform-origin:50% 100%;animation:nyala .45s ease-in-out infinite alternate}
+  .api .nyala.dua{animation-duration:.6s;animation-delay:.15s}
+  .api .asap{transform-box:fill-box;transform-origin:50% 100%;animation:asap 2.4s ease-out infinite}
+  .api .asap.dua{animation-delay:.8s}
+  .api .asap.tiga{animation-delay:1.6s}
+  @keyframes nyala{from{transform:scale(.85,.9)}to{transform:scale(1.1,1.15)}}
+  @keyframes asap{0%{opacity:.75;transform:translateY(0) scale(.6)}100%{opacity:0;transform:translateY(-28px) scale(1.7)}}
+  .sasaran-teks{font-weight:700;color:var(--navy);flex:1;min-width:200px}
   .sasaran .teks-akhir{display:none}
   .sasaran.kena .teks-awal{display:none}
   .sasaran.kena .teks-akhir{display:inline;color:#1a8a4b}
-  .ledak{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;
-    pointer-events:none;opacity:0;
+  .ledak{position:absolute;left:50%;top:40%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;
+    pointer-events:none;opacity:0;z-index:3;
     background:radial-gradient(circle,#fff 0%,#ffd36b 30%,#ff7a2f 55%,rgba(255,60,0,0) 72%)}
   .ledak::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:3px solid #ffb347}
   .sasaran.kena .ledak{animation:ledak .9s ease-out}
-  @keyframes ledak{0%{opacity:1;transform:scale(.2)}60%{opacity:1;transform:scale(3.2)}100%{opacity:0;transform:scale(4.4)}}
+  @keyframes ledak{0%{opacity:1;transform:scale(.2)}60%{opacity:1;transform:scale(3);}100%{opacity:0;transform:scale(4.2)}}
 
   /* kartu muncul dari samping saat di-scroll (hanya jika JS aktif) */
   .js .muncul{opacity:0;transform:translateX(46px) rotate(.6deg);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
@@ -214,7 +223,7 @@
   figure{margin:14px 0 0}
   figure img{
     display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--garis);
-    cursor:zoom-in;background:var(--muda)
+    background:var(--muda)
   }
   figcaption{font-size:14px;color:var(--lembut);margin-top:6px}
   .foto-kosong{
@@ -228,13 +237,13 @@
   }
   .salin{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0}
   .salin button{
-    font:inherit;font-size:14px;padding:5px 12px;border-radius:8px;cursor:pointer;
+    font:inherit;font-size:14px;padding:5px 12px;border-radius:8px;
     border:1px solid var(--biru);background:transparent;color:var(--biru);font-weight:600
   }
   .salin button:hover{background:var(--muda)}
 
   details{background:var(--kertas);border:1px solid var(--garis);border-radius:12px;padding:4px 18px;margin-bottom:10px}
-  summary{cursor:pointer;font-weight:700;padding:12px 0;color:var(--navy)}
+  summary{font-weight:700;padding:12px 0;color:var(--navy)}
   details[open] summary{border-bottom:1px solid var(--garis);margin-bottom:10px}
   details p,details ul{margin:0 0 12px}
   details ul{padding-left:20px}
@@ -243,7 +252,7 @@
 
   #pembesar{
     position:fixed;inset:0;background:rgba(5,15,35,.88);display:none;
-    align-items:center;justify-content:center;padding:18px;z-index:80;cursor:zoom-out
+    align-items:center;justify-content:center;padding:18px;z-index:80
   }
   #pembesar.buka{display:flex}
   #pembesar img{max-width:100%;max-height:100%;border-radius:8px}
@@ -253,13 +262,60 @@
     position:fixed;right:16px;bottom:16px;z-index:70;display:flex;align-items:center;gap:8px;
     background:var(--navy);color:#fff;border:2px solid #fff;border-radius:999px;
     padding:9px 16px 9px 12px;font-family:inherit;font-size:14px;font-weight:600;line-height:1;
-    cursor:pointer;box-shadow:0 8px 20px rgba(10,42,94,.35)
+    box-shadow:0 8px 20px rgba(10,42,94,.35)
   }
   #tombol-suara:hover{background:var(--biru)}
   #tombol-suara svg{width:22px;height:22px;flex:none}
   #tombol-suara .silang{display:none}
   #tombol-suara.mati .silang{display:inline}
   #tombol-suara.mati .gelom{display:none}
+
+
+  /* ===== SCROLLBAR BUATAN SENDIRI ===== */
+  #gulir{position:fixed;right:4px;top:84px;bottom:84px;width:28px;z-index:65;display:none;touch-action:none}
+  #gulir.ada{display:block}
+  #gulir-rel{position:absolute;left:12px;top:0;bottom:0;width:4px;border-radius:4px;
+    background:rgba(10,42,94,.25);box-shadow:0 0 0 1px rgba(255,255,255,.55)}
+  #gulir-isi{position:absolute;left:0;top:0;width:100%;height:0;border-radius:4px;
+    background:linear-gradient(to bottom,var(--biru),var(--oranye))}
+  #gulir-jet{position:absolute;left:50%;top:0;width:30px;height:50px;margin-left:-15px;z-index:2;touch-action:none}
+  #gulir-jet .gj-svg{position:absolute;left:50%;top:50%;width:46px;height:25px;margin:-12.5px 0 0 -23px;
+    transform:rotate(90deg);color:#dfe6ee;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45))}
+  #gulir-jet .gj-api{position:absolute;left:50%;bottom:calc(100% - 12px);width:9px;height:10px;margin-left:-4.5px;
+    border-radius:50% 50% 2px 2px;transform-origin:50% 100%;opacity:.9;
+    background:linear-gradient(to top,#fff2c2,#ffb347 40%,rgba(255,90,20,0));
+    transition:height .18s ease}
+  #gulir.turbo .gj-api{height:34px}
+  #gulir-jet:hover .gj-svg{color:#fff}
+
+  /* ===== KURSOR JET + TURBO ===== */
+  #kursor-jet{position:fixed;left:0;top:0;width:44px;height:64px;z-index:9999;pointer-events:none;
+    transform-origin:22px 4px;will-change:transform;opacity:0;transition:opacity .15s;
+    filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+  #kursor-jet svg{display:block;overflow:visible}
+  #kursor-jet.klik{filter:drop-shadow(0 0 7px #ff7a2f) drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+  #kursor-jet .api-k{transform-origin:22px 50px}
+  #kursor-jejak{position:fixed;left:0;top:0;z-index:9998;pointer-events:none}
+  @media (hover:hover) and (pointer:fine){
+    html.kursor-jet, html.kursor-jet *{cursor:none !important}
+  }
+
+
+  /* jet scrollbar: hidung ke bawah saat scroll turun, ke atas (mundur) saat scroll naik */
+  #gulir-jet .gj-svg{transition:transform .35s ease,opacity .3s ease,color .2s}
+  #gulir-jet .gj-api{transition:height .18s ease,opacity .3s ease}
+  #gulir-jet.naik .gj-svg{transform:rotate(-90deg)}
+  #gulir-jet.naik .gj-api{bottom:auto;top:calc(100% - 12px);border-radius:2px 2px 50% 50%;transform-origin:50% 0;
+    background:linear-gradient(to bottom,#fff2c2,#ffb347 40%,rgba(255,90,20,0))}
+  #gulir-jet.pergi .gj-svg,#gulir-jet.pergi .gj-api{opacity:0}
+
+  /* jet lawan/kawan saat duel */
+  #kursor-jet .spin,#jet-kawan .spin{display:block;width:44px;height:64px;transform-origin:22px 30px}
+  #jet-kawan{position:fixed;left:0;top:0;width:44px;height:64px;z-index:9997;pointer-events:none;
+    transform-origin:22px 4px;will-change:transform;opacity:0;
+    filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+  #jet-kawan svg{display:block;overflow:visible}
+  #jet-kawan .api-k{transform-origin:22px 50px}
 
   @media (max-width:560px){
     body{font-size:16px}
@@ -271,7 +327,7 @@
     ol.langkah > li{padding:16px}
     ol.langkah > li::before{left:-46px;width:34px;height:34px;font-size:16px;top:14px}
     .judul{padding-top:40px}
-    .sasaran-ikon{width:34px;height:34px}
+    .sasaran-ikon{width:120px;height:42px}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -279,8 +335,9 @@
     .jet.melayang{animation:none}
     .js .muncul{opacity:1;transform:none;transition:none}
     ol.langkah > li.lewat::before{animation:none}
-    .tombol svg,.badan,.rute-jet svg{transition:none}
+    .tombol svg,.badan,.rute-jet svg,.badan-kapal{transition:none}
     .sasaran.kena .ledak{animation:none}
+    .api .nyala,.api .asap{animation:none}
   }
 </style>
 </head>
@@ -439,8 +496,39 @@
 
   <div class="sasaran">
     <div class="sasaran-ikon" aria-hidden="true">
-      <svg class="papan" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#e23b3b"/><circle cx="20" cy="20" r="12" fill="#fff"/><circle cx="20" cy="20" r="6" fill="#e23b3b"/></svg>
-      <svg class="cek" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#1a8a4b"/><path d="M11 20.5 L17.5 27 L29 14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <!-- kapal induk sasaran -->
+      <svg class="kapal" viewBox="0 0 200 70">
+        <g class="badan-kapal">
+          <!-- lambung -->
+          <path d="M6 40 L194 40 L186 56 Q184 60 178 60 L24 60 Q16 60 12 54 Z" fill="#4b5563"/>
+          <rect x="14" y="52" width="172" height="2" fill="#2f3944" opacity=".6"/>
+          <!-- dek penerbangan -->
+          <path d="M2 35 L198 35 L194 41 L8 41 Z" fill="#a3adb9"/>
+          <rect x="6" y="37.5" width="186" height="1" fill="#fff" opacity=".6"/>
+          <!-- pulau (anjungan) dan tiang -->
+          <rect x="122" y="22" width="28" height="13" fill="#6b7280"/>
+          <rect x="128" y="14" width="16" height="8" fill="#6b7280"/>
+          <rect x="125" y="26" width="22" height="2" fill="#cbd5e1" opacity=".8"/>
+          <line x1="136" y1="14" x2="136" y2="3" stroke="#374151" stroke-width="2"/>
+          <rect x="130" y="7" width="12" height="2" fill="#374151"/>
+          <!-- pesawat di dek -->
+          <path d="M20 34 L32 34 L28 28 L25 28 Z" fill="#374151"/>
+          <path d="M42 34 L54 34 L50 28 L47 28 Z" fill="#374151"/>
+          <path d="M64 34 L76 34 L72 28 L69 28 Z" fill="#374151"/>
+          <path d="M156 34 L168 34 L164 28 L161 28 Z" fill="#374151"/>
+          <path d="M174 34 L186 34 L182 28 L179 28 Z" fill="#374151"/>
+          <!-- api dan asap setelah kena -->
+          <g class="api">
+            <circle class="asap" cx="96" cy="22" r="9" fill="#4b4f57"/>
+            <circle class="asap dua" cx="104" cy="18" r="8" fill="#5b6068"/>
+            <circle class="asap tiga" cx="90" cy="20" r="7" fill="#6b7078"/>
+            <path class="nyala" d="M82 35 Q76 22 86 12 Q88 22 95 24 Q99 16 97 8 Q112 20 108 35 Z" fill="#ff7a2f"/>
+            <path class="nyala dua" d="M89 35 Q86 27 93 20 Q95 27 100 28 Q103 24 102 20 Q108 28 105 35 Z" fill="#ffd36b"/>
+          </g>
+        </g>
+        <!-- ombak -->
+        <path d="M0 60 Q10 55 20 60 T40 60 T60 60 T80 60 T100 60 T120 60 T140 60 T160 60 T180 60 T200 60 V70 H0 Z" fill="#7cc2ff" opacity=".85"/>
+      </svg>
       <span class="ledak"></span>
     </div>
     <div class="sasaran-teks"><span class="teks-awal">Tujuan akhir: ekstensi terpasang</span><span class="teks-akhir">Target tercapai. Ekstensi terpasang!</span></div>
@@ -464,6 +552,16 @@
   <span class="teks">Suara mati</span>
 </button>
 
+<div id="gulir" aria-hidden="true">
+  <div id="gulir-rel">
+    <div id="gulir-isi"></div>
+    <div id="gulir-jet">
+      <span class="gj-api"></span>
+      <svg class="gj-svg" viewBox="0 0 112 60"><use href="#jet"/></svg>
+    </div>
+  </div>
+</div>
+
 <div id="pembesar" role="dialog" aria-label="Foto diperbesar"><img alt=""></div>
 
 <script>
@@ -477,14 +575,472 @@
   }
 
   document.documentElement.classList.add('js');
+  var gulirSeret = false; // true saat jet scrollbar sedang diseret
+
+  // ===== KURSOR JET + TURBO + DUEL DENGAN JET SCROLLBAR =====
+  // Jet miring kiri/kanan mengikuti mouse, tahan klik = TURBO.
+  // Kursor menyentuh scrollbar: jet scrollbar terbang keluar lalu bermanuver bareng
+  // atau saling tembak rudal (acak). Suara memakai tembak.mp3 dan ledakan.mp3.
+  (function(){
+    var mq = window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)');
+    if (!mq || !mq.matches) return; // HP/tablet tidak punya kursor
+    var kurangGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var RAD = Math.PI / 180;
+    var thumb = document.getElementById('gulir-jet');
+    var bar = document.getElementById('gulir');
+
+    function jetHtml(badan, garis, lampuKiri, lampuKanan){
+      return '<div class="spin"><svg viewBox="0 0 44 64" width="44" height="64">' +
+        '<g class="api-k">' +
+          '<path d="M16 50 Q22 84 28 50 Z" fill="#ff7a2f"/>' +
+          '<path d="M19 50 Q22 72 25 50 Z" fill="#ffd36b"/>' +
+          '<path d="M20.5 50 Q22 62 23.5 50 Z" fill="#fff"/>' +
+        '</g>' +
+        '<path d="M22 4 L26 20 L42 44 L42 48 L28 44 L27 52 L33 56 L33 58 L22 56 L11 58 L11 56 L17 52 L16 44 L2 48 L2 44 L18 20 Z" ' +
+          'fill="' + badan + '" stroke="' + garis + '" stroke-width="2" stroke-linejoin="round"/>' +
+        '<path d="M22 8 L22 54" stroke="' + garis + '" stroke-opacity=".25" stroke-width="1.5"/>' +
+        '<ellipse cx="22" cy="20" rx="2.8" ry="6.5" fill="' + garis + '" opacity=".85"/>' +
+        '<circle cx="3" cy="45" r="2" fill="' + lampuKiri + '"/><circle cx="41" cy="45" r="2" fill="' + lampuKanan + '"/>' +
+        '</svg></div>';
+    }
+
+    var jetEl = document.createElement('div');
+    jetEl.id = 'kursor-jet'; jetEl.setAttribute('aria-hidden', 'true');
+    jetEl.innerHTML = jetHtml('#dfe6ee', '#0a2a5e', '#e23b3b', '#2fd16b');
+    var kawan = document.createElement('div');
+    kawan.id = 'jet-kawan'; kawan.setAttribute('aria-hidden', 'true');
+    kawan.innerHTML = jetHtml('#f0c6c0', '#5a1020', '#ffd23c', '#ffd23c');
+    var cv = document.createElement('canvas');
+    cv.id = 'kursor-jejak';
+    document.body.appendChild(kawan);
+    document.body.appendChild(cv);
+    document.body.appendChild(jetEl);
+
+    var cx = cv.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    function ukur(){
+      cv.width = Math.floor(window.innerWidth * dpr);
+      cv.height = Math.floor(window.innerHeight * dpr);
+      cv.style.width = window.innerWidth + 'px';
+      cv.style.height = window.innerHeight + 'px';
+      cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    ukur();
+    window.addEventListener('resize', ukur);
+
+    var api = jetEl.querySelector('.api-k'), spinEl = jetEl.querySelector('.spin');
+    var apiK = kawan.querySelector('.api-k'), spinK = kawan.querySelector('.spin');
+
+    var mx = -100, my = -100, px = -100, py = -100, vx = 0, vy = 0, sudut = 0;
+    var turbo = false, tampil = false, bersih = true;
+    var partikel = [], cincin = [], rudal = [], bom = [];
+    var tLama = performance.now();
+
+    // status duel
+    var duel = null, dwell = 0, cooldown = 1.5, rusak = 0, wasRusak = false, paksaApi = 0;
+    var gx = 0, gy = 0, gxL = 0, gyL = 0, gSudut = 0, gHidup = false;
+    var duelRoll = 1, duelSpin = 0;
+
+    function setVolume(v){ try { if (typeof bgm !== 'undefined' && bgm) bgm.volume = v; } catch (e) {} }
+    function selisih(a, b){ return ((a - b + 540) % 360) - 180; }
+    function pusatKursor(){
+      var r = sudut * RAD;
+      return { x: px - Math.sin(r) * 26, y: py + Math.cos(r) * 26 };
+    }
+    function pusatKawan(){
+      var r = gSudut * RAD;
+      return { x: gx - Math.sin(r) * 26, y: gy + Math.cos(r) * 26 };
+    }
+    function pusatThumb(){
+      var r = thumb.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: r.width > 0 };
+    }
+
+    // percikan api dari ekor jet
+    function semburan(nx, ny, deg, gaya, kuat){
+      if (kurangGerak) return;
+      var rad = deg * RAD, bx = -Math.sin(rad), by = Math.cos(rad);
+      var tx = nx + bx * 54, ty = ny + by * 54;
+      var n = kuat ? 4 : Math.round(gaya * 3) + (Math.random() < 0.3 ? 1 : 0);
+      for (var i = 0; i < n; i++){
+        var sp = (kuat ? 220 : 110) + Math.random() * 120 + gaya * 120;
+        var ang = Math.atan2(by, bx) + (Math.random() - 0.5) * 0.5;
+        partikel.push({ x: tx + (Math.random() - 0.5) * 6, y: ty, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
+                        l: 0, m: 0.35 + Math.random() * 0.35, r: 2.5 + Math.random() * 3, k: 'api' });
+      }
+    }
+
+    function ledak(x, y){
+      bom.push({ x: x, y: y, l: 0, m: 0.8 });
+      cincin.push({ x: x, y: y, l: 0, m: 0.6 });
+      for (var i = 0; i < 46; i++){
+        var a = Math.random() * 6.2832, sp = 80 + Math.random() * 340;
+        partikel.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, l: 0, m: 0.5 + Math.random() * 0.8,
+                        r: 2 + Math.random() * 4, k: Math.random() < 0.35 ? 'asap' : 'api' });
+      }
+      mainkan('ledakan');
+    }
+    function tembakRudal(dari, ke){
+      rudal.push({ x: dari.x, y: dari.y, ke: ke, ang: 0 });
+      mainkan('tembak');
+    }
+
+    // ----- siklus duel -----
+    function mulaiDuel(S){
+      var tipe = Math.random() < 0.5 ? 'tembak' : 'manuver';
+      duel = { tipe: tipe, t: 0, fase: 'keluar', sx: S.x, sy: S.y - 4, dihit: { k: false, w: false } };
+      gx = gxL = duel.sx; gy = gyL = duel.sy; gSudut = 0; gHidup = true;
+      if (tipe === 'tembak'){
+        duel.tx = Math.max(60, Math.min(window.innerWidth - 60, px - 200));
+        duel.ty = Math.max(60, Math.min(window.innerHeight - 130, py - 40));
+      }
+      thumb.classList.add('pergi');
+      kawan.style.opacity = '1';
+    }
+    function bersihkanDuel(){
+      duel = null; rudal.length = 0; duelRoll = 1; duelSpin = 0; gHidup = false;
+      kawan.style.opacity = '0';
+      thumb.classList.remove('pergi');
+    }
+    function selesaiDuel(){
+      var S = pusatThumb();
+      if (S.ok) cincin.push({ x: S.x, y: S.y, l: 0, m: 0.5 });
+      bersihkanDuel(); cooldown = 6;
+    }
+    function akhiriDuel(){ bersihkanDuel(); cooldown = 3; }
+    function matikanKawan(){ gHidup = false; kawan.style.opacity = '0'; }
+    function hadap(tx, ty){
+      var tujuan = Math.atan2(tx - gx, -(ty - gy)) / RAD;
+      gSudut += selisih(tujuan, gSudut) * 0.25;
+    }
+
+    function jalankanDuel(dt){
+      var d = duel; d.t += dt;
+      if (gulirSeret || !tampil){ akhiriDuel(); return; }
+      var C = pusatKursor();
+
+      if (d.tipe === 'tembak'){
+        if (d.fase === 'keluar'){
+          var u = Math.min(1, d.t / 0.8), e = 1 - Math.pow(1 - u, 3);
+          gx = d.sx + (d.tx - d.sx) * e; gy = d.sy + (d.ty - d.sy) * e;
+          hadap(C.x, C.y);
+          if (u >= 1){ d.fase = 'kunci'; d.t0 = d.t; }
+        } else if (d.fase === 'kunci'){
+          gy += Math.sin(d.t * 9) * 0.4; hadap(C.x, C.y);
+          if (d.t - d.t0 >= 0.6){ d.fase = 'tembak'; d.t1 = d.t; }
+        } else {
+          if (gHidup) hadap(C.x, C.y);
+          if (!d.f1){ d.f1 = true; tembakRudal({ x: px, y: py }, 'kawan'); paksaApi = 0.35; }
+          if (!d.f2 && d.t - d.t1 >= 0.12){ d.f2 = true; tembakRudal({ x: gx, y: gy }, 'kursor'); }
+          if (d.t - d.t1 > 2.4){ // jaga-jaga: paksa kena
+            if (!d.dihit.k){ ledak(C.x, C.y); rusak = 1.5; d.dihit.k = true; }
+            if (!d.dihit.w){ var K = pusatKawan(); ledak(K.x, K.y); matikanKawan(); d.dihit.w = true; }
+            rudal.length = 0;
+          }
+          if (d.dihit.k && d.dihit.w){
+            if (!d.tSelesai) d.tSelesai = d.t;
+            if (d.t - d.tSelesai > 1.1) selesaiDuel();
+          }
+        }
+      } else { // manuver bareng
+        var Fx = px - 64, Fy = py + 10, kk = Math.min(1, dt * 7);
+        if (d.fase === 'keluar'){
+          gx += (Fx - gx) * kk; gy += (Fy - gy) * kk;
+          gSudut += selisih(sudut, gSudut) * 0.25;
+          if (d.t > 0.9){ d.fase = 'putar'; d.t0 = d.t; cincin.push({ x: C.x, y: C.y, l: 0, m: 0.5 }); }
+        } else if (d.fase === 'putar'){
+          var s = d.t - d.t0;
+          gx += (Fx - gx) * kk; gy += (Fy - gy) * kk;
+          gSudut += selisih(sudut, gSudut) * 0.25;
+          duelRoll = s < 0.9 ? Math.cos(s / 0.9 * 4 * Math.PI) : 1;       // dua kali barrel roll
+          if (s >= 0.9 && s < 1.9){                                        // lalu loop 360 derajat
+            var q = (s - 0.9) / 1.0;
+            duelSpin = 360 * (q < 0.5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2);
+          } else duelSpin = 0;
+          if (s >= 2.1){ d.fase = 'pulang'; d.t0 = d.t; duelRoll = 1; duelSpin = 0; }
+        } else { // kembali ke scrollbar
+          var S = pusatThumb(), Tx = S.x, Ty = S.y - 4;
+          gx += (Tx - gx) * Math.min(1, dt * 5); gy += (Ty - gy) * Math.min(1, dt * 5);
+          hadap(Tx, Ty);
+          if (Math.sqrt((Tx - gx) * (Tx - gx) + (Ty - gy) * (Ty - gy)) < 14 || d.t - d.t0 > 1.6) selesaiDuel();
+        }
+      }
+    }
+
+    function updateRudal(dt){
+      for (var i = rudal.length - 1; i >= 0; i--){
+        var r = rudal[i];
+        var T = r.ke === 'kawan' ? pusatKawan() : pusatKursor();
+        var dx = T.x - r.x, dy = T.y - r.y, jarak = Math.sqrt(dx * dx + dy * dy);
+        if (jarak < 20 || !duel){
+          rudal.splice(i, 1);
+          if (duel){
+            ledak(T.x, T.y);
+            if (r.ke === 'kursor'){ rusak = 1.5; duel.dihit.k = true; }
+            else { matikanKawan(); duel.dihit.w = true; }
+          }
+          continue;
+        }
+        r.ang = Math.atan2(dy, dx);
+        r.x += dx / jarak * 560 * dt; r.y += dy / jarak * 560 * dt;
+        for (var j = 0; j < 2; j++){
+          partikel.push({ x: r.x - Math.cos(r.ang) * 10, y: r.y - Math.sin(r.ang) * 10,
+                          vx: (Math.random() - 0.5) * 40, vy: (Math.random() - 0.5) * 40,
+                          l: 0, m: 0.3, r: 2.5, k: 'api' });
+        }
+      }
+    }
+
+    // ----- input mouse -----
+    document.addEventListener('mousemove', function(e){
+      mx = e.clientX; my = e.clientY;
+      if (!tampil){
+        tampil = true; px = mx; py = my; vx = 0; vy = 0;
+        jetEl.style.opacity = '1';
+        document.documentElement.classList.add('kursor-jet');
+      }
+      var t = e.target;
+      jetEl.classList.toggle('klik', !!(t && t.closest && t.closest('a,button,summary,figure img')));
+    });
+    document.documentElement.addEventListener('mouseleave', function(){
+      tampil = false; jetEl.style.opacity = '0'; turbo = false; setVolume(0.35);
+    });
+    document.addEventListener('mousedown', function(){
+      if (!tampil) return;
+      turbo = true; setVolume(0.6);
+      if (!kurangGerak) cincin.push({ x: px, y: py, l: 0, m: 0.5 });
+    });
+    function lepas(){ if (turbo){ turbo = false; setVolume(0.35); } }
+    document.addEventListener('mouseup', lepas);
+    window.addEventListener('blur', lepas);
+
+    function frame(t){
+      var dt = Math.min(0.05, (t - tLama) / 1000); tLama = t;
+      cooldown -= dt;
+      if (paksaApi > 0) paksaApi -= dt;
+
+      if (tampil){
+        var dx = mx - px, dy = my - py; px = mx; py = my;
+        vx += (dx - vx) * 0.25; vy += (dy - vy) * 0.25;
+        var kec = Math.sqrt(vx * vx + vy * vy);
+        var gaya = Math.min(1, kec / 28);
+
+        // miring (bank) ke arah gerak kiri/kanan; saat duel tembak, hidung menghadap lawan
+        var target = kurangGerak ? 0 : Math.max(-45, Math.min(45, vx * 2.4));
+        if (duel && duel.tipe === 'tembak' && !duel.dihit.k && (duel.fase === 'kunci' || duel.fase === 'tembak')){
+          target = Math.atan2(gx - px, -(gy - py)) / RAD;
+        }
+        sudut += (target - sudut) * 0.2;
+        var bank = Math.min(1, Math.abs(sudut) / 45);
+        var s = turbo ? 1.12 : 1;
+        var kuat = turbo || paksaApi > 0 || (duel && duel.tipe === 'manuver' && duel.fase === 'putar');
+
+        var k = (kuat ? 3.4 : 0.85 + gaya * 2.0) * (0.92 + Math.random() * 0.16);
+        var lebar = kuat ? 1.5 : 1 + gaya * 0.3;
+        api.style.transform = 'scale(' + lebar.toFixed(3) + ',' + k.toFixed(3) + ')';
+        spinEl.style.transform = 'rotate(' + duelSpin.toFixed(1) + 'deg) scaleX(' + duelRoll.toFixed(3) + ')';
+        jetEl.style.transform = 'translate3d(' + (px - 22).toFixed(1) + 'px,' + (py - 4).toFixed(1) + 'px,0) ' +
+          'rotate(' + sudut.toFixed(2) + 'deg) scale(' + ((1 - 0.28 * bank) * s).toFixed(3) + ',' + s + ')';
+        semburan(px, py, sudut, gaya, kuat);
+
+        // kena rudal: jet berkedip dan berasap (tetap terlihat supaya kursor tidak hilang)
+        if (rusak > 0){
+          rusak -= dt; wasRusak = true;
+          jetEl.style.opacity = (Math.floor(t / 80) % 2) ? '0.3' : '1';
+          if (Math.random() < 0.7){
+            var c0 = pusatKursor();
+            partikel.push({ x: c0.x + (Math.random() - 0.5) * 12, y: c0.y, vx: (Math.random() - 0.5) * 30, vy: -20 - Math.random() * 30,
+                            l: 0, m: 0.8, r: 4, k: 'asap' });
+          }
+        } else if (wasRusak){ wasRusak = false; jetEl.style.opacity = '1'; }
+
+        // sentuh scrollbar = tantangan duel
+        if (!duel && cooldown <= 0 && !gulirSeret && !kurangGerak){
+          var br = bar.getBoundingClientRect();
+          if (br.width > 0 && px >= br.left - 4 && px <= br.right + 4 && py >= br.top - 4 && py <= br.bottom + 4) dwell += dt;
+          else dwell = Math.max(0, dwell - dt * 2);
+          if (dwell > 0.28){
+            dwell = 0;
+            var S0 = pusatThumb();
+            if (S0.ok) mulaiDuel(S0);
+          }
+        } else if (!duel) dwell = 0;
+      }
+
+      if (duel) jalankanDuel(dt);
+      if (rudal.length) updateRudal(dt);
+
+      // jet lawan/kawan
+      if (duel && gHidup){
+        var dgx = gx - gxL, dgy = gy - gyL; gxL = gx; gyL = gy;
+        var gg = Math.min(1, Math.sqrt(dgx * dgx + dgy * dgy) / 28);
+        var kuatG = (duel.tipe === 'manuver' && duel.fase === 'putar') ||
+                    (duel.tipe === 'tembak' && duel.fase === 'tembak' && duel.t - duel.t1 < 0.4);
+        var kg = (kuatG ? 3.2 : 0.85 + gg * 2.0) * (0.92 + Math.random() * 0.16);
+        apiK.style.transform = 'scale(' + (1 + gg * 0.3).toFixed(3) + ',' + kg.toFixed(3) + ')';
+        spinK.style.transform = 'rotate(' + duelSpin.toFixed(1) + 'deg) scaleX(' + duelRoll.toFixed(3) + ')';
+        kawan.style.transform = 'translate3d(' + (gx - 22).toFixed(1) + 'px,' + (gy - 4).toFixed(1) + 'px,0) rotate(' + gSudut.toFixed(2) + 'deg)';
+        semburan(gx, gy, gSudut, gg, kuatG);
+      }
+      if (partikel.length > 420) partikel.splice(0, partikel.length - 420);
+
+      // ----- gambar efek -----
+      var kunci = duel && duel.tipe === 'tembak' && duel.fase === 'kunci';
+      if (partikel.length || cincin.length || rudal.length || bom.length || kunci){
+        cx.clearRect(0, 0, window.innerWidth, window.innerHeight); bersih = false;
+
+        for (var i2 = bom.length - 1; i2 >= 0; i2--){
+          var o = bom[i2]; o.l += dt;
+          if (o.l >= o.m){ bom.splice(i2, 1); continue; }
+          var uu = o.l / o.m, rr = 14 + uu * 62, aa = 1 - uu;
+          var gr = cx.createRadialGradient(o.x, o.y, 0, o.x, o.y, rr);
+          gr.addColorStop(0, 'rgba(255,255,235,' + aa.toFixed(3) + ')');
+          gr.addColorStop(0.3, 'rgba(255,210,90,' + (aa * 0.9).toFixed(3) + ')');
+          gr.addColorStop(0.65, 'rgba(255,100,30,' + (aa * 0.6).toFixed(3) + ')');
+          gr.addColorStop(1, 'rgba(120,20,0,0)');
+          cx.globalCompositeOperation = 'lighter';
+          cx.fillStyle = gr; cx.beginPath(); cx.arc(o.x, o.y, rr, 0, 6.2832); cx.fill();
+        }
+        for (var j = partikel.length - 1; j >= 0; j--){
+          var p = partikel[j]; p.l += dt;
+          if (p.l >= p.m){ partikel.splice(j, 1); continue; }
+          p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96;
+          var u2 = p.l / p.m;
+          if (p.k === 'asap'){
+            cx.globalCompositeOperation = 'source-over';
+            cx.fillStyle = 'rgba(80,82,90,' + ((1 - u2) * 0.55).toFixed(3) + ')';
+            cx.beginPath(); cx.arc(p.x, p.y, p.r * (1 + u2 * 1.2), 0, 6.2832); cx.fill();
+          } else {
+            var r, g, b;
+            if (u2 < 0.3){ r = 255; g = 240; b = 200; } else if (u2 < 0.65){ r = 255; g = 170; b = 60; } else { r = 255; g = 90; b = 30; }
+            cx.globalCompositeOperation = 'lighter';
+            cx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + ((1 - u2) * 0.9).toFixed(3) + ')';
+            cx.beginPath(); cx.arc(p.x, p.y, p.r * (1 - u2 * 0.6), 0, 6.2832); cx.fill();
+          }
+        }
+        cx.globalCompositeOperation = 'lighter';
+        for (var q2 = cincin.length - 1; q2 >= 0; q2--){
+          var c = cincin[q2]; c.l += dt;
+          if (c.l >= c.m){ cincin.splice(q2, 1); continue; }
+          var w = c.l / c.m;
+          cx.strokeStyle = 'rgba(255,200,120,' + ((1 - w) * 0.8).toFixed(3) + ')';
+          cx.lineWidth = 3 * (1 - w) + 0.5;
+          cx.beginPath(); cx.arc(c.x, c.y, 8 + w * 70, 0, 6.2832); cx.stroke();
+        }
+        cx.globalCompositeOperation = 'source-over';
+        for (var m = 0; m < rudal.length; m++){
+          var ru = rudal[m];
+          cx.save(); cx.translate(ru.x, ru.y); cx.rotate(ru.ang);
+          cx.fillStyle = '#ffb347'; cx.beginPath(); cx.moveTo(-9, -2); cx.lineTo(-18 - Math.random() * 7, 0); cx.lineTo(-9, 2); cx.fill();
+          cx.fillStyle = '#e8edf3'; cx.fillRect(-9, -2.5, 15, 5);
+          cx.fillStyle = '#e23b3b'; cx.beginPath(); cx.moveTo(6, -2.5); cx.lineTo(11, 0); cx.lineTo(6, 2.5); cx.fill();
+          cx.fillStyle = '#5f7088'; cx.fillRect(-9, -4.5, 4, 9);
+          cx.restore();
+        }
+        if (kunci){ // penanda kunci sasaran
+          var pul = 26 + Math.sin(t / 60) * 3;
+          var pts = [pusatKursor(), pusatKawan()];
+          cx.strokeStyle = 'rgba(255,60,60,.95)'; cx.lineWidth = 2;
+          for (var z = 0; z < 2; z++){
+            var P = pts[z];
+            cx.beginPath(); cx.arc(P.x, P.y, pul, 0, 6.2832); cx.stroke();
+            cx.beginPath();
+            cx.moveTo(P.x - pul - 6, P.y); cx.lineTo(P.x - pul + 6, P.y);
+            cx.moveTo(P.x + pul - 6, P.y); cx.lineTo(P.x + pul + 6, P.y);
+            cx.moveTo(P.x, P.y - pul - 6); cx.lineTo(P.x, P.y - pul + 6);
+            cx.moveTo(P.x, P.y + pul - 6); cx.lineTo(P.x, P.y + pul + 6);
+            cx.stroke();
+          }
+        }
+      } else if (!bersih){
+        cx.clearRect(0, 0, window.innerWidth, window.innerHeight); bersih = true;
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  // ===== SCROLLBAR BUATAN SENDIRI =====
+  // Scrollbar bawaan browser disembunyikan. Roda mouse, sentuhan, dan keyboard tetap bisa dipakai;
+  // jet di sisi kanan bisa diseret, klik pada jalurnya meloncat ke posisi itu,
+  // dan jet berbalik arah (hidung ke atas) saat halaman di-scroll naik.
+  (function(){
+    var g = document.getElementById('gulir');
+    var rel = document.getElementById('gulir-rel');
+    var isi = document.getElementById('gulir-isi');
+    var jet = document.getElementById('gulir-jet');
+    var doc = document.documentElement;
+    var seret = false, yLama = 0, tTurbo = null;
+
+    function clamp(n){ return Math.max(0, Math.min(1, n)); }
+    function maks(){ return doc.scrollHeight - window.innerHeight; }
+
+    function perbarui(){
+      var m = maks();
+      g.classList.toggle('ada', m > 8);
+      if (m <= 8) return;
+      var frac = clamp((window.scrollY || window.pageYOffset) / m);
+      var ruang = rel.clientHeight - jet.offsetHeight;
+      var atas = frac * ruang;
+      jet.style.top = atas + 'px';
+      isi.style.height = (atas + jet.offsetHeight / 2) + 'px';
+    }
+    function turboOn(){
+      g.classList.add('turbo');
+      clearTimeout(tTurbo);
+      tTurbo = setTimeout(function(){ if (!seret) g.classList.remove('turbo'); }, 180);
+    }
+    function keFrac(clientY, lembut){
+      var r = rel.getBoundingClientRect();
+      var ruang = r.height - jet.offsetHeight;
+      if (ruang <= 0) return;
+      var f = clamp((clientY - r.top - jet.offsetHeight / 2) / ruang);
+      if (lembut) window.scrollTo({ top: f * maks(), behavior: 'smooth' });
+      else window.scrollTo(0, f * maks());
+    }
+
+    window.addEventListener('scroll', function(){
+      var y = window.scrollY || window.pageYOffset;
+      if (y > yLama + 1) jet.classList.remove('naik');   // scroll turun: hidung ke bawah
+      else if (y < yLama - 1) jet.classList.add('naik'); // scroll naik: jet berbalik, hidung ke atas
+      if (Math.abs(y - yLama) > 30) turboOn();
+      yLama = y;
+      perbarui();
+    }, { passive: true });
+    window.addEventListener('resize', perbarui);
+    window.addEventListener('load', perbarui);
+
+    jet.addEventListener('pointerdown', function(e){
+      seret = true; gulirSeret = true;
+      doc.style.scrollBehavior = 'auto'; // seret harus langsung, tanpa animasi halus
+      try { jet.setPointerCapture(e.pointerId); } catch (x) {}
+      g.classList.add('turbo');
+      e.preventDefault(); e.stopPropagation();
+    });
+    jet.addEventListener('pointermove', function(e){ if (seret) keFrac(e.clientY, false); });
+    function selesai(){
+      if (!seret) return;
+      seret = false; gulirSeret = false; doc.style.scrollBehavior = '';
+      g.classList.remove('turbo');
+    }
+    jet.addEventListener('pointerup', selesai);
+    jet.addEventListener('pointercancel', selesai);
+
+    g.addEventListener('pointerdown', function(e){
+      if (jet.contains(e.target)) return;
+      keFrac(e.clientY, true); turboOn();
+    });
+
+    perbarui();
+  })();
 
   // ===== SUARA =====
   // Ganti nama file di sini jika berbeda. Semua file diletakkan di folder assets,
-  // sejajar dengan halaman ini.
+  // sejajar dengan halaman ini (assets/suarajet.mpeg dst).
   var SUARA = {
-    backsound: 'backsound.mpeg',  // musik latar (diputar berulang)
-    tembak:    'tembak.mp3',     // suara rudal ditembakkan
-    ledakan:   'ledakan.mp3'     // suara rudal meledak
+    jet:    'suarajet.mpeg',   // suara bising jet tempur (latar, diputar berulang)
+    tembak: 'tembak.mp3',      // suara rudal ditembakkan
+    ledakan:'ledakan.mp3'      // suara rudal meledak
   };
 
   var suaraAktif = false, bgm = null, ctxAudio = null, dimatikanUser = false;
@@ -550,7 +1106,7 @@
   }
   function nyalakanSuara(){
     suaraAktif = true; ambilCtx();
-    if (!bgm){ bgm = new Audio(SUARA.backsound); bgm.loop = true; bgm.volume = 0.3; }
+    if (!bgm){ bgm = new Audio(SUARA.jet); bgm.loop = true; bgm.volume = 0.35; }
     var pr = bgm.play();
     if (pr && pr.catch) pr.catch(function(){});
     perbaruiTombol();
@@ -582,7 +1138,6 @@
     var hero = document.getElementById('atas');
     var progres = document.getElementById('progres');
     var awan = [].slice.call(document.querySelectorAll('.awan'));
-    var NS = 'http://www.w3.org/2000/svg';
 
     function clamp(n){ return Math.max(0, Math.min(1, n)); }
 
@@ -607,7 +1162,7 @@
                items: [].slice.call(el.querySelectorAll('ol.langkah > li')) };
     });
 
-    // Jet menembakkan rudal ke sasaran saat sampai di ujung rute
+    // Jet menembakkan rudal ke kapal saat sampai di ujung rute
     function tembak(r){
       if (r.sudah || r.anim || !r.sasaran) return;
       if (kurangGerak || !r.peluru.animate){ r.sasaran.classList.add('kena'); r.sudah = true; mainkan('ledakan'); return; }
@@ -615,17 +1170,29 @@
       var rr = r.el.getBoundingClientRect();
       var ir = ikon.getBoundingClientRect();
       var awal = rr.height + 8;
-      var jarak = (ir.top + ir.height / 2) - (rr.top + awal + 50);
+      // titik tabrak: tengah dek kapal
+      var tujuanX = ir.left + ir.width * 0.48;
+      var tujuanY = ir.top + ir.height * 0.55;
+      var dx = tujuanX - (rr.left + 20);
+      var jarak = tujuanY - (rr.top + awal + 52); // ujung hidung rudal tepat di tujuan
       if (jarak < 10) jarak = 10;
+      var sudut = -Math.atan2(dx, jarak) * 180 / Math.PI; // miringkan rudal searah lintasan
       r.peluru.style.top = awal + 'px';
       r.peluru.style.display = 'block';
       mainkan('tembak');
       r.anim = r.peluru.animate(
-        [{ transform: 'translate(-50%,0)' }, { transform: 'translate(-50%,' + jarak + 'px)' }],
+        [{ transform: 'translate(-50%,0) rotate(' + sudut + 'deg)' },
+         { transform: 'translate(calc(-50% + ' + dx + 'px),' + jarak + 'px) rotate(' + sudut + 'deg)' }],
         { duration: 850, easing: 'cubic-bezier(.45,0,1,.7)' }
       );
+      var ledakEl = r.sasaran.querySelector('.ledak');
       r.anim.onfinish = function(){
         r.peluru.style.display = 'none'; r.anim = null; r.sudah = true;
+        // letakkan ledakan tepat di titik tabrak
+        if (ledakEl){
+          ledakEl.style.left = (tujuanX - ir.left) + 'px';
+          ledakEl.style.top = (tujuanY - ir.top) + 'px';
+        }
         r.sasaran.classList.add('kena');
         mainkan('ledakan');
       };
@@ -644,11 +1211,12 @@
       var y = window.scrollY || window.pageYOffset;
       var vh = window.innerHeight;
       var tinggiDoc = document.documentElement.scrollHeight - vh;
+      var frac = tinggiDoc > 0 ? clamp(y / tinggiDoc) : 1;
 
       if (Math.abs(y - yLama) > 2){ arah = y > yLama ? 1 : -1; yLama = y; }
       pesawatHero.classList.toggle('balik', arah < 0);
 
-      progres.style.width = (tinggiDoc > 0 ? clamp(y / tinggiDoc) * 100 : 0) + '%';
+      progres.style.width = (frac * 100) + '%';
 
       if (!kurangGerak){
         var s = clamp(y / (hero.offsetHeight * 1.1));
@@ -659,9 +1227,14 @@
         });
       }
 
+      // Garis acuan turun dari 45% ke 95% tinggi layar seiring scroll,
+      // sehingga ujung rute pasti terkejar saat halaman sudah mentok di bawah.
+      var acuan = vh * (0.45 + 0.5 * frac);
+
       rutes.forEach(function(r){
         var rect = r.el.getBoundingClientRect();
-        var p = clamp((vh * 0.55 - rect.top) / rect.height);
+        var p = clamp((acuan - rect.top) / rect.height);
+        if (tinggiDoc > 0 && y >= tinggiDoc - 4) p = 1; // sudah di dasar halaman
         var h = p * rect.height;
         r.isi.style.height = h + 'px';
         r.jet.style.top = h + 'px';
