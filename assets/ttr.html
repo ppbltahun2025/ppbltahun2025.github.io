@@ -3,12 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cara Pasang Ekstensi SIMBG Gresik</title>
+<title>Cara Pasang Ekstensi Heisenberg - SIMBG Gresik</title>
 <!--
   LETAKKAN FILE INI DI: assets/pasang-ekstensi.html
-  Foto tutorial taruh di: assets/foto/langkah-1.jpg ... langkah-7.jpg
-  Kalau foto belum ada, kotak "Foto belum ditambahkan" tampil otomatis.
-  Ganti nama ekstensi: cari teks NAMA_EKSTENSI di bawah (3 tempat).
+  Foto tahapan (folder assets): g1.jpeg sampai g7.jpeg, satu foto per langkah pemasangan.
+  Suara (folder assets, nama bisa diubah di bagian SUARA pada script di bawah):
+    backsound.mp3  musik latar
+    tembak.mp3     suara tembakan rudal
+    ledakan.mp3    suara ledakan rudal
+  Jika file suara tembak/ledakan belum ada, halaman memakai suara sintetis bawaan.
 -->
 <style>
   :root{
@@ -242,6 +245,19 @@
   #pembesar.buka{display:flex}
   #pembesar img{max-width:100%;max-height:100%;border-radius:8px}
 
+  /* tombol suara */
+  #tombol-suara{
+    position:fixed;right:16px;bottom:16px;z-index:70;display:flex;align-items:center;gap:8px;
+    background:var(--navy);color:#fff;border:2px solid #fff;border-radius:999px;
+    padding:9px 16px 9px 12px;font-family:inherit;font-size:14px;font-weight:600;line-height:1;
+    cursor:pointer;box-shadow:0 8px 20px rgba(10,42,94,.35)
+  }
+  #tombol-suara:hover{background:var(--biru)}
+  #tombol-suara svg{width:22px;height:22px;flex:none}
+  #tombol-suara .silang{display:none}
+  #tombol-suara.mati .silang{display:inline}
+  #tombol-suara.mati .gelom{display:none}
+
   @media (max-width:560px){
     body{font-size:16px}
     .jet{width:84px}
@@ -304,7 +320,7 @@
       <a class="kembali" href="../index.html">Kembali ke beranda</a>
     </div>
     <div class="judul">
-      <h1>Pasang ekstensi NAMA_EKSTENSI di browser</h1>
+      <h1>Pasang ekstensi Heisenberg di browser</h1>
       <p>Ikuti rute pemasangannya dari atas sampai mendarat. Tujuh langkah, sekitar lima menit, dan hanya sekali.</p>
     </div>
   </div>
@@ -351,7 +367,7 @@
         <h3>Simpan file ZIP</h3>
         <p>Setelah klik <strong>Unduh ZIP</strong>, file tersimpan di folder <em>Downloads</em>.</p>
         <figure>
-          <img src="foto/langkah-1.jpg" alt="Hasil unduhan file ZIP di folder Downloads" loading="lazy" onerror="fotoKosong(this)">
+          <img src="g1.jpeg" alt="Hasil unduhan file ZIP di folder Downloads" loading="lazy" onerror="fotoKosong(this)">
           <figcaption>File ZIP di folder Downloads.</figcaption>
         </figure>
       </li>
@@ -361,7 +377,7 @@
         <p>Klik kanan file ZIP, pilih <strong>Extract All…</strong> (Windows) lalu <strong>Extract</strong>. Hasilnya adalah sebuah folder.</p>
         <p><strong>Penting:</strong> jangan menjalankan ekstensi langsung dari dalam ZIP, dan jangan hapus atau pindahkan folder hasil ekstrak setelah dipasang. Ekstensi akan berhenti bekerja jika foldernya hilang.</p>
         <figure>
-          <img src="foto/langkah-2.jpg" alt="Klik kanan ZIP lalu Extract All" loading="lazy" onerror="fotoKosong(this)">
+          <img src="g2.jpeg" alt="Klik kanan ZIP lalu Extract All" loading="lazy" onerror="fotoKosong(this)">
           <figcaption>Klik kanan, lalu Extract All.</figcaption>
         </figure>
       </li>
@@ -374,7 +390,7 @@
         <p>Brave: <span class="salin"><code>brave://extensions</code><button type="button" data-salin="brave://extensions">Salin</button></span></p>
         <p>Alamat ini tidak bisa diklik dari website, jadi harus disalin lalu ditempel sendiri.</p>
         <figure>
-          <img src="foto/langkah-3.jpg" alt="Halaman chrome://extensions" loading="lazy" onerror="fotoKosong(this)">
+          <img src="g3.jpeg" alt="Halaman chrome://extensions" loading="lazy" onerror="fotoKosong(this)">
           <figcaption>Halaman Extensions di browser.</figcaption>
         </figure>
       </li>
@@ -383,7 +399,7 @@
         <h3>Aktifkan Developer mode</h3>
         <p>Nyalakan saklar <strong>Developer mode</strong>. Letaknya di pojok kanan atas (Chrome, Brave) atau kiri bawah (Edge).</p>
         <figure>
-          <img src="foto/langkah-4.jpg" alt="Saklar Developer mode di pojok kanan atas" loading="lazy" onerror="fotoKosong(this)">
+          <img src="g4.jpeg" alt="Saklar Developer mode di pojok kanan atas" loading="lazy" onerror="fotoKosong(this)">
           <figcaption>Saklar Developer mode harus menyala.</figcaption>
         </figure>
       </li>
@@ -392,7 +408,7 @@
         <h3>Klik Load unpacked</h3>
         <p>Setelah Developer mode menyala, muncul tombol <strong>Load unpacked</strong> (di Edge juga bernama <strong>Muat tanpa paket</strong>). Klik tombol itu.</p>
         <figure>
-          <img src="foto/langkah-5.jpg" alt="Tombol Load unpacked" loading="lazy" onerror="fotoKosong(this)">
+          <img src="g5.jpeg" alt="Tombol Load unpacked" loading="lazy" onerror="fotoKosong(this)">
           <figcaption>Tombol Load unpacked.</figcaption>
         </figure>
       </li>
@@ -401,16 +417,16 @@
         <h3>Pilih folder hasil ekstrak</h3>
         <p>Pilih folder hasil ekstrak dari langkah 2, lalu klik <strong>Select Folder</strong>. Pilih folder yang di dalamnya langsung ada file <code>manifest.json</code>. Kadang ada folder di dalam folder, jadi masuklah satu tingkat lagi jika <code>manifest.json</code> belum terlihat.</p>
         <figure>
-          <img src="foto/langkah-6.jpg" alt="Memilih folder ekstensi yang berisi manifest.json" loading="lazy" onerror="fotoKosong(this)">
+          <img src="g6.jpeg" alt="Memilih folder ekstensi yang berisi manifest.json" loading="lazy" onerror="fotoKosong(this)">
           <figcaption>Folder yang dipilih harus berisi manifest.json.</figcaption>
         </figure>
       </li>
 
       <li class="muncul">
         <h3>Sematkan ekstensi ke toolbar</h3>
-        <p>Ekstensi sudah muncul di daftar. Klik ikon <strong>puzzle</strong> di sebelah kolom alamat, lalu klik ikon <strong>pin</strong> di samping NAMA_EKSTENSI agar tombolnya selalu terlihat. Setelah itu buka website SIMBG dan ekstensi siap dipakai.</p>
+        <p>Ekstensi sudah muncul di daftar. Klik ikon <strong>puzzle</strong> di sebelah kolom alamat, lalu klik ikon <strong>pin</strong> di samping Heisenberg agar tombolnya selalu terlihat. Setelah itu buka website SIMBG dan ekstensi siap dipakai.</p>
         <figure>
-          <img src="foto/langkah-7.jpg" alt="Menyematkan ekstensi lewat ikon puzzle" loading="lazy" onerror="fotoKosong(this)">
+          <img src="g7.jpeg" alt="Menyematkan ekstensi lewat ikon puzzle" loading="lazy" onerror="fotoKosong(this)">
           <figcaption>Ikon puzzle, lalu pin.</figcaption>
         </figure>
       </li>
@@ -438,7 +454,7 @@
       </li>
       <li class="muncul">
         <h3>Muat ulang ekstensi</h3>
-        <p>Buka halaman ekstensi, cari NAMA_EKSTENSI, lalu klik ikon <strong>muat ulang</strong> (panah melingkar) pada kartunya. Setelah itu muat ulang tab SIMBG dengan <kbd>Ctrl</kbd> + <kbd>F5</kbd>.</p>
+        <p>Buka halaman ekstensi, cari Heisenberg, lalu klik ikon <strong>muat ulang</strong> (panah melingkar) pada kartunya. Setelah itu muat ulang tab SIMBG dengan <kbd>Ctrl</kbd> + <kbd>F5</kbd>.</p>
       </li>
     </ol>
   </div>
@@ -486,6 +502,15 @@
   </div>
 </footer>
 
+<button type="button" id="tombol-suara" class="mati" aria-pressed="false" title="Nyalakan atau matikan suara">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>
+    <path class="gelom" d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path class="silang" d="M16.5 9l5 6m0-6l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <span class="teks">Suara mati</span>
+</button>
+
 <div id="pembesar" role="dialog" aria-label="Foto diperbesar"><img alt=""></div>
 
 <script>
@@ -499,6 +524,105 @@
   }
 
   document.documentElement.classList.add('js');
+
+  // ===== SUARA =====
+  // Ganti nama file di sini jika berbeda. Semua file diletakkan di folder assets,
+  // sejajar dengan halaman ini.
+  var SUARA = {
+    backsound: 'backsound.mp3',  // musik latar (diputar berulang)
+    tembak:    'tembak.mp3',     // suara rudal ditembakkan
+    ledakan:   'ledakan.mp3'     // suara rudal meledak
+  };
+
+  var suaraAktif = false, bgm = null, ctxAudio = null, dimatikanUser = false;
+  try { dimatikanUser = localStorage.getItem('suaraMati') === '1'; } catch (e) {}
+  var tombolSuara = document.getElementById('tombol-suara');
+
+  function ambilCtx(){
+    if (!ctxAudio){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) ctxAudio = new AC();
+    }
+    if (ctxAudio && ctxAudio.state === 'suspended') ctxAudio.resume();
+    return ctxAudio;
+  }
+  function derau(ctx, detik){
+    var n = Math.floor(ctx.sampleRate * detik);
+    var buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    var src = ctx.createBufferSource(); src.buffer = buf; return src;
+  }
+  // Suara cadangan buatan sendiri, dipakai jika file suara belum ada di assets
+  function sintesis(nama){
+    var ctx = ambilCtx(); if (!ctx) return;
+    var t = ctx.currentTime;
+    var n, f, g, o, og;
+    if (nama === 'tembak'){
+      n = derau(ctx, 0.3); f = ctx.createBiquadFilter(); g = ctx.createGain();
+      f.type = 'bandpass'; f.Q.value = 0.8;
+      f.frequency.setValueAtTime(2400, t); f.frequency.exponentialRampToValueAtTime(500, t + 0.25);
+      g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      n.connect(f); f.connect(g); g.connect(ctx.destination); n.start(t); n.stop(t + 0.3);
+      o = ctx.createOscillator(); og = ctx.createGain();
+      o.type = 'triangle'; o.frequency.setValueAtTime(420, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.2);
+      og.gain.setValueAtTime(0.5, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + 0.25);
+    } else {
+      n = derau(ctx, 1.4); f = ctx.createBiquadFilter(); g = ctx.createGain();
+      f.type = 'lowpass';
+      f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(60, t + 1.2);
+      g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 1.3);
+      n.connect(f); f.connect(g); g.connect(ctx.destination); n.start(t); n.stop(t + 1.4);
+      o = ctx.createOscillator(); og = ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(30, t + 0.9);
+      og.gain.setValueAtTime(0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+      o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + 0.95);
+    }
+  }
+  function mainkan(nama){
+    if (!suaraAktif) return;
+    var a = new Audio(SUARA[nama]);
+    a.volume = nama === 'ledakan' ? 0.9 : 0.7;
+    var cadangan = false;
+    function pakaiSintesis(){ if (cadangan) return; cadangan = true; sintesis(nama); }
+    a.addEventListener('error', pakaiSintesis);
+    var pr = a.play();
+    if (pr && pr.catch) pr.catch(pakaiSintesis);
+  }
+
+  function perbaruiTombol(){
+    tombolSuara.classList.toggle('mati', !suaraAktif);
+    tombolSuara.setAttribute('aria-pressed', suaraAktif ? 'true' : 'false');
+    tombolSuara.querySelector('.teks').textContent = suaraAktif ? 'Suara nyala' : 'Suara mati';
+  }
+  function nyalakanSuara(){
+    suaraAktif = true; ambilCtx();
+    if (!bgm){ bgm = new Audio(SUARA.backsound); bgm.loop = true; bgm.volume = 0.3; }
+    var pr = bgm.play();
+    if (pr && pr.catch) pr.catch(function(){});
+    perbaruiTombol();
+  }
+  function matikanSuara(){
+    suaraAktif = false; if (bgm) bgm.pause(); perbaruiTombol();
+  }
+  function simpanSuara(mati){ try { localStorage.setItem('suaraMati', mati ? '1' : '0'); } catch (e) {} }
+
+  tombolSuara.addEventListener('click', function(){
+    if (suaraAktif){ matikanSuara(); simpanSuara(true); }
+    else { nyalakanSuara(); simpanSuara(false); }
+  });
+
+  // Browser melarang suara otomatis sebelum pengunjung menyentuh atau mengklik halaman,
+  // jadi suara dimulai pada interaksi pertama (kecuali sudah pernah dimatikan).
+  function mulaiPertama(e){
+    document.removeEventListener('pointerdown', mulaiPertama);
+    document.removeEventListener('keydown', mulaiPertama);
+    document.removeEventListener('touchend', mulaiPertama);
+    if (!dimatikanUser && !suaraAktif && !tombolSuara.contains(e.target)) nyalakanSuara();
+  }
+  document.addEventListener('pointerdown', mulaiPertama);
+  document.addEventListener('keydown', mulaiPertama);
+  document.addEventListener('touchend', mulaiPertama);
 
   (function(){
     var kurangGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -533,7 +657,7 @@
     // Jet menembakkan rudal ke sasaran saat sampai di ujung rute
     function tembak(r){
       if (r.sudah || r.anim || !r.sasaran) return;
-      if (kurangGerak || !r.peluru.animate){ r.sasaran.classList.add('kena'); r.sudah = true; return; }
+      if (kurangGerak || !r.peluru.animate){ r.sasaran.classList.add('kena'); r.sudah = true; mainkan('ledakan'); return; }
       var ikon = r.sasaran.querySelector('.sasaran-ikon');
       var rr = r.el.getBoundingClientRect();
       var ir = ikon.getBoundingClientRect();
@@ -542,6 +666,7 @@
       if (jarak < 10) jarak = 10;
       r.peluru.style.top = awal + 'px';
       r.peluru.style.display = 'block';
+      mainkan('tembak');
       r.anim = r.peluru.animate(
         [{ transform: 'translate(-50%,0)' }, { transform: 'translate(-50%,' + jarak + 'px)' }],
         { duration: 850, easing: 'cubic-bezier(.45,0,1,.7)' }
@@ -549,6 +674,7 @@
       r.anim.onfinish = function(){
         r.peluru.style.display = 'none'; r.anim = null; r.sudah = true;
         r.sasaran.classList.add('kena');
+        mainkan('ledakan');
       };
     }
     function isiUlang(r){
