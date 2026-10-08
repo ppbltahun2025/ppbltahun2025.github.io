@@ -306,7 +306,15 @@
       line-height:1;
       flex:0 0 auto;
     }
-
+        .hex-icon-img{
+      position:relative;
+      z-index:1;
+      width:30px;
+      height:30px;
+      object-fit:contain;
+      display:block;
+      flex:0 0 auto;
+    }
     .hex-label{
       position:relative;
       z-index:1;
@@ -928,7 +936,13 @@
       homeView.style.transform = "none";
     }
   }
-
+    // Icon bisa emoji ATAU path gambar (mis. assets/download.png)
+  function renderIcon(icon){
+    const isImage = /\.(png|jpe?g|webp|svg|gif)$/i.test(icon) || icon.includes("/");
+    return isImage
+      ? `<img class="hex-icon-img" src="${icon}" alt="">`
+      : `<span class="hex-icon">${icon}</span>`;
+  }
   // ---- Hexagon daftar link (halaman Detail) ----
   function buildLinkHexGrid(seg){
     const perRow = seg.links.length <= 4 ? 2 : 3;
@@ -936,7 +950,7 @@
       <a class="hex-item" href="${l.href}" target="_blank" rel="noopener" aria-label="${l.label}"
          style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
         <span class="hex-shape"></span>
-        <span class="hex-icon">${l.icon}</span>
+        <span class="hex-icon">${renderIcon(l.icon)}</span>
         <span class="hex-label">${l.label}</span>
       </a>
     `, perRow);
