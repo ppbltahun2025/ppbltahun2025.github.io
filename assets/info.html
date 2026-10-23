@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Konstruksi Bangunan — Ilmu di Balik Bangunan Kokoh</title>
+<script>document.documentElement.className+=' js'</script>
+<style>
+:root{--bg:#08101f;--bg2:#0d1a32;--card:#101f3b;--ink:#e9effc;--mute:#9db0d3;--amber:#ffb703;--cyan:#4cc9f0;--red:#ff6b6b;--green:#5eead4;--line:rgba(160,190,255,.15);--r:18px;--py:0px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;line-height:1.65;overflow-x:hidden;font-size:16.5px}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:44px 44px;background-position:0 var(--py);opacity:.45;mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 80%)}
+h1,h2,h3,.disp{font-family:"Bahnschrift","Segoe UI Variable Display","Arial Narrow",system-ui,sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.08}
+a{color:var(--cyan)}
+b,strong{color:#fff}
+code,.f{font-family:Consolas,"Cascadia Mono",monospace;background:rgba(76,201,240,.12);color:#b8ecff;padding:1px 7px;border-radius:6px;font-size:.92em;white-space:nowrap}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.sec{padding:clamp(70px,10vw,130px) 0;position:relative}
+.eyebrow{color:var(--amber);font-family:Consolas,monospace;letter-spacing:.18em;font-size:.82rem;margin-bottom:14px}
+h2{font-size:clamp(2rem,5.2vw,3.7rem);margin-bottom:18px}
+h3{font-size:1.35rem;margin-bottom:10px}
+.lead{color:var(--mute);font-size:1.12rem;max-width:760px;margin-bottom:38px}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;backdrop-filter:blur(6px)}
+.card h3{color:#fff}
+.card p+p,.card ul+p,.card p+ul{margin-top:10px}
+.card ul{padding-left:1.15rem;color:#cfdbf5}
+.card li{margin:6px 0}
+.card p{color:#cfdbf5}
+.tag{display:inline-block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-bottom:10px}
+.tag.hi{color:#ff9b9b;border-color:#ff6b6b66}.tag.mid{color:#ffd36a;border-color:#ffb70366}.tag.lo{color:#7ff0dc;border-color:#5eead466}
+.note{border-left:3px solid var(--amber);background:rgba(255,183,3,.07);padding:12px 16px;border-radius:0 12px 12px 0;color:#ffe6a6;font-size:.95rem;margin-top:16px}
+.js .rv{opacity:0;transform:translateY(34px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--d,0)*90ms)}
+.js .rv.in{opacity:1;transform:none}
+/* progress & nav */
+#bar{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,var(--amber),var(--cyan));z-index:100}
+#dots{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:90;display:flex;flex-direction:column;gap:12px}
+#dots a{position:relative;width:11px;height:11px;border-radius:50%;border:2px solid var(--mute);display:block;transition:.3s}
+#dots a.on{background:var(--amber);border-color:var(--amber);transform:scale(1.25)}
+#dots a span{position:absolute;right:22px;top:50%;transform:translateY(-50%);white-space:nowrap;background:var(--card);border:1px solid var(--line);padding:2px 10px;border-radius:8px;font-size:.78rem;opacity:0;pointer-events:none;transition:.25s}
+#dots a:hover span{opacity:1}
+#topnav{position:fixed;top:4px;left:0;right:0;z-index:95;display:flex;gap:6px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;background:linear-gradient(rgba(8,16,31,.92),rgba(8,16,31,.72));backdrop-filter:blur(8px);border-bottom:1px solid var(--line);transform:translateY(-110%);transition:transform .4s}
+#topnav.show{transform:none}
+#topnav::-webkit-scrollbar{display:none}
+#topnav a{flex:none;color:var(--mute);text-decoration:none;font-size:.86rem;padding:6px 14px;border-radius:99px;border:1px solid transparent;cursor:pointer;transition:.25s;white-space:nowrap}
+#topnav a:hover{color:#fff;border-color:var(--line)}
+#topnav a.on{background:var(--amber);color:#1a1200;font-weight:700}
+.bwrap{margin-top:-10px}
+.banner{position:relative;height:clamp(230px,34vw,370px);border-radius:26px;overflow:hidden;border:1px solid var(--line);box-shadow:0 34px 80px -30px rgba(0,0,0,.8);margin:0}
+.banner svg{position:absolute;left:0;top:-12%;width:100%;height:124%;will-change:transform}
+.banner::after{content:"ILUSTRASI";position:absolute;top:14px;left:16px;font:.66rem Consolas,monospace;letter-spacing:.2em;padding:3px 11px;border-radius:99px;background:rgba(0,0,0,.42);color:#cfe3ff}
+.banner figcaption{position:absolute;left:0;right:0;bottom:0;padding:70px 30px 24px;background:linear-gradient(transparent,rgba(5,10,21,.9));display:flex;flex-direction:column;gap:4px}
+.banner figcaption b{font-family:Bahnschrift,"Segoe UI Variable Display",sans-serif;font-size:clamp(1.2rem,2.6vw,1.7rem)}
+.banner figcaption span{color:#c6d4ee;font-size:.95rem;max-width:720px}
+.pour{stroke-dasharray:10 8;animation:pour .55s linear infinite}
+@keyframes pour{to{stroke-dashoffset:-18}}
+.wv{animation:wvv 5s ease-in-out infinite alternate}
+@keyframes wvv{to{transform:translateY(6px)}}
+.ring{transform-box:fill-box;transform-origin:center;animation:ring 3.2s ease-out infinite;animation-delay:var(--dl,0s)}
+@keyframes ring{from{transform:scale(.2);opacity:.9}to{transform:scale(1.7);opacity:0}}
+.tw8{animation:tw 3s ease-in-out infinite alternate}
+@keyframes tw{from{opacity:.3}to{opacity:1}}
+/* hero */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:90px 0 60px}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:center;width:100%}
+.hero h1{font-size:clamp(2.6rem,7.4vw,5.6rem);margin-bottom:22px}
+.hero h1 .w{display:inline-block;opacity:0;transform:translateY(60%) rotate(4deg);animation:wup .9s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i)*110ms + 200ms)}
+.hero h1 em{font-style:normal;color:var(--amber)}
+@keyframes wup{to{opacity:1;transform:none}}
+.hero p.sub{color:var(--mute);font-size:1.2rem;max-width:520px;margin-bottom:26px;animation:fade 1s 1.1s both}
+.chips{display:flex;flex-wrap:wrap;gap:8px;animation:fade 1s 1.4s both}
+.chips span{border:1px solid var(--line);border-radius:99px;padding:4px 14px;font-size:.82rem;color:#cfe3ff;background:rgba(255,255,255,.04)}
+@keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.hero svg{width:100%;height:auto;max-height:78vh;transform:translateY(calc(var(--sy,0)*-.06px))}
+.dr{fill:none;stroke:var(--cyan);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.7s cubic-bezier(.5,0,.2,1) forwards;animation-delay:calc(var(--i)*.1s + .3s)}
+.dr.am{stroke:var(--amber)}
+@keyframes draw{to{stroke-dashoffset:0}}
+.scroll-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);color:var(--mute);font-size:.8rem;letter-spacing:.2em;text-align:center;animation:fade 1s 2s both}
+.scroll-hint i{display:block;width:2px;height:34px;background:linear-gradient(var(--amber),transparent);margin:8px auto 0;animation:drip 1.6s infinite}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* scrolly */
+.scrolly-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.stagecol{position:sticky;top:12vh;height:76vh;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:24px;background:radial-gradient(circle at 50% 30%,rgba(76,201,240,.08),transparent 70%),rgba(255,255,255,.02)}
+.stagecol svg{width:94%;height:94%}
+.step{min-height:78vh;display:flex;align-items:center}
+.step .card{opacity:.28;transform:scale(.97);transition:.6s;border-color:transparent}
+.step.active .card{opacity:1;transform:none;border-color:rgba(255,183,3,.35)}
+.stage [data-g]{opacity:.16;transition:opacity .6s,filter .6s}
+.stage [data-g].on{opacity:1;filter:drop-shadow(0 0 6px rgba(255,183,3,.45))}
+.stage [data-g="sect"]{opacity:.6;filter:none}
+.stage text{fill:#cfe3ff;font-size:11px;font-family:Segoe UI,sans-serif}
+.cy{stroke:var(--cyan);stroke-width:2;fill:rgba(76,201,240,.13)}
+.am{stroke:var(--amber);stroke-width:2.2;fill:rgba(255,183,3,.15)}
+.rd{stroke:var(--red);stroke-width:2;fill:rgba(255,107,107,.15)}
+.gn{stroke:var(--green);stroke-width:2;fill:rgba(94,234,212,.15)}
+.ln{stroke:var(--cyan);stroke-width:2;fill:none}
+.la{stroke:var(--amber);stroke-width:2.4;fill:none}
+.lr{stroke:var(--red);stroke-width:2;fill:none}
+.soilf{fill:rgba(160,120,70,.22);stroke:rgba(200,160,100,.5)}
+/* horizontal */
+.hz{position:relative}
+.hz-stick{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.hz-head{padding:0 8vw;margin-bottom:26px}
+.hz-head h2{margin-bottom:8px}
+.hz-track{display:flex;gap:26px;padding:0 8vw;will-change:transform}
+.panel{flex:0 0 min(80vw,500px);background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:24px;padding:26px 28px;position:relative;overflow:hidden}
+.panel .no{font-family:Bahnschrift,Impact,sans-serif;font-size:5.5rem;color:rgba(255,183,3,.17);position:absolute;right:16px;top:-6px;line-height:1}
+.panel h3{font-size:1.45rem;margin-bottom:12px;max-width:80%}
+.panel ul{padding-left:1.1rem;color:#cfdbf5;font-size:.97rem}
+.panel li{margin:6px 0}
+.hz-prog{margin:26px 8vw 0;height:3px;background:var(--line);border-radius:3px}
+.hz-prog i{display:block;height:100%;width:0;background:var(--amber);border-radius:3px}
+/* stats */
+.stat{text-align:center;padding:26px 14px}
+.stat b{display:block;font-family:Bahnschrift,Impact,sans-serif;font-size:3rem;color:var(--amber);line-height:1}
+.stat small{display:block;color:var(--mute);margin-top:8px;font-size:.88rem}
+.react{font-family:Consolas,monospace;font-size:1.02rem;background:#050a15;border:1px dashed rgba(76,201,240,.4);color:#b8ecff;padding:14px 16px;border-radius:12px;margin:12px 0;overflow-x:auto}
+/* chart */
+.chart svg{width:100%;height:auto}
+.chart .axis{stroke:rgba(255,255,255,.3);stroke-width:1}
+.chart .gridl{stroke:rgba(255,255,255,.08)}
+.chart .curve{fill:none;stroke:var(--amber);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.4s ease}
+.chart.in .curve{stroke-dashoffset:0}
+.chart .pt{fill:var(--bg);stroke:var(--amber);stroke-width:2.5;opacity:0;transition:.4s}
+.chart.in .pt{opacity:1;transition-delay:calc(var(--i)*.35s + .4s)}
+.chart text{fill:#cfe3ff;font-size:12px}
+/* tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.tabs button,.btn{background:rgba(255,255,255,.05);border:1px solid var(--line);color:#dbe7ff;padding:9px 18px;border-radius:99px;cursor:pointer;font:inherit;font-size:.93rem;transition:.25s}
+.tabs button:hover,.btn:hover{border-color:var(--amber)}
+.tabs button.on,.btn.hot{background:var(--amber);color:#1a1200;border-color:var(--amber);font-weight:700}
+.fd{display:grid;grid-template-columns:.9fr 1.1fr;gap:24px;align-items:center}
+.fd svg{width:100%;background:rgba(255,255,255,.025);border-radius:16px;border:1px solid var(--line)}
+.fd dl dt{color:var(--amber);font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;margin-top:12px}
+.fd dd{color:#cfdbf5}
+.fade-sw{animation:fade .5s both}
+/* quake */
+.quake svg{width:100%;height:auto;background:rgba(255,255,255,.025);border-radius:16px;border:1px solid var(--line)}
+.quake .bA{transform-box:fill-box;transform-origin:50% 100%}
+.quake .lowB,.quake .upB{transform-box:fill-box;transform-origin:50% 100%}
+.shaking .ground{animation:gshake .12s linear infinite}
+.shaking .bA{animation:swayA .9s ease-in-out infinite}
+.shaking .lowB{animation:swayL .9s ease-in-out infinite}
+.shaking .upB{animation:swayU .9s ease-in-out infinite}
+.shaking .lowB line{stroke:var(--red)}
+@keyframes gshake{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
+@keyframes swayA{0%,100%{transform:skewX(-3deg)}50%{transform:skewX(3deg)}}
+@keyframes swayL{0%,100%{transform:skewX(-14deg)}50%{transform:skewX(14deg)}}
+@keyframes swayU{0%,100%{transform:translateX(15px)}50%{transform:translateX(-15px)}}
+#qcap{margin-top:12px;color:var(--mute);min-height:3.2em}
+/* details */
+details{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.035);margin-bottom:12px;overflow:hidden}
+summary{cursor:pointer;padding:18px 22px;font-weight:700;font-size:1.08rem;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--amber);font-size:1.6rem;transition:.3s;line-height:1}
+details[open] summary::after{transform:rotate(45deg)}
+details[open]{border-color:rgba(255,183,3,.4)}
+details .in{padding:0 22px 20px;color:#cfdbf5}
+details ul{padding-left:1.2rem}
+details li{margin:7px 0}
+/* calc */
+.calc label{display:block;font-size:.84rem;color:var(--mute);margin:10px 0 4px}
+.calc input,.calc select{width:100%;background:#050a15;border:1px solid var(--line);color:#fff;padding:9px 12px;border-radius:10px;font:inherit}
+.calc input:focus,.calc select:focus{outline:2px solid var(--amber);border-color:transparent}
+.calc .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.out{margin-top:14px;padding:14px 16px;border-radius:12px;background:rgba(255,183,3,.09);border:1px solid rgba(255,183,3,.3);color:#ffe9b0;font-size:.97rem}
+.out b{color:var(--amber);font-size:1.15rem}
+.qk{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.qk button{background:transparent;border:1px solid var(--line);color:var(--mute);border-radius:8px;padding:3px 10px;cursor:pointer;font:inherit;font-size:.8rem}
+.qk button:hover{border-color:var(--amber);color:#fff}
+/* checklist */
+.cl-bar{height:10px;border-radius:10px;background:var(--line);overflow:hidden;margin:6px 0 22px}
+.cl-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .5s}
+.cl label{display:flex;gap:12px;align-items:flex-start;padding:7px 0;cursor:pointer;color:#cfdbf5}
+.cl input{accent-color:var(--amber);width:18px;height:18px;margin-top:4px;flex:none}
+.cl input:checked+span{color:var(--mute);text-decoration:line-through}
+.fact{position:relative;overflow:hidden}
+.fact .big{font-family:Bahnschrift,Impact,sans-serif;font-size:2.4rem;color:var(--amber);line-height:1;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:.94rem}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--amber);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase}
+td{color:#cfdbf5}
+.tw{overflow-x:auto}
+footer{padding:80px 0 60px;border-top:1px solid var(--line);color:var(--mute);font-size:.92rem}
+footer ul{columns:2;gap:30px;padding-left:1.1rem;margin:14px 0}
+footer li{margin:4px 0;break-inside:avoid}
+@media(max-width:860px){
+ .hero .wrap{grid-template-columns:1fr}.hero svg{max-height:44vh;order:-1}
+ .scrolly-grid{grid-template-columns:1fr;gap:0}
+ .stagecol{top:0;height:40vh;z-index:5;border-radius:0 0 20px 20px;background:var(--bg2)}
+ .step{min-height:62vh}
+ #dots{display:none}.fd{grid-template-columns:1fr}
+ .hz{height:auto!important}.hz-stick{position:static;height:auto;overflow:visible}
+ .hz-track{flex-direction:column;transform:none!important}.panel{flex:auto}.hz-prog{display:none}
+ footer ul{columns:1}
+}
+@media(prefers-reduced-motion:reduce){
+ *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+ .js .rv{opacity:1;transform:none}.hero h1 .w{opacity:1;transform:none}.dr{stroke-dashoffset:0}.chart .curve{stroke-dashoffset:0}.chart .pt{opacity:1}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<nav id="topnav" aria-label="Menu bagian"></nav>
+<nav id="dots" aria-label="Navigasi bagian"></nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="hero" data-title="Awal">
+ <div class="wrap">
+  <div>
+   <div class="eyebrow">PANDUAN SCROLL INTERAKTIF</div>
+   <h1><span class="w" style="--i:0">Ilmu</span> <span class="w" style="--i:1">di</span> <span class="w" style="--i:2">balik</span> <em><span class="w" style="--i:3">bangunan</span></em> <span class="w" style="--i:4">yang</span> <span class="w" style="--i:5">berdiri</span> <span class="w" style="--i:6">kokoh.</span></h1>
+   <p class="sub">Dari gaya yang bekerja pada struktur, tanah, kimia beton, baja tulangan, sampai gempa dan trik lapangan — dijelaskan berurutan sambil Anda scroll.</p>
+   <div class="chips"><span>SNI 2847:2019</span><span>SNI 1726:2019</span><span>SNI 1727:2020</span><span>SNI 2052:2017</span><span>Praktik lapangan</span></div>
+  </div>
+  <svg viewBox="0 0 600 560" aria-label="Ilustrasi bangunan sedang dibangun dengan tower crane">
+   <path class="dr" pathLength="1" style="--i:0" d="M20 520H580"/>
+   <g>
+    <path class="dr am" pathLength="1" style="--i:1" d="M200 520V200"/><path class="dr am" pathLength="1" style="--i:2" d="M290 520V200"/><path class="dr am" pathLength="1" style="--i:3" d="M380 520V200"/>
+    <path class="dr" pathLength="1" style="--i:4" d="M190 440H390"/><path class="dr" pathLength="1" style="--i:5" d="M190 360H390"/><path class="dr" pathLength="1" style="--i:6" d="M190 280H390"/><path class="dr" pathLength="1" style="--i:7" d="M190 200H390"/>
+    <path class="dr am" pathLength="1" style="--i:8" d="M200 200V160M290 200V160M380 200V160"/>
+    <path class="dr" pathLength="1" style="--i:9" d="M200 520L290 440M290 440L380 520M200 440L290 360M290 360L380 440"/>
+   </g>
+   <path id="mast" class="dr" pathLength="1" style="--i:6" d=""/>
+   <path class="dr" pathLength="1" style="--i:9" d="M300 70H580M480 70L430 40H500L480 70M430 70H360"/>
+   <path class="dr" pathLength="1" style="--i:11" d="M360 70V170"/>
+   <path class="dr am" pathLength="1" style="--i:12" d="M345 170H375V190H345Z"/>
+  </svg>
+ </div>
+ <div class="scroll-hint">SCROLL<i></i></div>
+</header>
+
+<!-- ============ 01 BEBAN ============ -->
+<section class="sec" id="beban" data-title="Gaya & Beban">
+ <div class="wrap">
+  <div class="eyebrow rv">01 — GAYA &amp; BEBAN</div>
+  <h2 class="rv">Bangunan hanyalah jalur untuk menyalurkan beban ke tanah.</h2>
+  <p class="lead rv">Setiap gedung — rumah satu lantai sampai menara — bekerja dengan prinsip sama: beban dari atas diterima, dioper antar elemen (<i>load path</i>), dan berakhir di tanah. Scroll untuk menelusuri jalurnya.</p>
+ </div>
+ <div class="scrolly">
+  <div class="wrap scrolly-grid">
+   <div class="stagecol"><svg class="stage" viewBox="0 0 400 470" id="stageA">
+    <rect data-g="soil" class="soilf" x="0" y="335" width="400" height="135"/>
+    <line x1="0" y1="335" x2="400" y2="335" stroke="#c8a064" stroke-width="2" data-g="soil found"/>
+    <g data-g="found"><rect class="am" x="62" y="338" width="56" height="18"/><rect class="am" x="172" y="338" width="56" height="18"/><rect class="am" x="282" y="338" width="56" height="18"/><text x="146" y="372">pondasi telapak</text></g>
+    <g data-g="soil"><path class="la" d="M90 420V362M90 362l-5 9M90 362l5 9M200 420V362M200 362l-5 9M200 362l5 9M310 420V362M310 362l-5 9M310 362l5 9"/><text x="120" y="440">tanah memberi reaksi ke atas</text></g>
+    <g data-g="col"><rect class="cy" x="84" y="75" width="12" height="262"/><rect class="cy" x="194" y="75" width="12" height="262"/><rect class="cy" x="304" y="75" width="12" height="262"/><text x="326" y="270">kolom</text></g>
+    <g data-g="floor beam"><rect class="gn" x="60" y="200" width="280" height="12"/><rect class="gn" x="60" y="323" width="280" height="12"/><text x="345" y="210">pelat</text><text x="345" y="333">sloof</text></g>
+    <g data-g="roof floor beam"><rect class="gn" x="55" y="70" width="290" height="10"/></g>
+    <g data-g="roof"><path class="cy" d="M45 70L200 22L355 70Z"/><path class="la" d="M90 4V34M150 4V22M200 2V14M250 4V22M310 4V34"/><text x="160" y="52">atap</text></g>
+    <g data-g="wind"><path class="lr" d="M6 130H46M32 122l14 8-14 8M6 160H46M32 152l14 8-14 8M6 190H46M32 182l14 8-14 8"/><text x="4" y="115" style="fill:#ff9b9b">angin</text></g>
+    <g data-g="floor"><path class="la" d="M110 150v34M150 150v34M250 150v34M290 150v34M110 150l-4 8M110 150l4 8M150 150l-4 8M150 150l4 8M250 150l-4 8M250 150l4 8M290 150l-4 8M290 150l4 8"/><text x="150" y="146">beban hidup</text></g>
+   </svg></div>
+   <div class="steps">
+    <div class="step" data-on="roof,wind"><div class="card"><div class="tag mid">Langkah 1</div><h3>Beban: semua yang “menekan” bangunan</h3>
+     <ul>
+      <li><b>Beban mati (D)</b> — berat bangunan sendiri. Beton bertulang ≈ 24 kN/m³ (±2.400 kg/m³), baja 78,5 kN/m³, pasangan bata ½ batu ≈ 2,5 kN/m² (PPIUG 1983).</li>
+      <li><b>Beban hidup (L)</b> — penghuni &amp; perabot. Minimum SNI 1727:2020: rumah tinggal 1,92 kN/m², kantor 2,4 kN/m², ruang pertemuan/koridor publik 4,79 kN/m².</li>
+      <li><b>Angin (W)</b> — tekanan dasar <code>q ≈ 0,613·V²</code> (N/m², V dalam m/s). Angin 30 m/s ≈ 0,55 kPa, sebelum faktor bentuk &amp; ketinggian.</li>
+      <li><b>Gempa (E)</b>, hujan (R), suhu, dan penurunan tanah.</li>
+     </ul>
+     <p>Beban diperbesar lewat kombinasi pembebanan, mis. <code>1,2D + 1,6L + 0,5R</code> (SNI 2847:2019 / 1727:2020) — itulah “faktor keamanan” sisi beban.</p></div></div>
+    <div class="step" data-on="roof,floor,beam"><div class="card"><div class="tag mid">Langkah 2</div><h3>Pelat menyalurkan beban ke balok</h3>
+     <p>Pelat lantai melentur, lalu meneruskan beban ke balok; balok menahan <b>lentur &amp; geser</b> dan mengopernya ke kolom.</p>
+     <p>Mengapa balok dibuat tinggi? Karena momen inersia <code>I = b·h³/12</code>: tinggi dua kali → kekakuan <b>8×</b>. Lendutan balok sederhana beban merata <code>δ = 5wL⁴/(384EI)</code>: bentang dua kali → lendutan <b>16×</b>. Menambah tinggi jauh lebih efektif daripada menambah lebar.</p></div></div>
+    <div class="step" data-on="col"><div class="card"><div class="tag mid">Langkah 3</div><h3>Kolom: elemen paling kritis</h3>
+     <p>Kolom memikul tekan yang terakumulasi dari semua lantai di atasnya — makin ke bawah makin besar. Kolom langsing bisa <b>tekuk</b> (<code>Pcr = π²EI/(KL)²</code>), bukan sekadar hancur.</p>
+     <p>Rasio tulangan memanjang kolom dibatasi <b>1%–8%</b> luas penampang (SNI 2847:2019). Keruntuhan satu kolom penting bisa memicu keruntuhan berantai (<i>progressive collapse</i>).</p></div></div>
+    <div class="step" data-on="found"><div class="card"><div class="tag mid">Langkah 4</div><h3>Pondasi: memperluas bidang tumpu</h3>
+     <p>Tanah jauh lebih lemah daripada beton, jadi beban harus disebar: <code>tegangan = P / A</code>.</p>
+     <p>Contoh: beban kolom 300 kN, daya dukung izin tanah 150 kPa → luas perlu ≥ 2 m² (kira-kira telapak 1,5 × 1,5 m). Pondasi juga harus aman terhadap guling, geser, dan penurunan.</p></div></div>
+    <div class="step" data-on="soil"><div class="card"><div class="tag mid">Langkah 5</div><h3>Tanah: penerima akhir</h3>
+     <p>Penurunan yang <b>seragam</b> relatif tidak berbahaya. Penurunan yang <b>berbeda</b> (<i>differential settlement</i>) yang merobek bangunan: retak dinding mulai muncul pada distorsi sudut sekitar 1/300 (Skempton &amp; MacDonald, 1956).</p>
+     <p>Itu sebabnya penyelidikan tanah bukan pilihan — ia menentukan jenis pondasi, bukan sebaliknya.</p></div></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<div class="wrap bwrap"><figure class="banner rv" data-scene="soil"><figcaption><b>Lapisan tanah menentukan pondasi</b><span>Sondir, bor, dan uji lab membaca apa yang tak terlihat di bawah kaki bangunan.</span></figcaption></figure></div>
+<!-- ============ 02 TANAH & PONDASI ============ -->
+<section class="sec" id="tanah" data-title="Tanah & Pondasi">
+ <div class="wrap">
+  <div class="eyebrow rv">02 — TANAH &amp; PONDASI</div>
+  <h2 class="rv">Kenali tanahnya dulu, baru pilih kakinya.</h2>
+  <p class="lead rv">Banyak kegagalan bangunan bukan karena beton jelek, tetapi karena tanahnya salah dibaca. Pedoman geoteknik: SNI 8460:2017.</p>
+  <div class="grid g4" style="margin-bottom:22px">
+   <div class="card rv"><div class="tag">Uji lapangan</div><h3>Sondir (CPT)</h3><p>Kerucut ditekan ke tanah; terbaca <b>qc</b> (tahanan ujung) &amp; <b>fs</b> (gesekan selimut). Cepat dan murah untuk lempung/pasir halus. Umumnya dihentikan saat tanah keras tercapai (qc ≈ 150–250 kg/cm² atau batas alat).</p></div>
+   <div class="card rv" style="--d:1"><div class="tag">Uji lapangan</div><h3>Bor + SPT</h3><p>Palu 63,5 kg jatuh 76 cm; dihitung pukulan untuk 30 cm penetrasi terakhir = <b>N-SPT</b>. Sekaligus mengambil sampel tanah. N ≥ 50 dianggap sangat padat/keras.</p></div>
+   <div class="card rv" style="--d:2"><div class="tag">Laboratorium</div><h3>Sifat tanah</h3><p>Kadar air, berat isi, batas Atterberg (LL/PL), kuat geser (<b>c, φ</b>), dan konsolidasi — dasar menghitung daya dukung dan besar penurunan.</p></div>
+   <div class="card rv" style="--d:3"><div class="tag hi">Waspada</div><h3>Tanah bermasalah</h3><p><b>Lempung ekspansif</b> (kembang-susut musiman), <b>pasir lepas jenuh</b> (likuifaksi saat gempa), <b>gambut</b>/organik (sangat kompresibel), serta muka air tanah yang tinggi.</p></div>
+  </div>
+  <div class="card rv" style="margin-bottom:34px"><h3>Daya dukung Terzaghi (pondasi memanjang)</h3>
+   <div class="react">q_ult = c·Nc + γ·Df·Nq + 0,5·γ·B·Nγ &nbsp;&nbsp;→&nbsp;&nbsp; q_izin = q_ult / SF &nbsp;(SF umumnya ≥ 3)</div>
+   <p>c = kohesi, γ = berat isi tanah, Df = kedalaman pondasi, B = lebar; Nc, Nq, Nγ = faktor yang naik cepat bila sudut geser φ besar. Memperdalam atau melebarkan pondasi menaikkan daya dukung — tetapi tidak menghilangkan risiko penurunan pada lempung lunak.</p></div>
+  <div class="eyebrow rv">PILIH JENIS PONDASI</div>
+  <div class="tabs" id="ftabs"></div>
+  <div class="fd card" id="fbox"></div>
+ </div>
+</section>
+
+<div class="wrap bwrap"><figure class="banner rv" data-scene="concrete"><figcaption><b>Pengecoran dengan concrete pump</b><span>Beton segar dipompa ke bekisting — waktu, slump, dan pemadatan menentukan mutu akhirnya.</span></figcaption></figure></div>
+<!-- ============ 03 BETON ============ -->
+<section class="sec" id="beton" data-title="Beton">
+ <div class="wrap">
+  <div class="eyebrow rv">03 — BETON</div>
+  <h2 class="rv">Batu buatan yang “tumbuh” karena reaksi kimia.</h2>
+  <p class="lead rv">Beton = semen + air + agregat (pasir &amp; kerikil) + (sering) bahan tambah. Ia bukan sekadar mengering — ia <b>bereaksi</b>, dan reaksi itu butuh air dan waktu.</p>
+  <div class="grid g4" style="margin-bottom:22px">
+   <div class="card stat rv"><b class="count" data-to="28">0</b><small>hari — umur acuan uji kuat tekan beton</small></div>
+   <div class="card stat rv" style="--d:1"><b><span class="count" data-to="17">0</span> MPa</b><small>fc′ minimum beton struktural (21 MPa untuk sistem gempa khusus) — SNI 2847:2019</small></div>
+   <div class="card stat rv" style="--d:2"><b><span class="count" data-to="24">0</span></b><small>kN/m³ — berat jenis beton bertulang</small></div>
+   <div class="card stat rv" style="--d:3"><b class="count" data-to="0.4" data-dec="1">0</b><small>fas ≈ 0,4 sudah cukup untuk hidrasi penuh secara teoretis; praktik 0,4–0,6</small></div>
+  </div>
+  <div class="grid g2">
+   <div class="card rv"><h3>Kimia hidrasi semen</h3>
+    <p>Mineral utama semen portland (C₃S) bereaksi dengan air membentuk gel <b>C-S-H</b> — “lem” yang memberi kekuatan — plus kalsium hidroksida dan <b>panas</b> (reaksi eksotermik).</p>
+    <div class="react">2 C₃S + 6 H → C₃S₂H₃ (C-S-H) + 3 CH + panas</div>
+    <p style="font-size:.9rem;color:var(--mute)">Notasi semen: C = CaO, S = SiO₂, H = H₂O. Ca(OH)₂ (CH) membuat pori beton sangat basa (pH ≈ 12,5–13) — kondisi yang melindungi baja tulangan dari karat.</p></div>
+   <div class="card rv chart" id="chart"><h3>Kekuatan vs umur beton</h3>
+    <svg viewBox="0 0 460 280" role="img" aria-label="Grafik kekuatan beton terhadap umur"></svg>
+    <p style="font-size:.85rem;color:var(--mute)">Perbandingan umum semen portland biasa (tabel konversi PBI 1971): 3 hari ≈ 40%, 7 hari ≈ 65%, 14 hari ≈ 88%, 21 hari ≈ 95%, 28 hari = 100%. Beton terus menguat jika lembap.</p></div>
+  </div>
+  <div class="grid g3" style="margin-top:18px">
+   <div class="card rv"><div class="tag hi">Aturan emas</div><h3>Faktor air-semen (fas)</h3><p>Semakin banyak air, semakin kuat? <b>Sebaliknya.</b> Air berlebih menguap dan meninggalkan pori kapiler → kuat turun, rembes naik, tulangan lebih cepat berkarat.</p><p><b>Jangan menambah air di lokasi</b> agar “enak dicor”. Jika perlu lebih encer, pakai <i>superplasticizer</i> sesuai desain campuran (SNI 7656:2012).</p></div>
+   <div class="card rv" style="--d:1"><div class="tag mid">Kontrol mutu</div><h3>Slump &amp; benda uji</h3><p>Slump (SNI 1972:2008) mengukur kelecakan; untuk struktur bertulang umumnya sekitar 8–12 cm, beton pompa sedikit lebih encer — ikuti spesifikasi proyek.</p><p>Kuat tekan diuji pada silinder 150×300 mm (SNI 1974:2011) atau kubus 150 mm (mutu “K”). Sampel diambil minimal sekali per hari per mutu, dan per ±110 m³ (SNI 2847:2019).</p></div>
+   <div class="card rv" style="--d:2"><div class="tag lo">Perawatan</div><h3>Curing</h3><p>Jaga beton tetap lembap minimal <b>7 hari</b> (semen portland biasa): karung basah, genangan, plastik, atau <i>curing compound</i>. Tujuannya mencegah air hidrasi menguap sebelum reaksi selesai.</p><p>Cuaca panas/berangin: bila laju penguapan mendekati 1 kg/m²/jam, retak susut plastis mengancam — cor pagi/malam, basahi bekisting, tutup permukaan segera.</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:18px">
+   <div class="card rv"><h3 style="color:var(--green)">✔ Lakukan</h3><ul><li>Cor lapis demi lapis (30–50 cm) dan padatkan dengan vibrator tusuk.</li><li>Tuang beton ready-mix kurang dari ±90 menit sejak pencampuran (ASTM C94).</li><li>Tinggi jatuh bebas maksimum ±1,5 m; di atas itu pakai pipa/tremi.</li><li>Cek surat jalan: mutu, waktu muat, slump tiap truk.</li></ul></div>
+   <div class="card rv" style="--d:1"><h3 style="color:var(--red)">✘ Hindari</h3><ul><li>Menambah air di truk/lokasi.</li><li>Vibrator berlebihan atau menyentuh tulangan terus-menerus → segregasi.</li><li>Cold joint: lapisan baru dicor setelah lapisan lama mengikat.</li><li>Membiarkan permukaan terbuka tanpa curing, terutama di bawah matahari.</li></ul></div>
+  </div>
+  <div class="note rv">Beton massa (tebal ≥ ±1 m, mis. rakit/pile cap besar): panas hidrasi membuat inti jauh lebih panas dari permukaan. Selisih suhu lebih dari ±20 °C berisiko retak termal — perlu es, semen rendah panas, atau cor bertahap.</div>
+ </div>
+</section>
+
+<div class="wrap bwrap"><figure class="banner rv" data-scene="rebar"><figcaption><b>Sangkar tulangan balok</b><span>Tulangan utama menahan tarik, sengkang menahan geser — dirangkai sebelum beton dicor.</span></figcaption></figure></div>
+<!-- ============ 04 TULANGAN ============ -->
+<section class="sec" id="tulangan" data-title="Baja Tulangan">
+ <div class="wrap">
+  <div class="eyebrow rv">04 — BAJA TULANGAN</div>
+  <h2 class="rv">Beton menekan, baja menarik — duet yang saling melengkapi.</h2>
+  <p class="lead rv">Beton kuat menahan tekan tetapi kuat tariknya hanya sekitar 8–12% dari kuat tekannya. Baja menutup kelemahan itu. Ikuti satu balok sederhana dari beban sampai detail tulangannya.</p>
+ </div>
+ <div class="scrolly">
+  <div class="wrap scrolly-grid">
+   <div class="stagecol"><svg class="stage" viewBox="0 0 420 380" id="stageB">
+    <g data-g="load"><path class="la" d="M70 40V100M110 40V100M150 40V100M190 40V100M230 40V100M270 40V100M310 40V100M350 40V100"/><path class="la" d="M62 40H358"/><text x="170" y="30">beban merata w</text></g>
+    <g data-g="sect"><path class="cy" d="M50 110H370V150H50Z"/><path class="cy" d="M50 150L38 172H62Z M370 150L358 172H382Z"/></g>
+    <g data-g="zones"><rect x="52" y="112" width="316" height="14" fill="rgba(76,201,240,.35)"/><rect x="52" y="136" width="316" height="12" fill="rgba(255,107,107,.35)"/><text x="150" y="123" style="fill:#aee6ff">tekan (beton)</text><text x="150" y="146" style="fill:#ffb0b0">tarik</text><path class="lr" stroke-dasharray="5 4" d="M50 150Q210 190 370 150"/></g>
+    <g data-g="bars"><path class="la" d="M62 144H358"/><path class="la" d="M62 118H130M290 118H358"/><text x="150" y="168" style="fill:#ffd36a">tulangan tarik bawah</text></g>
+    <g data-g="stirrups"><path class="gn" d="M66 114v32M80 114v32M94 114v32M108 114v32M122 114v32M136 114v32M178 114v32M210 114v32M242 114v32M284 114v32M298 114v32M312 114v32M326 114v32M340 114v32M354 114v32"/><text x="52" y="194" style="fill:#7ff0dc">sengkang rapat dekat tumpuan</text></g>
+    <g data-g="cracks"><path class="lr" d="M62 148L98 114M80 148L116 114M358 148L322 114M340 148L304 114"/><text x="140" y="210" style="fill:#ffb0b0">retak geser ±45° dekat tumpuan</text></g>
+    <g data-g="sect"><rect x="150" y="230" width="120" height="130" class="cy" rx="2"/><text x="170" y="224">penampang balok</text></g>
+    <g data-g="stirrups cover"><rect x="162" y="242" width="96" height="106" fill="none" stroke="#5eead4" stroke-width="2.5" rx="6"/></g>
+    <g data-g="bars cover"><circle cx="170" cy="250" r="4.5" fill="#ffb703"/><circle cx="250" cy="250" r="4.5" fill="#ffb703"/><circle cx="170" cy="340" r="6" fill="#ffb703"/><circle cx="210" cy="340" r="6" fill="#ffb703"/><circle cx="250" cy="340" r="6" fill="#ffb703"/></g>
+    <g data-g="zones"><path class="lr" stroke-dasharray="4 4" d="M150 295H270"/><text x="276" y="299" style="fill:#ffb0b0">garis netral</text></g>
+    <g data-g="cover"><path class="la" d="M150 300H162M150 295v10M162 295v10"/><text x="60" y="296" style="fill:#ffd36a">selimut</text><text x="60" y="310" style="fill:#ffd36a">40 mm</text></g>
+   </svg></div>
+   <div class="steps">
+    <div class="step" data-on="load,zones"><div class="card"><div class="tag mid">Langkah 1</div><h3>Balok melentur: atas ditekan, bawah ditarik</h3>
+     <p>Beban merata melengkungkan balok. Serat atas memendek (tekan), serat bawah memanjang (tarik); di antaranya ada <b>garis netral</b> tanpa tegangan lentur: <code>σ = M·y / I</code>.</p>
+     <p>Begitu tegangan tarik melampaui modulus keruntuhan <code>fr = 0,62·√fc′</code> (MPa), muncul <b>retak lentur vertikal</b> di tengah bentang — normal pada beton bertulang, selama lebarnya terkendali.</p></div></div>
+    <div class="step" data-on="bars"><div class="card"><div class="tag mid">Langkah 2</div><h3>Tulangan memikul tarik</h3>
+     <p>Setelah beton retak, baja memikul seluruh gaya tarik. Mutu umum: <b>BjTS 420B</b> (fy 420 MPa, ulir) menurut SNI 2052:2017; modulus elastis baja 200 GPa, beton <code>Ec = 4700√fc′</code>.</p>
+     <p>Mengapa cocok berpasangan? Beton dan baja memuai hampir sama (±10–12×10⁻⁶ /°C) sehingga tidak saling lepas saat suhu berubah, dan ulir menjamin <b>lekatan</b>.</p>
+     <p>Desain <b>daktail</b> (<i>under-reinforced</i>): baja leleh duluan → ada tanda peringatan retak lebar &amp; lendutan besar. Tulangan berlebih (<i>over-reinforced</i>) membuat beton hancur duluan — getas dan tiba-tiba.</p></div></div>
+    <div class="step" data-on="stirrups,cracks"><div class="card"><div class="tag mid">Langkah 3</div><h3>Geser &amp; sengkang</h3>
+     <p>Dekat tumpuan, gaya geser terbesar; retak muncul <b>diagonal ±45°</b>. Sengkang menjahit retak itu: <code>Vs = Av·fyt·d / s</code> — makin rapat jarak <i>s</i>, makin besar kapasitas geser.</p>
+     <p>Sengkang untuk daerah gempa memakai <b>kait 135°</b> (perpanjangan ≥ 6db dan ≥ 75 mm) agar tidak terbuka saat selimut beton terkelupas. Retak geser diagonal adalah tanda bahaya — evaluasi segera.</p></div></div>
+    <div class="step" data-on="cover,bars,stirrups"><div class="card"><div class="tag mid">Langkah 4</div><h3>Selimut beton: pelindung tak kasatmata</h3>
+     <p>Selimut melindungi baja dari karat dan api, serta menjaga lekatan. Nilai minimum SNI 2847:2019:</p>
+     <div class="tw"><table><tr><th>Kondisi</th><th>Selimut</th></tr><tr><td>Cor langsung di tanah &amp; permanen kontak tanah</td><td>75 mm</td></tr><tr><td>Terpapar cuaca/tanah, ≥ D19</td><td>50 mm</td></tr><tr><td>Terpapar cuaca/tanah, ≤ D16</td><td>40 mm</td></tr><tr><td>Pelat/dinding di dalam ruangan</td><td>20 mm</td></tr><tr><td>Balok/kolom (sengkang, tulangan utama)</td><td>40 mm</td></tr></table></div>
+     <p>Wajib pakai <i>beton decking</i>/spacer — jangan mengandalkan tulangan “mengambang”. Sambungan lewatan tulangan bawah balok di dekat tumpuan, tulangan atas di tengah bentang, kolom di tengah tinggi — hindari zona sendi plastis.</p></div></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<div class="wrap bwrap"><figure class="banner rv" data-scene="quake"><figcaption><b>Gelombang gempa merambat dari sumber</b><span>Seismogram merekam getaran; bangunan harus mampu berdeformasi tanpa runtuh.</span></figcaption></figure></div>
+<!-- ============ 05 GEMPA ============ -->
+<section class="sec" id="gempa" data-title="Gempa">
+ <div class="wrap">
+  <div class="eyebrow rv">05 — GEMPA</div>
+  <h2 class="rv">Tidak dirancang agar “tak rusak”, tetapi agar tak runtuh.</h2>
+  <p class="lead rv">Indonesia berada di pertemuan lempeng Indo-Australia, Eurasia, dan Pasifik. SNI 1726:2019 memakai gempa dengan probabilitas terlampaui 2% dalam 50 tahun (MCER); gempa desain = 2/3-nya. Filosofi: gempa kecil tak merusak, sedang rusak ringan, sangat kuat boleh rusak berat tetapi penghuni tetap selamat.</p>
+  <div class="grid g2" style="align-items:start">
+   <div class="quake rv" id="quake">
+    <svg viewBox="0 0 520 300">
+     <g class="ground">
+      <rect x="0" y="270" width="520" height="30" fill="rgba(160,120,70,.3)"/><line x1="0" y1="270" x2="520" y2="270" stroke="#c8a064" stroke-width="2"/>
+      <g class="bA">
+       <rect x="50" y="70" width="170" height="200" fill="rgba(76,201,240,.08)" stroke="#4cc9f0" stroke-width="2"/>
+       <path d="M50 120H220M50 170H220M50 220H220M105 70V270M165 70V270" stroke="#4cc9f0" stroke-width="2"/>
+       <text x="60" y="290" style="fill:#cfe3ff;font-size:12px">A: struktur beraturan</text>
+      </g>
+      <g class="upB">
+       <rect x="300" y="70" width="180" height="150" fill="rgba(255,183,3,.12)" stroke="#ffb703" stroke-width="2"/>
+       <path d="M300 120H480M300 170H480" stroke="#ffb703" stroke-width="2"/>
+      </g>
+      <g class="lowB">
+       <line x1="306" y1="220" x2="306" y2="270" stroke="#4cc9f0" stroke-width="7"/><line x1="390" y1="220" x2="390" y2="270" stroke="#4cc9f0" stroke-width="7"/><line x1="474" y1="220" x2="474" y2="270" stroke="#4cc9f0" stroke-width="7"/>
+      </g>
+      <text x="300" y="290" style="fill:#cfe3ff;font-size:12px">B: lantai dasar “lunak” (soft story)</text>
+     </g>
+    </svg>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="btn hot" id="qbtn">🌋 Guncang!</button><span style="color:var(--mute);font-size:.85rem;align-self:center">Ilustrasi konseptual, bukan simulasi hitung.</span></div>
+    <p id="qcap">Tekan tombol untuk membandingkan. Bangunan A bergoyang merata; pada B hampir seluruh simpangan terkonsentrasi di lantai dasar yang tak berdinding.</p>
+   </div>
+   <div class="grid">
+    <div class="card rv"><h3>F = m × a</h3><p>Gaya gempa sebanding dengan <b>massa</b> bangunan (geser dasar <code>V = Cs·W</code>). Bangunan ringan = gaya gempa lebih kecil. Itu salah satu alasan baja ringan, bata ringan (AAC), dan atap ringan disukai di zona gempa.</p></div>
+    <div class="card rv" style="--d:1"><h3>Daktilitas &amp; kolom kuat–balok lemah</h3><p>Struktur dirancang berdeformasi plastis di <b>ujung balok</b> (sendi plastis) sambil kolom tetap utuh: <code>ΣMnc ≥ 1,2·ΣMnb</code> di setiap join. Tiga kategori: SRPMB (biasa), SRPMM (menengah), SRPMK (khusus) sesuai tingkat risiko.</p></div>
+    <div class="card rv" style="--d:2"><h3>Gelombang membesar di tanah lunak</h3><p>Kelas situs SA–SF ditentukan dari Vs30 (SE: &lt; 175 m/s, tanah lunak). Tanah lunak memperkuat getaran — contoh klasiknya Mexico City 1985.</p></div>
+   </div>
+  </div>
+  <div class="grid g3" style="margin-top:18px">
+   <div class="card rv"><div class="tag hi">Soft story</div><h3>Lantai lunak</h3><p>Ruko/parkir terbuka di lantai dasar dengan lantai atas penuh dinding: kekakuan tiba-tiba turun sehingga kolom lantai dasar menanggung semua simpangan.</p></div>
+   <div class="card rv" style="--d:1"><div class="tag mid">Detail</div><h3>Dinding bata &amp; kolom pendek</h3><p>Dinding bata tanpa kolom praktis, ring balok, dan angkur (stek) ke kolom (±40–60 cm) rawan roboh <i>keluar bidang</i>. Kolom “pendek” (tertahan setengah dinding) menyerap geser berlebih dan mudah pecah.</p></div>
+   <div class="card rv" style="--d:2"><div class="tag lo">Teknologi</div><h3>Isolasi &amp; peredam</h3><p><i>Base isolation</i> memisahkan bangunan dari getaran tanah. Menara Taipei 101 memakai bola baja peredam (<i>tuned mass damper</i>) ±660 ton di lantai atas untuk meredam goyangan angin &amp; gempa.</p></div>
+  </div>
+  <div class="note rv">Rumah sederhana tahan gempa pada praktiknya bergantung pada detail: pondasi–sloof–kolom–ring balok saling terikat, kolom praktis rapat (maks. ±3 m), sambungan tulangan benar, dan beton bermutu. Dimensi pasti harus dari gambar/perhitungan, bukan perkiraan.</div>
+ </div>
+</section>
+
+<div class="wrap bwrap"><figure class="banner rv" data-scene="crane"><figcaption><b>Dari tiang pertama sampai lantai teratas</b><span>Tower crane mengangkat material — setiap tahap bergantung pada mutu tahap sebelumnya.</span></figcaption></figure></div>
+<!-- ============ 06 TAHAPAN (horizontal) ============ -->
+<section class="hz" id="tahap" data-title="Tahapan">
+ <div class="hz-stick">
+  <div class="hz-head"><div class="eyebrow">06 — TAHAPAN KONSTRUKSI</div><h2>Dari lahan kosong sampai serah terima.</h2><p class="lead" style="margin-bottom:0">Scroll — panel bergeser ke samping.</p></div>
+  <div class="hz-track" id="hzTrack">
+   <div class="panel"><div class="no">1</div><h3>Survei &amp; perencanaan</h3><ul><li>Topografi, penyelidikan tanah, batas lahan &amp; sempadan.</li><li>Gambar kerja, RAB, dan perizinan (PBG).</li><li>Cek muka air tanah, saluran, dan bangunan tetangga.</li><li>Rencana mutu &amp; K3 sebelum alat masuk.</li></ul></div>
+   <div class="panel"><div class="no">2</div><h3>Tanah &amp; pondasi</h3><ul><li>Pasang <i>bouwplank</i>; siku bangunan dengan segitiga <b>3-4-5</b> (3²+4²=5²).</li><li>Galian rapi, dasar dipadatkan, urugan pasir + lantai kerja (5–10 cm).</li><li>Periksa as, kedalaman, dan elevasi dengan waterpass.</li><li>Sloof mengikat semua pondasi.</li></ul></div>
+   <div class="panel"><div class="no">3</div><h3>Struktur beton</h3><ul><li>Urutan umum: sloof → kolom → balok &amp; pelat.</li><li>Cek tulangan (diameter, jumlah, sengkang, selimut) <b>sebelum</b> cor.</li><li>Stek kolom cukup panjang; bekisting kuat &amp; bersih.</li><li>Cor menerus, padatkan, lalu curing.</li></ul></div>
+   <div class="panel"><div class="no">4</div><h3>Dinding &amp; partisi</h3><ul><li>Bata merah, batako, atau AAC (ringan, rekat tipis ±3 mm).</li><li>Pasangan bertahap (maks. ±1–1,2 m/hari), siar vertikal berselang-seling.</li><li>Kolom praktis &amp; ring balok, angkur ke kolom.</li><li>Plester setelah pasangan cukup umur, jaga tetap lembap.</li></ul></div>
+   <div class="panel"><div class="no">5</div><h3>Atap</h3><ul><li>Kuda-kuda: segitiga = bentuk stabil (batang hanya tarik/tekan).</li><li>Baja ringan: mutu G550 (550 MPa), ikuti SNI 7971:2013; bracing wajib.</li><li>Kemiringan sesuai penutup; overstek + talang untuk melindungi dinding.</li><li>Jangan melubangi/memotong batang kuda-kuda.</li></ul></div>
+   <div class="panel"><div class="no">6</div><h3>MEP</h3><ul><li>Listrik: grounding, MCB sesuai beban, kabel terlindungi.</li><li>Pipa buangan miring ±1–2%; uji tekan pipa air bersih sebelum ditutup.</li><li>Septic tank umumnya ≥ 10 m dari sumur air.</li><li>Pasang sleeve sebelum cor agar tidak membobok struktur.</li></ul></div>
+   <div class="panel"><div class="no">7</div><h3>Finishing &amp; serah terima</h3><ul><li>Beri waktu plester mengering (±2–4 minggu) sebelum cat.</li><li>Uji fungsi, <i>punch list</i>, dan gambar <i>as-built</i>.</li><li>Dokumen untuk Sertifikat Laik Fungsi (SLF).</li><li>Masa pemeliharaan: cek retak &amp; kebocoran.</li></ul></div>
+  </div>
+  <div class="hz-prog"><i id="hzBar"></i></div>
+ </div>
+</section>
+
+<div class="wrap bwrap"><figure class="banner rv" data-scene="bricks"><figcaption><b>Pasangan bata, selangkah demi selangkah</b><span>Spesi merata, siar berselang-seling, dan waterpass — detail kecil yang menentukan kerapian dan kekuatan dinding.</span></figcaption></figure></div>
+<!-- ============ 07 TIPS LAPANGAN ============ -->
+<section class="sec" id="tips" data-title="Tips Lapangan">
+ <div class="wrap">
+  <div class="eyebrow rv">07 — TIPS LAPANGAN</div>
+  <h2 class="rv">Detail kecil yang menentukan umur bangunan.</h2>
+  <p class="lead rv">Klik untuk membuka. Angka-angka berikut adalah praktik umum — selalu utamakan gambar kerja dan spesifikasi proyek.</p>
+  <details class="rv"><summary>Bekisting &amp; perancah</summary><div class="in"><ul>
+   <li>Beton segar bertekanan lateral mendekati hidrostatik (<code>≈ γ·h</code>) sehingga bekisting kolom tinggi sering jebol bila dicor terlalu cepat — cor bertahap.</li>
+   <li>Celah bocor membuang pasta semen → permukaan keropos (<i>honeycomb</i>). Rapatkan sambungan, pakai pelumas bekisting.</li>
+   <li>Perancah (scaffolding) harus tegak, memakai <i>base jack</i> di alas padat, dengan bracing silang; hindari berdiri di tanah lunak tanpa alas.</li>
+   <li>Pembongkaran idealnya berdasarkan <b>kekuatan</b>. Praktik umum: sisi kolom/balok ±2–3 hari, bawah pelat ±14 hari, bawah balok ±21 hari — tergantung mutu, cuaca, dan beban.</li></ul></div></details>
+  <details class="rv"><summary>Pembesian</summary><div class="in"><ul>
+   <li>Cek diameter dengan menimbang: berat teoretis <code>= 0,00617 × d² kg/m</code> (D10 ≈ 0,617 kg/m; D16 ≈ 1,58 kg/m). Besi “kurus” sering lolos dari mata tetapi tidak dari timbangan.</li>
+   <li>Periksa: jumlah, diameter, jarak sengkang, kait 135°, panjang lewatan, dan selimut (spacer). Foto sebelum dicor sebagai bukti.</li>
+   <li>Tulangan harus bersih dari lumpur/oli; karat tipis (permukaan) umumnya tidak masalah, karat mengelupas harus dibersihkan.</li>
+   <li>Jangan membengkokkan ulang tulangan yang sudah dicor (stek) tanpa persetujuan — dapat meretakkan beton dan melemahkan baja.</li></ul></div></details>
+  <details class="rv"><summary>Pengecoran &amp; pemadatan</summary><div class="in"><ul>
+   <li>Siapkan: akses truk, pompa, vibrator + cadangan, penerangan, tim cukup, rencana siar pelaksanaan.</li>
+   <li>Vibrator tusuk: celupkan vertikal, jarak antar titik ±30–60 cm, ±5–15 detik per titik hingga gelembung udara berhenti — jangan diseret.</li>
+   <li>Cor lapis demi lapis, lapisan baru masuk sebelum lapisan lama mengikat (cegah <i>cold joint</i>).</li>
+   <li>Tinggi jatuh bebas ≤ ±1,5 m agar agregat tidak terpisah (segregasi).</li>
+   <li>Ambil benda uji dari beton yang benar-benar masuk bekisting, bukan dari sisa.</li></ul></div></details>
+  <details class="rv"><summary>Pasangan bata &amp; plesteran</summary><div class="in"><ul>
+   <li>Bata merah dibasahi sebelum dipasang; bata kering menyedot air spesi sehingga rekatan lemah.</li>
+   <li>Tebal spesi ±10 mm, campuran umum 1 semen : 4 pasir (dinding), siar vertikal berselang-seling minimal ¼–½ bata.</li>
+   <li>Ikat dinding ke kolom dengan stek/angkur; pasang kolom praktis dan ring balok.</li>
+   <li>Retak rambut pada plester biasanya akibat susut: plester tebal berlebih (&gt; ±15–20 mm), campuran terlalu kaya semen, atau cepat kering.</li>
+   <li>Pertemuan beton–bata rawan retak: pasang kawat jala (wire mesh) di perbatasan.</li></ul></div></details>
+  <details class="rv"><summary>Waterproofing &amp; kamar mandi</summary><div class="in"><ul>
+   <li>Kemiringan lantai ke floor drain ±1–2%; sudut dinding-lantai dibuat <i>fillet</i> agar membran tidak robek.</li>
+   <li>Membran/coating naik ke dinding minimal ±15–20 cm (area shower lebih tinggi).</li>
+   <li>Lakukan <b>uji genang</b> ±24–48 jam sebelum keramik dipasang; tandai muka air dan cek rembesan ke lantai bawah.</li>
+   <li>Lubang pipa tembus (sleeve) harus disegel; di situlah kebocoran paling sering dimulai.</li></ul></div></details>
+  <details class="rv"><summary>Atap &amp; drainase</summary><div class="in"><ul>
+   <li>Kemiringan menyesuaikan penutup: genteng tanah liat umumnya ≥ ±30°, atap metal bisa lebih landai (tergantung profil &amp; panjang bentang) — ikuti spesifikasi pabrikan.</li>
+   <li>Overstek ±50–100 cm melindungi dinding dari hujan; talang harus miring dan tidak tersumbat.</li>
+   <li>Baja ringan: sambungan dengan sekrup <i>self-drilling</i>, bracing + tie-down, jangan menggantung beban tambahan di luar rencana.</li>
+   <li>Kondensasi di bawah atap logam dicegah dengan insulasi &amp; ventilasi.</li></ul></div></details>
+  <details class="rv"><summary>Keselamatan kerja (K3)</summary><div class="in"><ul>
+   <li>APD dasar: helm, sepatu safety, rompi, sarung tangan; harness bila bekerja di ketinggian.</li>
+   <li>Galian lebih dalam ±1,5 m berisiko longsor — pakai penahan (shoring) atau lereng landai.</li>
+   <li>Lubang pelat/tangga wajib ditutup/diberi pagar; tepi lantai diberi railing.</li>
+   <li>Besi stek berujung tajam: beri penutup (rebar cap) agar tidak mencederai pekerja.</li></ul></div></details>
+ </div>
+</section>
+
+<div class="wrap bwrap"><figure class="banner rv" data-scene="roof"><figcaption><b>Segitiga: bentuk paling stabil</b><span>Kuda-kuda atap hanya menerima gaya tarik dan tekan di tiap batangnya — karena itu ringan tetapi kuat.</span></figcaption></figure></div>
+<!-- ============ 08 RETAK ============ -->
+<section class="sec" id="retak" data-title="Membaca Retak">
+ <div class="wrap">
+  <div class="eyebrow rv">08 — MEMBACA RETAK</div>
+  <h2 class="rv">Retak itu bahasa bangunan.</h2>
+  <p class="lead rv">Tidak semua retak berbahaya. Yang penting: <b>pola, arah, lebar, dan apakah terus melebar</b>. Panduan lebar: kertas HVS ≈ 0,1 mm; retak ≈ 0,3 mm kira-kira setebal tiga lembar kertas. Batas lebar retak lentur yang umum dipakai: ±0,3–0,4 mm.</p>
+  <div class="grid g3">
+   <div class="card rv"><div class="tag lo">Rendah</div><h3>Retak rambut acak (peta)</h3><p>Pada plester/acian, lebar &lt; ±0,2 mm. Penyebab: susut pengeringan, plester terlalu tebal/kaya semen. Umumnya non-struktural; perbaiki dengan acian/cat elastomerik.</p></div>
+   <div class="card rv" style="--d:1"><div class="tag mid">Sedang</div><h3>Retak horizontal di pertemuan bata–beton</h3><p>Beda material (susut &amp; muai berbeda). Pasang kawat jala di perbatasan dan beri angkur; pantau jika melebar.</p></div>
+   <div class="card rv" style="--d:2"><div class="tag mid">Sedang</div><h3>Diagonal di sudut jendela/pintu</h3><p>Konsentrasi tegangan di sudut bukaan. Pencegahan: kolom praktis &amp; balok latei (lintel) yang masuk tumpuan ≥ ±20 cm.</p></div>
+   <div class="card rv"><div class="tag hi">Tinggi</div><h3>Diagonal dari sudut ke bawah/tengah dinding</h3><p>Ciri penurunan pondasi berbeda. Periksa pondasi, drainase di sekitar, dan perubahan tanah; pasang <i>crack gauge</i> untuk memantau.</p></div>
+   <div class="card rv" style="--d:1"><div class="tag mid">Sedang–Tinggi</div><h3>Vertikal di tengah bentang balok/pelat bawah</h3><p>Retak lentur normal bila halus dan rapat. Lebar &gt; ±0,3–0,4 mm atau disertai lendutan besar → evaluasi beban/penulangan.</p></div>
+   <div class="card rv" style="--d:2"><div class="tag hi">Tinggi</div><h3>Diagonal ±45° dekat tumpuan balok</h3><p>Ciri retak <b>geser</b> — bersifat getas. Kosongkan beban, minta insinyur struktur mengevaluasi segera.</p></div>
+   <div class="card rv"><div class="tag hi">Tinggi</div><h3>Retak sejajar tulangan + noda karat</h3><p>Korosi: produk karat bervolume ±2–6× baja asalnya sehingga mendorong selimut sampai pecah (<i>spalling</i>). Pemicu: karbonasi (CO₂ menurunkan pH sehingga lapisan pelindung baja hilang), klorida, atau selimut tipis.</p></div>
+   <div class="card rv" style="--d:1"><div class="tag hi">Tinggi</div><h3>Beton pecah di ujung kolom / retak X</h3><p>Tanda beban berlebih atau kerusakan akibat gempa pada daerah sendi plastis. Perlu evaluasi struktur dan perkuatan.</p></div>
+   <div class="card rv" style="--d:2"><div class="tag lo">Info</div><h3>Pemuaian suhu</h3><p><code>ΔL = α·L·ΔT</code>: beton 10 m, ΔT 30 °C, α ≈ 10×10⁻⁶ → ±3 mm. Karena itu bangunan panjang diberi dilatasi (umumnya tiap ±30–40 m, sesuai perhitungan).</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- ============ 09 KALKULATOR ============ -->
+<section class="sec" id="kalku" data-title="Kalkulator">
+ <div class="wrap">
+  <div class="eyebrow rv">09 — KALKULATOR LAPANGAN</div>
+  <h2 class="rv">Hitung cepat, langsung di halaman ini.</h2>
+  <p class="lead rv">Alat bantu perkiraan cepat untuk edukasi dan pengecekan kasar. Bukan pengganti perhitungan struktur.</p>
+  <div class="grid g2 calc">
+   <div class="card rv"><h3>1 · Mutu K → fc′, Ec, fr</h3>
+    <label>Mutu beton K (kg/cm², kubus)</label><input id="c1k" type="number" value="300" min="50" step="25">
+    <div class="qk"><button data-k="175">K-175</button><button data-k="225">K-225</button><button data-k="250">K-250</button><button data-k="300">K-300</button><button data-k="350">K-350</button></div>
+    <div class="out" id="c1o"></div><p style="font-size:.8rem;color:var(--mute);margin-top:8px">Perkiraan: <code>fc′ ≈ 0,83 × K × 0,0981</code> MPa; <code>Ec = 4700√fc′</code>; <code>fr = 0,62√fc′</code>.</p></div>
+   <div class="card rv" style="--d:1"><h3>2 · Volume beton &amp; truk mixer</h3>
+    <div class="row"><div><label>Panjang (m)</label><input id="c2p" type="number" value="12" step="0.1"></div><div><label>Lebar (m)</label><input id="c2l" type="number" value="8" step="0.1"></div></div>
+    <div class="row"><div><label>Tebal (cm)</label><input id="c2t" type="number" value="12" step="0.5"></div><div><label>Jumlah elemen</label><input id="c2n" type="number" value="1" min="1"></div></div>
+    <div class="out" id="c2o"></div><p style="font-size:.8rem;color:var(--mute);margin-top:8px">Termasuk cadangan 5%. Kapasitas truk mixer umum ±6–7 m³ (dihitung 7 m³).</p></div>
+   <div class="card rv"><h3>3 · Tinggi minimum balok / pelat</h3>
+    <label>Bentang L (m)</label><input id="c3l" type="number" value="5" step="0.1">
+    <label>Tipe elemen &amp; tumpuan</label><select id="c3t"><option value="16">Balok — tumpuan sederhana (L/16)</option><option value="18.5">Balok — satu ujung menerus (L/18,5)</option><option value="21">Balok — dua ujung menerus (L/21)</option><option value="8">Balok — kantilever (L/8)</option><option value="20">Pelat satu arah — sederhana (L/20)</option><option value="24">Pelat satu arah — satu ujung menerus (L/24)</option><option value="28">Pelat satu arah — dua ujung menerus (L/28)</option><option value="10">Pelat satu arah — kantilever (L/10)</option></select>
+    <div class="out" id="c3o"></div><p style="font-size:.8rem;color:var(--mute);margin-top:8px">Batas SNI 2847:2019 agar lendutan tak wajib dihitung (fy 420 MPa, beton normal, tanpa partisi yang rentan rusak akibat lendutan).</p></div>
+   <div class="card rv" style="--d:1"><h3>4 · Berat tulangan</h3>
+    <div class="row"><div><label>Diameter (mm)</label><select id="c4d"><option>6</option><option>8</option><option selected>10</option><option>12</option><option>13</option><option>16</option><option>19</option><option>22</option><option>25</option></select></div><div><label>Panjang batang (m)</label><input id="c4l" type="number" value="12"></div></div>
+    <label>Jumlah batang</label><input id="c4n" type="number" value="10" min="1">
+    <div class="out" id="c4o"></div><p style="font-size:.8rem;color:var(--mute);margin-top:8px"><code>berat = 0,00617 × d² × panjang × jumlah</code>. Timbang sampel: selisih besar dari teoretis layak dicurigai; bandingkan dengan toleransi SNI 2052:2017.</p></div>
+   <div class="card rv"><h3>5 · Angin &amp; pemuaian</h3>
+    <div class="row"><div><label>Kecepatan angin V (m/s)</label><input id="c5v" type="number" value="30"></div><div><label>&nbsp;</label><div class="out" style="margin:0" id="c5o"></div></div></div>
+    <div class="row"><div><label>Panjang L (m)</label><input id="c5l" type="number" value="10"></div><div><label>ΔT (°C)</label><input id="c5t" type="number" value="30"></div></div>
+    <label>Bahan</label><select id="c5m"><option value="10">Beton (α ≈ 10×10⁻⁶)</option><option value="12" selected>Baja (α ≈ 12×10⁻⁶)</option><option value="23">Aluminium (α ≈ 23×10⁻⁶)</option></select>
+    <div class="out" id="c5o2"></div></div>
+  </div>
+ </div>
+</section>
+
+<div class="wrap bwrap"><figure class="banner rv" data-scene="landmarks"><figcaption><b>Kubah, menara, dan jembatan</b><span>Dari kubah beton Romawi sampai pencakar langit modern — prinsip yang sama, material dan teknik yang terus berkembang.</span></figcaption></figure></div>
+<!-- ============ 10 FAKTA ============ -->
+<section class="sec" id="fakta" data-title="Fakta Menarik">
+ <div class="wrap">
+  <div class="eyebrow rv">10 — FAKTA MENARIK</div>
+  <h2 class="rv">Sains di balik bangunan terkenal.</h2>
+  <div class="grid g3" style="margin-top:28px">
+   <div class="card fact rv"><div class="big">43,3 m</div><h3>Pantheon, Roma</h3><p>Kubah beton tanpa tulangan terbesar di dunia, dibangun sekitar tahun 126 M. Beton makin ringan ke arah puncak: agregat diganti batu apung/tuf.</p></div>
+   <div class="card fact rv" style="--d:1"><div class="big">660 ton</div><h3>Taipei 101</h3><p>Bola baja peredam (<i>tuned mass damper</i>) bergoyang berlawanan fase dengan menara untuk meredam angin dan gempa.</p></div>
+   <div class="card fact rv" style="--d:2"><div class="big">1940</div><h3>Jembatan Tacoma Narrows</h3><p>Runtuh akibat <i>flutter aeroelastik</i> — interaksi angin dan struktur, bukan sekadar resonansi. Sejak itu pengujian terowongan angin jadi standar jembatan bentang panjang.</p></div>
+   <div class="card fact rv"><div class="big">±15 cm</div><h3>Menara Eiffel</h3><p>Dapat bertambah tinggi hingga sekitar 15 cm di musim panas akibat pemuaian besi, dan sedikit miring menjauhi sisi yang terkena matahari.</p></div>
+   <div class="card fact rv" style="--d:1"><div class="big">80 MPa</div><h3>Burj Khalifa</h3><p>Memakai beton mutu tinggi (hingga sekitar 80 MPa) yang dipompa sampai lebih dari 600 m — memerlukan desain campuran khusus agar tetap mengalir di tekanan pompa besar.</p></div>
+   <div class="card fact rv" style="--d:2"><div class="big">2000+ th</div><h3>Beton Romawi</h3><p>Penelitian modern (2023) menemukan gumpalan kapur (<i>lime clasts</i>) yang bisa melarutkan dan menutup retak kecil secara mandiri bila terkena air.</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- ============ 11 CHECKLIST ============ -->
+<section class="sec" id="cek" data-title="Checklist">
+ <div class="wrap">
+  <div class="eyebrow rv">11 — CHECKLIST PENGAWASAN</div>
+  <h2 class="rv">Sebelum, saat, dan sesudah pengecoran.</h2>
+  <p class="lead rv">Centang tiap butir. Bilah di bawah menunjukkan kelengkapan.</p>
+  <div class="cl-bar"><i id="clBar"></i></div>
+  <div class="grid g3 cl">
+   <div class="card rv"><h3>Sebelum cor</h3>
+    <label><input type="checkbox"><span>As &amp; elevasi sesuai gambar (waterpass/total station)</span></label>
+    <label><input type="checkbox"><span>Diameter &amp; jumlah tulangan sesuai gambar</span></label>
+    <label><input type="checkbox"><span>Jarak sengkang &amp; kait 135° (zona gempa)</span></label>
+    <label><input type="checkbox"><span>Selimut beton: spacer terpasang merata</span></label>
+    <label><input type="checkbox"><span>Panjang lewatan &amp; posisi sambungan benar</span></label>
+    <label><input type="checkbox"><span>Bekisting kokoh, rapat, bersih (tanpa sampah, air tergenang)</span></label>
+    <label><input type="checkbox"><span>Sleeve/penanaman MEP sudah dipasang</span></label>
+    <label><input type="checkbox"><span>Izin cor ditandatangani; alat &amp; cadangan siap</span></label></div>
+   <div class="card rv" style="--d:1"><h3>Saat cor</h3>
+    <label><input type="checkbox"><span>Cek surat jalan: mutu, jam muat, volume</span></label>
+    <label><input type="checkbox"><span>Uji slump &amp; ambil benda uji (silinder/kubus)</span></label>
+    <label><input type="checkbox"><span>Tidak ada penambahan air di lokasi</span></label>
+    <label><input type="checkbox"><span>Tinggi jatuh ≤ ±1,5 m; cor berlapis</span></label>
+    <label><input type="checkbox"><span>Pemadatan vibrator cukup, tanpa segregasi</span></label>
+    <label><input type="checkbox"><span>Bekisting &amp; tulangan tidak bergeser selama cor</span></label>
+    <label><input type="checkbox"><span>Permukaan diratakan sesuai level</span></label></div>
+   <div class="card rv" style="--d:2"><h3>Setelah cor</h3>
+    <label><input type="checkbox"><span>Curing dimulai segera dan dijaga ≥ 7 hari</span></label>
+    <label><input type="checkbox"><span>Benda uji dirawat &amp; dikirim ke lab (7/28 hari)</span></label>
+    <label><input type="checkbox"><span>Beban tidak dipasang pada beton muda</span></label>
+    <label><input type="checkbox"><span>Bekisting dibongkar sesuai umur/kekuatan</span></label>
+    <label><input type="checkbox"><span>Periksa keropos, retak, dimensi — dokumentasikan</span></label>
+    <label><input type="checkbox"><span>Hasil uji kuat tekan memenuhi kriteria penerimaan</span></label></div>
+  </div>
+ </div>
+</section>
+
+<footer>
+ <div class="wrap">
+  <h3>Standar &amp; rujukan</h3>
+  <ul>
+   <li>SNI 2847:2019 — Persyaratan beton struktural untuk bangunan gedung</li>
+   <li>SNI 1726:2019 — Perencanaan ketahanan gempa</li>
+   <li>SNI 1727:2020 — Beban desain minimum</li>
+   <li>SNI 2052:2017 — Baja tulangan beton</li>
+   <li>SNI 8460:2017 — Persyaratan perancangan geoteknik</li>
+   <li>SNI 7656:2012 — Pemilihan campuran beton normal</li>
+   <li>SNI 1972:2008 — Uji slump; SNI 1974:2011 — Kuat tekan silinder</li>
+   <li>SNI 7971:2013 — Struktur baja canai dingin</li>
+   <li>PPIUG 1983 — Pedoman pembebanan (berat bahan)</li>
+   <li>UU 28/2002 &amp; PP 16/2021 — Bangunan Gedung</li>
+  </ul>
+  <p><b>Catatan penting:</b> Halaman ini bersifat edukasi umum. Angka bertanda “umumnya/praktik umum” adalah acuan, bukan ketentuan desain. Perencanaan dan pengawasan bangunan wajib mengikuti gambar kerja, perhitungan ahli struktur/geoteknik, dan edisi SNI yang berlaku untuk proyek terkait.</p>
+ </div>
+</footer>
+
+<script>
+(function(){
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const fmt=(n,d=2)=>Number(n).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* crane mast bracing */
+(function(){let d='M474 520V70M486 520V70';let y=520,s=1;while(y>80){const ny=Math.max(70,y-30);d+='M'+(s?474:486)+' '+y+'L'+(s?486:474)+' '+ny;y=ny;s=1-s}$('#mast').setAttribute('d',d)})();
+
+/* progress, parallax */
+const bar=$('#bar');let tick=false;
+function onScroll(){const h=document.documentElement;const y=scrollY;bar.style.width=(y/(h.scrollHeight-innerHeight)*100)+'%';document.documentElement.style.setProperty('--py',(-y*.15)+'px');document.documentElement.style.setProperty('--sy',y);hz();par();tick=false}
+addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(onScroll)}},{passive:true});
+
+/* reveal & counters */
+function count(el){const to=+el.dataset.to,dec=+(el.dataset.dec||0);if(reduce){el.textContent=fmt(to,dec);return}const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/1400),e=1-Math.pow(1-p,3);el.textContent=fmt(to*e,dec);if(p<1)requestAnimationFrame(f)})(t0)}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');$$('.count',e.target).forEach(count);if(e.target.classList.contains('count'))count(e.target);io.unobserve(e.target)}}),{threshold:.15});
+$$('.rv,.chart').forEach(el=>io.observe(el));
+
+/* nav dots */
+const secs=$$('[data-title]');const dots=$('#dots');
+const tn=$('#topnav');
+function goTo(id){const el=document.getElementById(id);if(!el)return;const y=id==='hero'?0:(id==='tahap'?el.offsetTop:el.getBoundingClientRect().top+scrollY-52);scrollTo({top:Math.max(0,y),behavior:reduce?'auto':'smooth'})}
+secs.forEach(s=>{
+ const mk=(box,inner)=>{const a=document.createElement('a');a.href='#'+s.id;a.innerHTML=inner;a.addEventListener('click',ev=>{ev.preventDefault();goTo(s.id)});box.appendChild(a)};
+ mk(dots,'<span>'+s.dataset.title+'</span>');mk(tn,s.dataset.title);
+});
+const io2=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){$$('a',dots).forEach((a,i)=>a.classList.toggle('on',secs[i]===e.target));$$('a',tn).forEach((a,i)=>{const on=secs[i]===e.target;a.classList.toggle('on',on);if(on){const L=a.offsetLeft-tn.clientWidth/2+a.offsetWidth/2;tn.scrollTo({left:L,behavior:'smooth'})}})}}),{rootMargin:'-45% 0px -50% 0px'});
+addEventListener('scroll',()=>tn.classList.toggle('show',scrollY>innerHeight*.6),{passive:true});
+secs.forEach(s=>io2.observe(s));
+
+/* scrolly */
+$$('.scrolly').forEach(sc=>{
+ const stage=$('.stage',sc),steps=$$('.step',sc);
+ const apply=list=>$$('[data-g]',stage).forEach(el=>{const gs=el.dataset.g.split(' ');if(el.dataset.g!=='sect')el.classList.toggle('on',gs.some(g=>list.includes(g)))});
+ const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){steps.forEach(s=>s.classList.toggle('active',s===e.target));apply(e.target.dataset.on.split(','))}}),{rootMargin:'-42% 0px -42% 0px'});
+ steps.forEach(s=>o.observe(s));
+ apply(steps[0].dataset.on.split(','));steps[0].classList.add('active');
+});
+
+/* horizontal */
+const hzS=$('#tahap'),track=$('#hzTrack'),hzBar=$('#hzBar');
+function hz(){
+ if(!hzS)return;
+ if(matchMedia('(max-width:860px)').matches){hzS.style.height='';track.style.transform='';return}
+ const dist=Math.max(0,track.scrollWidth-innerWidth+innerWidth*.08);
+ hzS.style.height=(dist+innerHeight)+'px';
+ const p=Math.min(1,Math.max(0,(scrollY-hzS.offsetTop)/(dist||1)));
+ track.style.transform='translateX('+(-p*dist)+'px)';hzBar.style.width=(p*100)+'%';
+}
+addEventListener('resize',hz);addEventListener('load',()=>{hz();onScroll()});
+
+/* chart */
+(function(){
+ const svg=$('#chart svg'),W=460,H=280,l=46,r=14,t=16,b=36,pw=W-l-r,ph=H-t-b;
+ const pts=[[0,0],[3,40],[7,65],[14,88],[21,95],[28,100]];
+ const X=d=>l+d/28*pw,Y=p=>t+ph-(p/110)*ph;
+ let s='';
+ [0,25,50,75,100].forEach(p=>{s+='<line class="gridl" x1="'+l+'" x2="'+(W-r)+'" y1="'+Y(p)+'" y2="'+Y(p)+'"/><text x="'+(l-8)+'" y="'+(Y(p)+4)+'" text-anchor="end">'+p+'%</text>'});
+ [0,7,14,21,28].forEach(d=>{s+='<text x="'+X(d)+'" y="'+(H-14)+'" text-anchor="middle">'+d+' h</text>'});
+ s+='<line class="axis" x1="'+l+'" x2="'+l+'" y1="'+t+'" y2="'+(t+ph)+'"/><line class="axis" x1="'+l+'" x2="'+(W-r)+'" y1="'+(t+ph)+'" y2="'+(t+ph)+'"/>';
+ let d='M'+X(0)+' '+Y(0);for(let i=1;i<pts.length;i++){const a=pts[i-1],c=pts[i],mx=(X(a[0])+X(c[0]))/2;d+=' C'+mx+' '+Y(a[1])+' '+mx+' '+Y(c[1])+' '+X(c[0])+' '+Y(c[1])}
+ s+='<path class="curve" pathLength="1" d="'+d+'"/>';
+ pts.slice(1).forEach((p,i)=>{s+='<circle class="pt" style="--i:'+i+'" cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="5"/><text x="'+X(p[0])+'" y="'+(Y(p[1])-11)+'" text-anchor="middle" style="font-weight:700">'+p[1]+'%</text>'});
+ svg.innerHTML=s;
+})();
+
+/* foundation tabs */
+const S='<defs><pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0" stroke="rgba(200,160,100,.35)"/></pattern></defs>';
+const gr='<rect x="0" y="70" width="300" height="130" fill="rgba(160,120,70,.2)"/><rect x="0" y="70" width="300" height="130" fill="url(#h)"/><line x1="0" y1="70" x2="300" y2="70" stroke="#c8a064" stroke-width="2"/>';
+const hard='<rect x="0" y="165" width="300" height="35" fill="rgba(120,130,150,.45)"/><text x="8" y="188" style="fill:#e6eefc;font-size:11px">tanah keras</text>';
+const FD={
+ telapak:{n:'Telapak (footing)',svg:S+gr+'<rect x="140" y="0" width="20" height="90" class="cy"/><rect x="95" y="90" width="110" height="20" class="am"/><rect x="95" y="110" width="110" height="7" fill="rgba(255,255,255,.25)"/><text x="170" y="60" style="fill:#cfe3ff;font-size:11px">kolom</text><text x="212" y="104" style="fill:#ffd36a;font-size:11px">telapak</text><text x="212" y="118" style="fill:#cfe3ff;font-size:10px">lantai kerja</text>',
+  b:[['Cocok untuk','Tanah keras relatif dangkal (±1–3 m), bangunan 1–4 lantai, kolom terpisah.'],['Prinsip','Memperluas bidang kontak: tegangan = P/A ≤ daya dukung izin tanah.'],['Perhatikan','Dasar di atas lantai kerja (beton miskin 5–10 cm); semua telapak diikat sloof; tulangan telapak di sisi bawah dengan selimut 75 mm (cor menempel tanah).']]},
+ menerus:{n:'Menerus (batu kali/beton)',svg:S+gr+'<rect x="125" y="0" width="50" height="70" class="cy"/><path class="am" d="M110 70H190L212 125H88Z"/><rect x="88" y="125" width="124" height="10" fill="rgba(255,255,255,.25)"/><text x="215" y="108" style="fill:#ffd36a;font-size:11px">batu kali</text><text x="215" y="134" style="fill:#cfe3ff;font-size:10px">pasir urug</text><text x="182" y="35" style="fill:#cfe3ff;font-size:11px">dinding</text>',
+  b:[['Cocok untuk','Rumah 1–2 lantai dengan dinding pemikul di tanah cukup baik.'],['Prinsip','Beban dinding berupa beban garis; bentuk trapesium menyebarkan tegangan ke bidang dasar lebih lebar.'],['Perhatikan','Dasar rata &amp; padat dengan urugan pasir ±10 cm dan aanstamping; dimensi (praktik rumah sederhana sering 60–80 cm) mengikuti gambar. Tidak cukup untuk tanah lunak tebal.']]},
+ pancang:{n:'Tiang pancang',svg:S+gr+hard+'<rect x="140" y="0" width="20" height="55" class="cy"/><rect x="95" y="55" width="110" height="25" class="am"/><rect x="105" y="80" width="12" height="100" class="gn"/><rect x="144" y="80" width="12" height="100" class="gn"/><rect x="183" y="80" width="12" height="100" class="gn"/><path class="la" d="M99 120v14M99 120l-3 6M99 120l3 6M210 120v14M210 120l-3 6M210 120l3 6"/><text x="210" y="74" style="fill:#ffd36a;font-size:11px">pile cap</text>',
+  b:[['Cocok untuk','Tanah lunak tebal dengan tanah keras yang dalam (±5–30 m), beban besar.'],['Prinsip','Daya dukung = tahanan ujung + gesekan selimut tiang.'],['Perhatikan','Pancang sampai kriteria <i>set</i> atau kedalaman rencana; verifikasi dengan uji PDA/loading test. Getaran dapat mengganggu bangunan sekitar. Tiang disatukan oleh pile cap.']]},
+ bore:{n:'Bore pile',svg:S+gr+hard+'<rect x="140" y="0" width="20" height="50" class="cy"/><rect x="100" y="50" width="100" height="22" class="am"/><rect x="108" y="72" width="26" height="108" class="gn"/><rect x="166" y="72" width="26" height="108" class="gn"/><path d="M114 76V176M128 76V176M172 76V176M186 76V176" stroke="#ffb703" stroke-width="1.6"/><text x="206" y="130" style="fill:#7ff0dc;font-size:11px">tulangan + cor tremie</text>',
+  b:[['Cocok untuk','Lokasi padat/dekat bangunan eksisting (getaran rendah), beban besar, diameter 0,4–2 m.'],['Prinsip','Bor tanah → pasang sangkar tulangan → cor dengan pipa tremie dari dasar ke atas sehingga beton naik mendorong lumpur.'],['Perhatikan','Dasar lubang harus bersih dari sedimen; casing/bentonit menahan dinding lubang; integritas tiang diuji PIT atau <i>cross-hole sonic</i>.']]},
+ rakit:{n:'Rakit (raft)',svg:S+gr+'<rect x="40" y="0" width="14" height="76" class="cy"/><rect x="143" y="0" width="14" height="76" class="cy"/><rect x="246" y="0" width="14" height="76" class="cy"/><rect x="20" y="76" width="260" height="24" class="am"/><text x="100" y="125" style="fill:#ffd36a;font-size:11px">pelat rakit menyebar beban</text><path class="la" d="M60 150v-38M150 150v-38M240 150v-38M60 112l-3 8M60 112l3 8M150 112l-3 8M150 112l3 8M240 112l-3 8M240 112l3 8"/>',
+  b:[['Cocok untuk','Tanah lemah dengan beban relatif merata dan kolom rapat.'],['Prinsip','Satu pelat besar menyebarkan beban dan mengurangi penurunan berbeda. Prinsip <i>floating</i>: berat tanah yang digali ≈ berat bangunan sehingga tambahan tegangan kecil.'],['Perhatikan','Pelat tebal = beton massa (panas hidrasi, retak termal). Muka air tanah tinggi memberi gaya angkat (Archimedes) dan butuh waterproofing.']]}
+};
+const ft=$('#ftabs'),fb=$('#fbox');
+Object.entries(FD).forEach(([k,v],i)=>{const b=document.createElement('button');b.textContent=v.n;b.onclick=()=>{show(k);fb.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'})};b.dataset.k=k;ft.appendChild(b)});
+function show(k){const v=FD[k];$$('button',ft).forEach(b=>b.classList.toggle('on',b.dataset.k===k));fb.innerHTML='<svg viewBox="0 0 300 200">'+v.svg+'</svg><div class="fade-sw"><h3>'+v.n+'</h3><dl>'+v.b.map(x=>'<dt>'+x[0]+'</dt><dd>'+x[1]+'</dd>').join('')+'</dl></div>'}
+show('telapak');
+
+/* quake */
+const qb=$('#qbtn'),qk=$('#quake'),qc=$('#qcap');let qt;
+qb.onclick=()=>{clearTimeout(qt);qk.classList.add('shaking');qc.textContent='Perhatikan B: kolom lantai dasar (merah) menanggung hampir seluruh simpangan, sementara lantai atas bergeser sebagai satu blok kaku. Pada A, simpangan terbagi merata di setiap lantai.';qt=setTimeout(()=>{qk.classList.remove('shaking')},5200)};
+
+/* calculators */
+const v=id=>parseFloat($('#'+id).value)||0;
+function c1(){const K=v('c1k'),fc=.83*K*.0980665,ec=4700*Math.sqrt(fc),fr=.62*Math.sqrt(fc);let s=fc<17?'<br>Di bawah minimum beton struktural SNI 2847:2019 (17 MPa) — hanya untuk non-struktural (lantai kerja, rabat, dsb.).':fc<21?'<br>Memenuhi minimum umum (17 MPa); belum memenuhi 21 MPa untuk sistem penahan gempa khusus.':'<br>≥ 21 MPa: memenuhi persyaratan minimum, termasuk sistem penahan gempa khusus.';$('#c1o').innerHTML='fc′ ≈ <b>'+fmt(fc,1)+' MPa</b> · Ec ≈ <b>'+fmt(ec,0)+' MPa</b> · fr ≈ <b>'+fmt(fr,2)+' MPa</b>'+s}
+function c2(){const vol=v('c2p')*v('c2l')*v('c2t')/100*v('c2n'),vw=vol*1.05;$('#c2o').innerHTML='Volume teoretis <b>'+fmt(vol)+' m³</b> → dipesan (+5%) <b>'+fmt(vw)+' m³</b><br>≈ '+Math.ceil(vw/7)+' truk mixer · berat ≈ '+fmt(vol*2.4,1)+' ton'}
+function c3(){const L=v('c3l'),dv=v('c3t'),h=L/dv*1000;$('#c3o').innerHTML='Tinggi minimum ≈ <b>'+fmt(h,0)+' mm</b> → praktisnya <b>'+fmt(Math.ceil(h/10)*10/10,0)+' cm</b> atau lebih'}
+function c4(){const d=v('c4d'),L=v('c4l'),n=v('c4n'),per=.00617*d*d;$('#c4o').innerHTML=fmt(per,3)+' kg/m · per batang <b>'+fmt(per*L,2)+' kg</b> · total <b>'+fmt(per*L*n,1)+' kg</b>'}
+function c5(){const V=v('c5v'),q=.613*V*V,a=v('c5m')*1e-6,dl=a*v('c5l')*v('c5t')*1000;$('#c5o').innerHTML='q ≈ <b>'+fmt(q,0)+' N/m²</b><br>('+fmt(q/1000,2)+' kPa)';$('#c5o2').innerHTML='Perubahan panjang ΔL ≈ <b>'+fmt(dl,2)+' mm</b>'}
+$$('.calc input,.calc select').forEach(e=>e.addEventListener('input',()=>{c1();c2();c3();c4();c5()}));
+$$('.qk button').forEach(b=>b.onclick=()=>{$('#c1k').value=b.dataset.k;c1()});
+c1();c2();c3();c4();c5();
+
+/* checklist */
+const cbs=$$('.cl input');cbs.forEach(c=>c.addEventListener('change',()=>{$('#clBar').style.width=(cbs.filter(x=>x.checked).length/cbs.length*100)+'%'}));
+
+/* ilustrasi banner (SVG buatan sendiri, tanpa internet) */
+function par(){$$('.banner svg').forEach(s=>{const r=s.parentNode.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;const p=(r.top+r.height/2-innerHeight/2)/innerHeight;s.style.transform='translateY('+(p*-34).toFixed(1)+'px)'})}
+(function(){
+ let sd=7;const rnd=()=>(sd=(sd*9301+49297)%233280)/233280;
+ const sv=i=>'<svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'+i+'</svg>';
+ const star=n=>{let o='';for(let i=0;i<n;i++)o+=`<circle class="tw8" style="animation-delay:${(rnd()*3).toFixed(1)}s" cx="${rnd()*1200|0}" cy="${rnd()*200|0}" r="${(rnd()*1.4+.5).toFixed(1)}" fill="#fff"/>`;return o};
+ const bld=(y0,col,minw,maxw,minh,maxh,lit)=>{let x=-20,o='';while(x<1220){const w=minw+rnd()*(maxw-minw),h=minh+rnd()*(maxh-minh);o+=`<rect x="${x|0}" y="${(y0-h)|0}" width="${w|0}" height="${h|0}" fill="${col}"/>`;if(lit){const n=(w*h/1100)|0;for(let k=0;k<n;k++)if(rnd()<.4)o+=`<rect x="${(x+6+rnd()*(w-14))|0}" y="${(y0-h+8+rnd()*(h-16))|0}" width="4" height="6" fill="#ffd27a" opacity="${(.4+rnd()*.5).toFixed(2)}"/>`}x+=w+(rnd()*6|0)}return o};
+ const SC={
+ crane:()=>sv(`<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#171a45"/><stop offset=".55" stop-color="#7a3b6e"/><stop offset=".85" stop-color="#ff7a45"/><stop offset="1" stop-color="#ffd27a"/></linearGradient><radialGradient id="g1s"><stop offset="0" stop-color="#fff3c4"/><stop offset="1" stop-color="#fff3c4" stop-opacity="0"/></radialGradient></defs><rect width="1200" height="400" fill="url(#g1)"/>${star(40)}<circle cx="880" cy="300" r="150" fill="url(#g1s)"/><circle cx="880" cy="300" r="48" fill="#fff3c4"/>${bld(330,'#4a2f6b',40,90,60,170,0)}${bld(350,'#241a47',50,100,40,130,1)}<g stroke="#12122e" stroke-width="5" fill="none"><path d="M300 400V150M380 400V150M460 400V150M540 400V150"/><path d="M290 400H550M290 330H550M290 260H550M290 190H550M290 150H550"/><path d="M300 400L380 330M380 330L460 400M380 260L460 190" stroke-width="3"/></g><g stroke="#12122e" stroke-width="6" fill="none" stroke-linejoin="round"><path d="M690 400V60M720 400V60M690 400L720 370L690 340L720 310L690 280L720 250L690 220L720 190L690 160L720 130L690 100L720 70"/><path d="M560 60H980M980 60V90M560 60L690 20H720L760 60M980 60L720 20" stroke-width="4"/><path d="M880 60V210" stroke-width="2"/><path d="M866 210H894V232H866Z" fill="#12122e"/></g><rect y="372" width="1200" height="40" fill="#0d0b22"/>`),
+ soil:()=>sv(`<defs><pattern id="sd" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r="1.4" fill="#b8975a"/><circle cx="10" cy="10" r="1.2" fill="#b8975a"/></pattern><pattern id="rk" width="40" height="30" patternUnits="userSpaceOnUse"><path d="M0 30L20 0L40 30" fill="none" stroke="#5f6b7c" stroke-width="2"/></pattern><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5aa9f5"/><stop offset="1" stop-color="#d5ecff"/></linearGradient></defs><rect width="1200" height="400" fill="url(#sk)"/><rect y="100" width="1200" height="60" fill="#6b4a2b"/><rect y="160" width="1200" height="80" fill="#a8764a"/><rect y="240" width="1200" height="72" fill="#d8b87a"/><rect y="240" width="1200" height="72" fill="url(#sd)"/><rect y="312" width="1200" height="100" fill="#4b5563"/><rect y="312" width="1200" height="100" fill="url(#rk)"/><path d="M0 100H1200" stroke="#3f8f3a" stroke-width="8"/><path d="M520 100V50H680V100M505 52L600 8L695 52Z" fill="#f4e4c8" stroke="#8a6b3d" stroke-width="3"/><rect x="585" y="66" width="30" height="34" fill="#8a6b3d"/><rect x="500" y="100" width="200" height="20" fill="#9aa4b1"/><g fill="#cbd5e1" stroke="#7b8794" stroke-width="2"><rect x="520" y="120" width="22" height="220"/><rect x="589" y="120" width="22" height="220"/><rect x="658" y="120" width="22" height="220"/></g><path class="wv" d="M0 218Q150 205 300 218T600 218T900 218T1200 218" fill="none" stroke="#4cc9f0" stroke-width="3" stroke-dasharray="10 8"/><rect x="946" y="44" width="8" height="246" fill="#f4c05a"/><rect x="930" y="36" width="40" height="10" fill="#f4c05a"/><path d="M943 290H957L950 314Z" fill="#ffb703"/><g font-family="Segoe UI,sans-serif" font-size="15" font-weight="700"><text x="24" y="136" fill="#f3e3cf">tanah atas</text><text x="24" y="190" fill="#fff">lempung lunak</text><text x="24" y="211" fill="#bfe9ff">muka air tanah</text><text x="24" y="282" fill="#4a3a1a">pasir</text><text x="24" y="360" fill="#e6eefc">tanah keras</text><text x="968" y="62" fill="#0b2a4a">sondir</text></g>`),
+ concrete:()=>sv(`<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6db3f8"/><stop offset="1" stop-color="#e6f3ff"/></linearGradient></defs><rect width="1200" height="400" fill="url(#cg)"/><ellipse cx="200" cy="70" rx="90" ry="22" fill="#fff" opacity=".8"/><ellipse cx="860" cy="50" rx="110" ry="26" fill="#fff" opacity=".7"/>${bld(350,'#9fb4cc',50,90,50,150,0)}<rect y="340" width="1200" height="70" fill="#5d646e"/><rect x="130" y="300" width="400" height="34" rx="6" fill="#2b2f38"/><path d="M440 300V240Q440 226 456 226H500L540 270V300Z" fill="#ffb703"/><path d="M458 238H494L522 268H458Z" fill="#bfe9ff"/><path d="M150 296L170 226Q240 200 330 222L430 240V296Z" fill="#f1f3f6" stroke="#b5bcc7" stroke-width="3"/><path d="M205 236L218 296M255 226L268 296M305 228L318 296M355 236L368 296" stroke="#ffb703" stroke-width="12"/><g fill="#15181f"><circle cx="200" cy="338" r="26"/><circle cx="270" cy="338" r="26"/><circle cx="470" cy="338" r="26"/></g><g fill="#9aa3af"><circle cx="200" cy="338" r="10"/><circle cx="270" cy="338" r="10"/><circle cx="470" cy="338" r="10"/></g><path d="M400 226L560 120L780 108L900 190V262" fill="none" stroke="#ffcf33" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><path class="pour" d="M900 266V326" stroke="#c7ccd4" stroke-width="12"/><rect x="760" y="326" width="360" height="16" fill="#8d949c"/><path d="M780 326Q900 296 1100 326Z" fill="#a8aeb6"/><path d="M780 318H1100" stroke="#e9a23b" stroke-width="3" stroke-dasharray="4 14"/><polygon points="1130,342 1180,262 1230,342" fill="#d8c9a3"/><polygon points="1090,342 1140,292 1190,342" fill="#8f98a3"/>`),
+ rebar:()=>{const fx=180,fy=190,w=150,h=150,dx=640,dy=-110;let o='<defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f1b33"/><stop offset="1" stop-color="#1f3b63"/></linearGradient></defs><rect width="1200" height="400" fill="url(#rg)"/><path d="M0 340H1200" stroke="#2c4b78" stroke-width="2"/>';
+  for(let i=8;i>=0;i--){const t=i/8;o+=`<rect x="${fx+dx*t}" y="${fy+dy*t}" width="${w}" height="${h}" rx="10" fill="none" stroke="#e9a23b" stroke-width="${i?3.5:5}" opacity="${(.45+.55*(1-t)).toFixed(2)}"/>`}
+  [[0,0],[w,0],[0,h],[w,h],[w/2,h]].forEach(([a,b])=>{o+=`<line x1="${fx+a}" y1="${fy+b}" x2="${fx+dx+a}" y2="${fy+dy+b}" stroke="#f6c85f" stroke-width="7" stroke-linecap="round"/><circle cx="${fx+a}" cy="${fy+b}" r="8" fill="#ffd66b" stroke="#b97a1d" stroke-width="2"/>`});
+  [4,3,2,1].forEach((n,r)=>{for(let k=0;k<n;k++)o+=`<circle cx="${1050+(k-(n-1)/2)*30}" cy="${322-r*26}" r="14" fill="#e9a23b" stroke="#b97a1d" stroke-width="3"/><circle cx="${1050+(k-(n-1)/2)*30}" cy="${322-r*26}" r="5" fill="#f6c85f"/>`});
+  return sv(o)},
+ quake:()=>{let w='';for(let x=0;x<=1200;x+=5){const e=Math.exp(-Math.pow((x-640)/240,2))*62+3;w+=(x?'L':'M')+x+' '+(150+(rnd()-.5)*2*e).toFixed(1)}
+  return sv(`<defs><linearGradient id="qg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#150d2b"/><stop offset=".6" stop-color="#5b2150"/><stop offset="1" stop-color="#ff6b6b"/></linearGradient></defs><rect width="1200" height="400" fill="url(#qg)"/>${star(34)}${bld(318,'#2a1745',60,110,60,170,1)}${bld(332,'#1a0f30',60,120,40,130,1)}<g transform="rotate(-7 880 332)"><rect x="830" y="140" width="100" height="192" fill="#0f0820"/><rect x="846" y="160" width="14" height="18" fill="#ffd27a" opacity=".7"/><rect x="880" y="200" width="14" height="18" fill="#ffd27a" opacity=".5"/></g><rect y="332" width="1200" height="80" fill="#0e0818"/><path d="M300 332L330 352L310 372L350 400M900 332L925 356L905 376L940 400" fill="none" stroke="#ff6b6b" stroke-width="3"/><g fill="none" stroke="#ff9b9b" stroke-width="3"><circle class="ring" style="--dl:0s" cx="600" cy="400" r="140"/><circle class="ring" style="--dl:1.1s" cx="600" cy="400" r="140"/><circle class="ring" style="--dl:2.2s" cx="600" cy="400" r="140"/></g><path d="${w}" fill="none" stroke="#ffd27a" stroke-width="2.2" opacity=".95"/>`)},
+ bricks:()=>{let b='';for(let r=0;r<9;r++){const xm=r<4?500+r*220:1300,off=(r%2)*56;for(let x=-56+off;x<xm;x+=112)b+=`<rect x="${x}" y="${100+r*38+2}" width="108" height="34" rx="3" fill="hsl(${10+rnd()*8|0} ${45+rnd()*15|0}% ${33+rnd()*10|0}%)"/>`}
+  return sv(`<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7c98b"/><stop offset="1" stop-color="#fbe3b8"/></linearGradient></defs><rect width="1200" height="400" fill="url(#bg)"/><circle cx="1040" cy="52" r="34" fill="#fff4cf"/><rect y="100" width="1200" height="320" fill="#d6c8ae"/>${b}<g transform="rotate(-14 860 110)"><rect x="840" y="40" width="190" height="10" rx="5" fill="#6b4a2b"/><path d="M820 70L910 48L1050 62L1050 96L910 108Z" fill="#cfd6df" stroke="#8d97a5" stroke-width="3"/></g><path d="M800 120Q860 100 900 125Q880 150 810 142Z" fill="#9a9a94"/><rect x="120" y="58" width="360" height="26" rx="5" fill="#b8e04a" stroke="#6e8a1a" stroke-width="3"/><rect x="270" y="63" width="60" height="16" rx="8" fill="#eaffb0" stroke="#6e8a1a" stroke-width="2"/><circle cx="300" cy="71" r="6" fill="#8be04a"/>`)},
+ roof:()=>sv(`<defs><linearGradient id="rf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f9df0"/><stop offset=".7" stop-color="#ffd9a0"/><stop offset="1" stop-color="#ffb870"/></linearGradient></defs><rect width="1200" height="400" fill="url(#rf)"/><circle cx="1010" cy="86" r="44" fill="#fff6d6"/><ellipse cx="250" cy="70" rx="100" ry="24" fill="#fff" opacity=".75"/><path d="M135 322L600 54V74L150 332Z" fill="#b6452c"/><path d="M200 292L250 264M270 252L320 224M340 212L390 184M410 172L460 144M480 132L530 104" stroke="#7d2a17" stroke-width="3"/><g stroke="#243044" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M150 330L600 70L1050 330Z"/></g><g stroke="#243044" stroke-width="8" stroke-linecap="round" fill="none"><path d="M600 70V330M600 330L375 200M600 330L825 200M375 200V330M825 200V330"/></g><g fill="#ffb703"><circle cx="150" cy="330" r="8"/><circle cx="1050" cy="330" r="8"/><circle cx="600" cy="70" r="8"/><circle cx="600" cy="330" r="8"/><circle cx="375" cy="200" r="7"/><circle cx="825" cy="200" r="7"/></g><rect y="352" width="1200" height="60" fill="#3a2a22"/>`),
+ landmarks:()=>sv(`<defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070b1d"/><stop offset=".75" stop-color="#1c2a57"/><stop offset="1" stop-color="#e58a5a"/></linearGradient></defs><rect width="1200" height="400" fill="url(#lg)"/>${star(60)}<circle cx="1050" cy="70" r="30" fill="#fff6d6"/><g fill="#0a1024"><path d="M110 340V272H370V340Z"/><path d="M130 272A100 98 0 0 1 350 272Z"/><path d="M240 160V176" stroke="#0a1024" stroke-width="4"/><path d="M440 340L452 300H508L520 340ZM452 300L460 262H500L508 300ZM460 262L466 228H494L500 262ZM466 228L470 196H490L494 228ZM470 196L474 170H486L490 196ZM479 170V120"/><path d="M640 340Q690 236 702 150H718Q730 236 780 340H758Q732 276 710 276Q688 276 662 340Z"/><path d="M850 340V280H890V340ZM858 280V218H882V280ZM865 218V150H875V218ZM869 150V70"/><path d="M820 340V300H850V340ZM890 340V300H920V340Z"/><rect x="1010" y="170" width="14" height="170"/><rect x="1150" y="170" width="14" height="170"/><rect y="320" width="1200" height="90"/></g><path d="M600 340H1200" stroke="#0a1024" stroke-width="2"/><path d="M1000 170Q1080 300 1157 170M1017 176V320M1040 220V320M1062 258V320M1085 262V320M1110 240V320M1133 200V320" fill="none" stroke="#0a1024" stroke-width="3"/><g fill="#ffd27a" opacity=".8"><rect x="200" y="296" width="6" height="10"/><rect x="250" y="296" width="6" height="10"/><rect x="738" y="296" width="6" height="10"/></g>`)
+ };
+ $$('.banner').forEach(b=>b.insertAdjacentHTML('afterbegin',SC[b.dataset.scene]()));
+})();
+onScroll();
+})();
+</script>
+</body>
+</html>
