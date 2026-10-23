@@ -1,4 +1,706 @@
 <!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Penerangan Sementara — Dashboard</title>
+<style>
+:root{--a:#ffc94d;--c:#4cc9f0;--ink:#eaf1ff;--mute:#9db0d6;--glass:rgba(14,22,48,.58);--line:rgba(255,255,255,.16);color-scheme:dark}
+body.day{--ink:#14213d;--mute:#44587f;--glass:rgba(255,255,255,.66);--line:rgba(20,33,61,.16);color-scheme:light}
+html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0;height:0;display:none}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font:16px/1.55 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;color:var(--ink);background:#060b1c;overflow-x:hidden;transition:background .6s,color .6s}
+body.day{background:#bfe3ff}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block}
+#dash{position:relative;z-index:1;min-height:100%;padding:18px 18px 60px;max-width:1120px;margin:0 auto}
+.glass{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 40px -18px rgba(0,0,0,.55)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--a);outline-offset:3px;border-radius:10px}
+/* top bar */
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;gap:10px;align-items:center;padding:8px 14px;font-weight:700;letter-spacing:.04em;font-size:.82rem;text-transform:uppercase}
+.brand i{width:10px;height:10px;border-radius:50%;background:var(--a);box-shadow:0 0 12px var(--a),0 0 28px var(--a);animation:pulse 2s infinite}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{padding:8px 14px;border-radius:99px;font-size:.88rem;min-height:40px;display:inline-flex;align-items:center;gap:6px}
+.btn{border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(10px);padding:8px 16px;border-radius:99px;min-height:40px;transition:transform .15s,border-color .2s}
+.btn:hover{border-color:var(--a);transform:translateY(-1px)}.btn:active{transform:scale(.96)}
+/* hero */
+.hero{text-align:center;padding:clamp(34px,8vh,84px) 0 28px}
+.eyebrow{color:var(--a);letter-spacing:.3em;text-transform:uppercase;font-size:.78rem;font-weight:700}
+h1{font:800 clamp(2.3rem,8vw,5.4rem)/1 "Bahnschrift","Segoe UI Variable Display","Arial Narrow",system-ui,sans-serif;letter-spacing:-.01em;margin:12px 0 14px}
+h1 span{display:inline-block;opacity:0;transform:translateY(40px) rotate(6deg);animation:letter .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i)*.045s);transition:color .3s,text-shadow .3s}
+h1 span:hover{color:var(--a);text-shadow:0 0 24px var(--a)}
+h1 .sp{width:.3em}
+.sub{color:var(--mute);max-width:56ch;margin:0 auto 22px}
+.hint{font-size:.82rem;color:var(--mute)}
+/* menu cards */
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px;perspective:1200px}
+.card{position:relative;text-align:left;padding:26px;overflow:hidden;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .18s ease-out,border-color .25s;display:flex;flex-direction:column;gap:12px;min-height:340px}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),rgba(255,201,77,.22),transparent 55%);opacity:0;transition:opacity .25s;pointer-events:none}
+.card:hover::before,.card:focus-visible::before{opacity:1}
+.card:hover{border-color:var(--a)}
+.card .no{position:absolute;right:22px;top:12px;font:800 5.5rem/1 "Bahnschrift",system-ui,sans-serif;opacity:.08}
+.card svg{width:100%;height:150px;border-radius:14px;background:linear-gradient(180deg,rgba(76,201,240,.12),rgba(255,201,77,.1));border:1px solid var(--line)}
+.card h2{font:800 clamp(1.5rem,3.4vw,2rem)/1.1 "Bahnschrift","Segoe UI",system-ui,sans-serif}
+.card p{color:var(--mute);font-size:.95rem}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tags span{font-size:.78rem;padding:2px 10px;border:1px solid var(--line);border-radius:99px;color:var(--mute)}
+.stat{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:.88rem}
+.stat b{color:var(--a)}
+.go{background:var(--a);color:#1a1200;font-weight:800;padding:10px 20px;border-radius:99px;transition:transform .2s}
+.card:hover .go{transform:translateX(6px)}
+/* panels */
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;margin-top:26px}
+.panel{padding:22px}
+.panel h3{font:800 1.3rem "Bahnschrift","Segoe UI",system-ui,sans-serif;margin-bottom:6px}
+.panel small{color:var(--mute)}
+.tip{min-height:7.4em;margin:12px 0;font-size:1.05rem;transition:opacity .35s,transform .35s}
+.tip.out{opacity:0;transform:translateY(8px)}
+.tip b{color:var(--a)}
+.dots{display:flex;gap:6px;margin-bottom:12px}.dots i{height:5px;flex:1;border-radius:9px;background:var(--line);overflow:hidden;position:relative}.dots i.on::after{content:"";position:absolute;inset:0;background:var(--a);transform-origin:0 50%;animation:fill 7s linear forwards}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+label{display:block;font-size:.8rem;color:var(--mute);margin:8px 0 3px}
+input,select{width:100%;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--ink);font:inherit}
+body.day input,body.day select{background:rgba(255,255,255,.8)}
+.out{margin-top:14px;padding:14px;border-radius:14px;background:rgba(255,201,77,.14);border:1px solid var(--a)}
+.out .lux{font:800 2.4rem/1 "Bahnschrift",system-ui,sans-serif;color:var(--a)}
+.meter{height:10px;border-radius:9px;background:linear-gradient(90deg,#e03131,#ffc94d,#69db7c);position:relative;margin:12px 0 4px}
+.meter i{position:absolute;top:-5px;width:6px;height:20px;border-radius:4px;background:#fff;box-shadow:0 0 0 2px #0b1330;left:0;transition:left .6s cubic-bezier(.2,.8,.2,1)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:26px}
+.fact{padding:16px;text-align:center}.fact b{display:block;font:800 2.2rem/1 "Bahnschrift",system-ui,sans-serif;color:var(--a)}.fact small{color:var(--mute)}
+footer{margin-top:30px;text-align:center;color:var(--mute);font-size:.84rem}
+/* viewer */
+#view{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;background:#060b1c}
+#view.open{display:flex;animation:vin .45s cubic-bezier(.2,.8,.2,1)}
+.vbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:rgba(10,16,36,.96);border-bottom:1px solid rgba(255,255,255,.14);color:#eaf1ff;flex-wrap:wrap}
+.vbar .btn{color:#eaf1ff;background:rgba(255,255,255,.08)}
+.vbar .tab{opacity:.8}.vbar .tab[aria-selected=true]{background:var(--a);color:#1a1200;font-weight:800;opacity:1;border-color:var(--a)}
+.vbar .ttl{margin-left:auto;font-size:.8rem;opacity:.7;letter-spacing:.06em;text-transform:uppercase}
+#vwrap{position:relative;flex:1;min-height:0}
+#vwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;display:none}
+#vwrap iframe.show{display:block;animation:fin .4s}
+#load{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#060b1c;color:#eaf1ff;z-index:2}
+#load.on{display:flex}
+.spin{width:54px;height:54px;border-radius:50%;border:5px solid rgba(255,255,255,.15);border-top-color:var(--a);animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}@keyframes vin{from{opacity:0;transform:scale(1.04)}}@keyframes fin{from{opacity:0}}
+@keyframes letter{to{opacity:1;transform:none}}@keyframes pulse{50%{transform:scale(1.5);opacity:.6}}@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes fl{0%,100%{opacity:1}50%{opacity:.35}}@keyframes sw{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}@keyframes bob{50%{transform:translateY(-8px)}}@keyframes spinc{to{transform:rotateY(360deg)}}@keyframes drift{to{transform:translateX(120px)}}
+.sw{transform-box:fill-box;transform-origin:50% 0;animation:sw 2.6s ease-in-out infinite alternate}.fl{animation:fl 2.2s infinite}.bob{animation:bob 2.4s ease-in-out infinite}.coin{transform-box:fill-box;transform-origin:center;animation:spinc 2.2s linear infinite}.cloud{animation:drift 14s linear infinite alternate}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}h1 span{opacity:1;transform:none}}
+@media(max-width:600px){.card{min-height:0}.vbar .ttl{display:none}}
+</style></head><body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div id="dash">
+ <div class="top">
+  <div class="brand glass"><i></i>Dinas CKPKP · Dashboard</div>
+  <div class="tools">
+   <div class="chip glass" id="clock" aria-label="Jam WIB">--:--</div>
+   <button class="btn" id="bLamp" type="button" aria-pressed="true">💡 Lampu: ON</button>
+   <button class="btn" id="bSun" type="button">☀️ Siang</button>
+  </div>
+ </div>
+
+ <header class="hero">
+  <div class="eyebrow">Pusat Edukasi &amp; Hiburan</div>
+  <h1 id="ttl" aria-label="Penerangan Sementara"></h1>
+  <p class="sub">Dua dunia dalam satu halaman: belajar ilmu bangunan yang sungguh-sungguh, atau main santai di kota 3D. Sorot kota di latar dengan kursor, klik jendela gedung untuk menyalakan lampunya.</p>
+  <p class="hint">Pintasan: tekan <b>1</b> untuk Ilmu Konstruksi, <b>2</b> untuk Kota Santai, <b>Esc</b> kembali ke sini.</p>
+ </header>
+
+ <section class="menu" aria-label="Menu utama">
+  <button class="card glass" id="mIlmu" type="button" data-open="ilmu">
+   <span class="no" aria-hidden="true">01</span>
+   <svg viewBox="0 0 400 150" aria-hidden="true"><rect x="0" y="128" width="400" height="22" fill="rgba(160,120,70,.4)"/>
+    <g stroke="#4cc9f0" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M90 128V50M150 128V50M210 128V50M70 100H230M70 72H230M70 50H230M90 128L150 100L210 128M90 100L150 72L210 100"/></g>
+    <g stroke="#ffc94d" stroke-width="2.4" fill="none"><path d="M300 128V16M312 128V16M300 128L312 108L300 88L312 68L300 48L312 28M240 16H388M300 16L330 4"/><g class="sw" style="transform-origin:360px 16px"><path d="M360 16V86" stroke-width="1.6"/><rect x="351" y="86" width="18" height="12" fill="#ffc94d" stroke="none"/></g></g>
+    <g class="fl" fill="#ffc94d"><rect x="100" y="58" width="8" height="8"/><rect x="160" y="82" width="8" height="8"/><rect x="190" y="58" width="8" height="8"/></g></svg>
+   <h2>Ilmu Konstruksi Bangunan</h2>
+   <p>Perjalanan interaktif: gaya &amp; beban, tanah &amp; pondasi, beton, baja tulangan, gempa, tahapan proyek, membaca retak, 5 kalkulator, dan checklist pengecoran.</p>
+   <div class="tags"><span>SNI 2847</span><span>SNI 1726</span><span>Kalkulator</span><span>Simulasi gempa</span><span>Tur otomatis</span></div>
+   <div class="stat"><span>📚 <b>12</b> bagian · <b>5</b> kalkulator · <b>4</b> tema warna</span><span class="go">Masuk →</span></div>
+  </button>
+
+  <button class="card glass" id="mGame" type="button" data-open="game">
+   <span class="no" aria-hidden="true">02</span>
+   <svg viewBox="0 0 400 150" aria-hidden="true"><g class="cloud" fill="rgba(255,255,255,.55)"><ellipse cx="60" cy="26" rx="26" ry="9"/><ellipse cx="84" cy="22" rx="18" ry="8"/></g>
+    <rect x="0" y="126" width="400" height="24" fill="#7cc667"/><rect x="0" y="136" width="400" height="6" fill="#3b404a"/>
+    <rect x="40" y="70" width="46" height="56" fill="#6ec3f2"/><rect x="40" y="62" width="50" height="8" fill="#ff7a59"/><g class="fl" fill="#ffd23f"><rect x="48" y="82" width="9" height="9"/><rect x="68" y="82" width="9" height="9"/><rect x="48" y="102" width="9" height="9"/></g>
+    <rect x="150" y="30" width="10" height="96" fill="#f4f1ea"/><circle cx="155" cy="24" r="8" fill="#ffc82e" class="bob"/>
+    <path d="M232 126l22-74l22 74z" fill="none" stroke="#b78a5a" stroke-width="3"/><path d="M243 90h22M238 108h32" stroke="#b78a5a" stroke-width="2"/>
+    <circle cx="330" cy="70" r="18" fill="#7cc667"/><rect x="326" y="82" width="8" height="44" fill="#6b4a2a"/>
+    <g class="bob"><ellipse class="coin" cx="200" cy="60" rx="12" ry="12" fill="#ffc82e" stroke="#8a5a00" stroke-width="2"/></g>
+    <g class="bob" style="animation-delay:.6s"><ellipse class="coin" cx="290" cy="96" rx="9" ry="9" fill="#ffc82e" stroke="#8a5a00" stroke-width="2"/></g></svg>
+   <h2>Kota Santai 3D</h2>
+   <p>Digital playground: jelajahi 5 landmark dunia, kumpulkan koin, cari telur rahasia, bangun kotamu sendiri, kuis cepat, dan pertunjukan kembang api.</p>
+   <div class="tags"><span>3D</span><span>Siang-malam</span><span>Mode jalan &amp; terbang</span><span>Kuis</span><span>Mode foto</span></div>
+   <div class="stat"><span id="gStat">🎮 Belum ada progres — mulai sekarang!</span><span class="go">Main →</span></div>
+  </button>
+ </section>
+
+ <div class="facts">
+  <div class="fact glass"><b data-c="5">0</b><small>landmark 3D</small></div>
+  <div class="fact glass"><b data-c="16">0</b><small>koin tersembunyi</small></div>
+  <div class="fact glass"><b data-c="3">0</b><small>telur rahasia</small></div>
+  <div class="fact glass"><b data-c="28">0</b><small>hari acuan kuat beton</small></div>
+ </div>
+
+ <section class="panels">
+  <div class="panel glass" aria-live="polite">
+   <h3>💡 Tips Penerangan Sementara</h3><small>Rotasi otomatis tiap 7 detik · acuan umum, ikuti aturan K3 proyek</small>
+   <div class="tip" id="tip"></div>
+   <div class="dots" id="dots" aria-hidden="true"></div>
+   <button class="btn" id="tipNext" type="button">Tip berikutnya ↻</button>
+  </div>
+  <div class="panel glass">
+   <h3>🔦 Hitung Cepat Pencahayaan</h3><small>Perkiraan kasar: lux = lumen × jumlah × 0,4 ÷ luas</small>
+   <div class="row"><div><label for="lLm">Lumen per lampu</label><input id="lLm" type="number" value="4000" min="0" inputmode="decimal"></div><div><label for="lN">Jumlah lampu</label><input id="lN" type="number" value="4" min="0" inputmode="decimal"></div></div>
+   <div class="row"><div><label for="lP">Panjang area (m)</label><input id="lP" type="number" value="10" min="0" inputmode="decimal"></div><div><label for="lL">Lebar area (m)</label><input id="lL" type="number" value="8" min="0" inputmode="decimal"></div></div>
+   <div class="out"><div class="lux" id="lux">0 lux</div><div class="meter"><i id="lMeter"></i></div><div id="lTxt"></div></div>
+   <small style="display:block;margin-top:8px">0,4 = faktor pemanfaatan kasar. Hasil sebenarnya bergantung pada tinggi lampu, pantulan, dan debu. Untuk proyek nyata, ukur dengan lux meter.</small>
+  </div>
+ </section>
+ <footer>Penerangan Sementara · materi edukasi dan hiburan, bukan pengganti perencanaan oleh ahli.</footer>
+</div>
+
+<div id="view" role="dialog" aria-modal="true" aria-label="Tampilan konten">
+ <div class="vbar">
+  <button class="btn" id="vBack" type="button">← Dashboard</button>
+  <button class="btn tab" id="tIlmu" type="button" role="tab" data-open="ilmu">📚 Ilmu Konstruksi</button>
+  <button class="btn tab" id="tGame" type="button" role="tab" data-open="game">🎮 Kota Santai 3D</button>
+  <button class="btn" id="vFull" type="button" aria-label="Layar penuh">⛶</button>
+  <span class="ttl">Penerangan Sementara</span>
+ </div>
+ <div id="vwrap">
+  <div id="load" role="status"><div class="spin"></div><div id="loadTxt">Memuat…</div></div>
+  <iframe id="fIlmu" title="Ilmu Konstruksi Bangunan"></iframe>
+  <iframe id="fGame" title="Kota Santai 3D" allow="fullscreen"></iframe>
+ </div>
+</div>
+
+<script type="text/plain" id="docIlmu">
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Konstruksi Bangunan — Ilmu di Balik Bangunan Kokoh</title>
+<script>document.documentElement.className+=' js';try{var t=localStorage.getItem('tema-konstruksi');if(t&&t!=='biru')document.documentElement.dataset.theme=t}catch(e){}setTimeout(function(){if(!window.__ok)document.documentElement.classList.remove('js')},2500)<\/script>
+<style>
+/* 1. Tokens */
+:root{color-scheme:light;--bg:#f4f7fc;--bg2:#fff;--ink:#14213d;--body:#34425e;--mute:#566580;--amber:#f59e0b;--amber-ink:#a24d00;--cyan:#0b7fb0;--red:#c53030;--green:#0f8a6d;--line:rgba(20,33,61,.13);--surf:#fff;--shadow:0 1px 2px rgba(20,33,61,.06),0 10px 28px -14px rgba(20,33,61,.22);--nav:rgba(255,255,255,.94);--warn-bg:#fff4dc;--warn-ink:#6b4200;--fbg:#eaf4fb;--fink:#0a5f86;--cbg:rgba(11,127,176,.1);--cink:#0a5f86;--tag-hi:#b42323;--tag-mid:#8a5200;--tag-lo:#0b6e56;--hero-a:#e9f2fd;--hero-glow:rgba(245,158,11,.2);--hero-glow2:rgba(11,127,176,.14);--r:14px;--max:1080px;--ease:cubic-bezier(.2,.7,.2,1);--fs:clamp(1rem,.96rem + .2vw,1.1rem)}
+[data-theme=hijau]{--bg:#f1f7f3;--ink:#10281d;--body:#2f4a3c;--mute:#4f6a5c;--amber-ink:#8a4b00;--cyan:#0f766e;--green:#15803d;--line:rgba(16,40,29,.14);--fbg:#e4f3ec;--fink:#0b5d4f;--cbg:rgba(15,118,110,.1);--cink:#0b5d4f;--hero-a:#dff1e6;--hero-glow2:rgba(15,118,110,.16)}
+[data-theme=senja]{--bg:#fff6f0;--ink:#2b1a14;--body:#5a3f33;--mute:#7a5a4c;--amber:#ea580c;--amber-ink:#9a3412;--cyan:#1d6fa5;--green:#2f7d4f;--line:rgba(43,26,20,.14);--shadow:0 1px 2px rgba(43,26,20,.06),0 10px 28px -14px rgba(120,53,15,.3);--warn-bg:#ffe9d6;--warn-ink:#6b2d0d;--fbg:#ffeadb;--fink:#9a3412;--cbg:rgba(234,88,12,.1);--cink:#9a3412;--hero-a:#ffe3cc;--hero-glow:rgba(234,88,12,.2);--hero-glow2:rgba(29,111,165,.12)}
+[data-theme=gelap]{color-scheme:dark;--bg:#0a1222;--bg2:#101c36;--ink:#e8eefc;--body:#cfdbf5;--mute:#a3b3d4;--amber:#ffb703;--amber-ink:#ffb703;--cyan:#4cc9f0;--red:#ff8a8a;--green:#5eead4;--line:rgba(160,190,255,.16);--surf:rgba(255,255,255,.05);--shadow:0 10px 30px -16px rgba(0,0,0,.6);--nav:rgba(10,18,34,.94);--warn-bg:rgba(255,183,3,.1);--warn-ink:#ffe6a6;--fbg:#050a15;--fink:#b8ecff;--cbg:rgba(76,201,240,.12);--cink:#b8ecff;--tag-hi:#ffb0b0;--tag-mid:#ffd36a;--tag-lo:#7ff0dc;--hero-a:#0f1f3d;--hero-glow:rgba(255,183,3,.12);--hero-glow2:rgba(76,201,240,.1)}
+/* 2. Base */
+html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0;height:0;display:none}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:60px}
+body{touch-action:manipulation;background:var(--bg);color:var(--ink);font:var(--fs)/1.65 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;overflow-x:hidden;padding-bottom:64px}
+h1,h2,h3{font-family:"Bahnschrift","Segoe UI Variable Display","Arial Narrow",system-ui,sans-serif;line-height:1.1;letter-spacing:-.01em}
+h1{font-size:clamp(2.4rem,7vw,5rem)}h2{font-size:clamp(1.8rem,4.6vw,3rem);margin-bottom:14px}h3{font-size:1.2rem;margin-bottom:8px}
+a{color:var(--cyan)}b{color:var(--ink)}.banner b{color:#fff}
+code{font-family:Consolas,monospace;background:var(--cbg);color:var(--cink);padding:1px 6px;border-radius:6px;font-size:.9em}
+:focus-visible{outline:3px solid var(--amber);outline-offset:3px;border-radius:6px}
+/* 3. Layout */
+.wrap{max-width:var(--max);margin:0 auto;padding:0 20px}
+.sec{padding:clamp(56px,9vw,110px) 0}
+.lead{color:var(--mute);max-width:62ch;margin-bottom:30px}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+/* 4. Components */
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow)}
+.card p,.card li{color:var(--body)}.card p+p{margin-top:8px}.card ul{padding-left:1.1rem}.card li{margin:5px 0}
+.tag{display:inline-block;font-size:.78rem;padding:2px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-bottom:8px}
+.tag.hi{color:var(--tag-hi);border-color:currentColor}.tag.mid{color:var(--tag-mid);border-color:currentColor}.tag.lo{color:var(--tag-lo);border-color:currentColor}
+.note{border-left:3px solid var(--amber);background:var(--warn-bg);padding:12px 16px;border-radius:0 10px 10px 0;color:var(--warn-ink);font-size:.95rem;margin-top:16px}
+.formula{font-family:Consolas,monospace;background:var(--fbg);border:1px dashed var(--cyan);color:var(--fink);padding:12px 14px;border-radius:10px;margin:10px 0;overflow-x:auto;font-size:.95rem}
+.btn,.tabs button{background:var(--surf);border:1px solid var(--line);color:var(--ink);padding:10px 18px;min-height:44px;border-radius:99px;cursor:pointer;font:inherit;font-size:.93rem;transition:border-color .2s,background .2s}
+.btn:hover,.tabs button:hover{border-color:var(--amber)}.btn:active{transform:scale(.97)}
+.btn.hot,.tabs button[aria-selected=true]{background:var(--amber);color:#1a1200;border-color:var(--amber);font-weight:700}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.93rem;min-width:420px}th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--amber-ink);font-size:.85rem}td{color:var(--body)}
+details{border:1px solid var(--line);border-radius:var(--r);background:var(--surf);margin-bottom:10px}
+summary{cursor:pointer;padding:16px 20px;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px;min-height:44px}
+summary::-webkit-details-marker{display:none}summary::after{content:"+";color:var(--amber);font-size:1.5rem;line-height:1;transition:transform .25s}
+details[open] summary::after{transform:rotate(45deg)}details[open]{border-color:rgba(255,183,3,.4)}
+details ul{padding:0 20px 16px 40px;color:var(--body)}details li{margin:6px 0}
+.stat{text-align:center}.stat b{display:block;font:700 2.6rem Bahnschrift,"Segoe UI",sans-serif;color:var(--amber-ink);line-height:1}.stat small{color:var(--mute);display:block;margin-top:6px;font-size:.88rem}
+/* 5. Hero & nav */
+#bar{position:fixed;top:0;left:0;height:4px;width:100%;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,var(--amber),var(--cyan));z-index:100}
+#topnav{position:fixed;top:4px;left:0;right:0;z-index:95;display:flex;gap:6px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;background:var(--nav);border-bottom:1px solid var(--line)}
+#topnav.show{transform:none}#topnav::-webkit-scrollbar{display:none}
+#topnav a{flex:none;color:var(--mute);text-decoration:none;font-size:.86rem;padding:8px 14px;border-radius:99px}
+#topnav a:hover{color:var(--ink)}#topnav a.on{background:var(--amber);color:#1a1200;font-weight:700}
+#tour{position:fixed;left:14px;bottom:14px;z-index:96;display:flex;gap:8px}
+#tour .btn:not(.hot){background:var(--bg2)}#tour{flex-wrap:wrap;align-items:center}#sndVol{width:72px;min-height:44px;accent-color:var(--amber)}
+#themePop{position:absolute;bottom:54px;left:0;display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+#themePop[hidden]{display:none}#themePop button{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;border-radius:10px;border:2px solid transparent;background:none;color:var(--ink);font:inherit;font-size:.93rem;cursor:pointer;text-align:left}
+#themePop button[aria-pressed=true]{border-color:var(--amber);font-weight:700}#themePop i{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%)}
+.hero{min-height:100vh;min-height:100dvh;display:flex;align-items:center;padding:80px 0 60px;background:radial-gradient(ellipse at 80% 30%,var(--hero-glow),transparent 55%),radial-gradient(ellipse at 12% 90%,var(--hero-glow2),transparent 55%),linear-gradient(var(--hero-a),var(--bg))}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center}
+.hero h1{margin-bottom:18px}.hero .sub{color:var(--mute);max-width:46ch;margin-bottom:20px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips span{border:1px solid var(--line);border-radius:99px;padding:3px 13px;font-size:.82rem;color:var(--body);background:var(--bg2)}
+.hero svg{width:100%;height:auto;max-height:70vh}
+.dr{fill:none;stroke:var(--cyan);stroke-width:2.4;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.6s var(--ease) forwards;animation-delay:calc(var(--i)*.09s)}
+.dr.am{stroke:var(--amber)}@keyframes draw{to{stroke-dashoffset:0}}
+/* 6. Reveal, stat, chart */
+.js .rv{opacity:0;transform:translateY(24px);transition:opacity .6s var(--ease),transform .6s var(--ease)}.js .rv.in{opacity:1;transform:none}
+.chart svg{width:100%;height:auto}.chart .gl{stroke:var(--line)}.chart text{fill:var(--body);font-size:12px}
+.chart .curve{fill:none;stroke:var(--amber);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2s ease}
+.chart.in .curve{stroke-dashoffset:0}.chart .pt{fill:var(--bg);stroke:var(--amber);stroke-width:2.5}
+/* 7. Scrolly & SVG */
+.scrolly{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+.stagecol{position:sticky;top:12vh;border:1px solid var(--line);border-radius:20px;background:var(--bg2);padding:10px}
+.stagecol svg{width:100%;height:auto;max-height:70vh}
+.step{min-height:60vh;display:flex;align-items:center}.step .card{opacity:.35;transition:opacity .4s}.step.active .card{opacity:1;border-color:rgba(255,183,3,.4)}
+.stage [data-g]{opacity:.18;transition:opacity .4s}.stage [data-g].on{opacity:1}
+svg text{fill:var(--body);font-size:11px;font-family:"Segoe UI",sans-serif}
+.cy{stroke:var(--cyan);stroke-width:2;fill:rgba(11,127,176,.14)}.am{stroke:var(--amber);stroke-width:2;fill:rgba(245,158,11,.22)}.gn{stroke:var(--green);stroke-width:2;fill:rgba(15,138,109,.16)}
+.la{stroke:var(--amber);stroke-width:2.4;fill:none}.lr{stroke:var(--red);stroke-width:2;fill:none}.soilf{fill:rgba(160,120,70,.25)}
+.fd{display:grid;grid-template-columns:.9fr 1.1fr;gap:20px;align-items:center}.fd svg{width:100%;background:var(--surf);border-radius:12px;border:1px solid var(--line)}
+.fd dt{color:var(--amber-ink);font-weight:700;margin-top:10px;font-size:.9rem}.fd dd{color:var(--body)}
+/* 8. Horizontal stages */
+.hz-stick{position:sticky;top:0;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.hz-head{padding:0 8vw;margin-bottom:22px}.hz-track{display:flex;gap:22px;padding:0 8vw;will-change:transform}
+.panel{flex:0 0 min(80vw,440px);border:1px solid var(--line);border-radius:20px;padding:24px;background:var(--surf)}
+.panel h3{font-size:1.35rem}.panel ul{padding-left:1.1rem;color:var(--body);font-size:.96rem}.panel li{margin:6px 0}
+.hz-prog{margin:22px 8vw 0;height:3px;background:var(--line)}.hz-prog i{display:block;height:100%;background:var(--amber);transform:scaleX(0);transform-origin:0 50%}
+/* 9. Banner & quake */
+.banner{position:relative;height:clamp(180px,28vw,300px);border-radius:22px;overflow:hidden;border:1px solid var(--line);cursor:pointer;margin:0}
+.banner>svg{position:absolute;inset:0;width:100%;height:100%}.banner figcaption{position:absolute;inset:auto 0 0;padding:44px 22px 16px;background:linear-gradient(transparent,rgba(5,10,21,.9));font-size:.95rem;color:#c6d4ee}
+.banner:not(.vis) *{animation-play-state:paused}.sway{transform-box:fill-box;transform-origin:50% 0;animation:swing 3s ease-in-out infinite alternate}.banner.hot .sway{animation-duration:.8s}
+@keyframes swing{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+.ring{transform-box:fill-box;transform-origin:center;animation:ring 3s ease-out infinite;animation-delay:var(--dl)}@keyframes ring{from{transform:scale(.2);opacity:.9}to{transform:scale(1.8);opacity:0}}
+.quake svg{width:100%;background:var(--surf);border-radius:12px;border:1px solid var(--line)}
+.quake .bA,.quake .upB,.quake .lowB{transform-box:fill-box;transform-origin:50% 100%}
+.shake .ground{animation:gs .12s linear infinite}.shake .bA{animation:sA .9s ease-in-out infinite}.shake .lowB{animation:sL .9s ease-in-out infinite}.shake .upB{animation:sU .9s ease-in-out infinite}.shake .lowB line{stroke:var(--red)}
+@keyframes gs{50%{transform:translateX(3px)}}@keyframes sA{0%,100%{transform:skewX(-3deg)}50%{transform:skewX(3deg)}}@keyframes sL{0%,100%{transform:skewX(-14deg)}50%{transform:skewX(14deg)}}@keyframes sU{0%,100%{transform:translateX(15px)}50%{transform:translateX(-15px)}}
+#qcap{margin-top:10px;color:var(--mute);min-height:3.3em;font-size:.95rem}
+/* 10. Calculators & checklist */
+.calc label{display:block;font-size:.85rem;color:var(--mute);margin:10px 0 4px}
+.calc input,.calc select{width:100%;min-height:44px;background:var(--bg2);border:1px solid color-mix(in srgb,var(--ink) 28%,transparent);color:var(--ink);padding:8px 12px;border-radius:10px;font:inherit}
+.calc .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.out{margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--warn-bg);border:1px solid var(--amber);color:var(--warn-ink);font-size:.96rem}.out b{color:var(--amber-ink)}
+.qk{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.qk button{background:none;border:1px solid var(--line);color:var(--mute);border-radius:8px;padding:6px 10px;min-height:36px;cursor:pointer;font:inherit;font-size:.82rem}
+.hint{font-size:.82rem;color:var(--mute);margin-top:8px}
+.cl-bar{height:10px;border-radius:10px;background:var(--line);overflow:hidden;margin:6px 0 20px}.cl-bar i{display:block;height:100%;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,var(--cyan),var(--green));transition:transform .4s}
+.cl label{display:flex;gap:12px;padding:7px 0;cursor:pointer;color:var(--body)}.cl input{accent-color:var(--amber);width:20px;height:20px;flex:none;margin-top:3px}.cl input:checked+span{color:var(--mute);text-decoration:line-through}
+.big{font:700 2rem Bahnschrift,"Segoe UI",sans-serif;color:var(--amber-ink);line-height:1;margin-bottom:6px}
+footer{padding:64px 0;border-top:1px solid var(--line);color:var(--mute);font-size:.93rem}footer ul{columns:2;gap:28px;padding-left:1.1rem;margin:12px 0}footer li{margin:4px 0;break-inside:avoid}
+#tanah,#tulangan,#retak,#fakta{background:var(--bg2);border-block:1px solid var(--line)}.hz{background:linear-gradient(var(--hero-a),var(--bg))}.panel{box-shadow:var(--shadow)}
+/* 11. Responsive */
+@media(max-width:860px){
+.hero .wrap,.scrolly,.fd{grid-template-columns:1fr}.hero svg{order:-1;max-height:38vh}
+.stagecol{top:52px;z-index:5;padding:6px}.stagecol svg{max-height:34vh}.step{min-height:55vh}
+.hz{height:auto!important}.hz-stick{position:static;height:auto;overflow:visible}.hz-track{flex-direction:column;transform:none!important}.panel{flex:auto}.hz-prog{display:none}
+#tour{bottom:12px;left:12px}footer ul{columns:1}}
+/* 12. Reduced motion */
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.js .rv{opacity:1;transform:none}.dr,.chart .curve{stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+<div id="bar" aria-hidden="true"></div>
+<nav id="topnav" aria-label="Bagian halaman"></nav>
+<div id="tour"><button id="tourBtn" class="btn hot" type="button">▶ Tur otomatis</button><button id="tourSpd" class="btn" type="button" aria-label="Kecepatan tur: 1 kali">1×</button><button id="themeBtn" class="btn" type="button" aria-expanded="false" aria-controls="themePop">🎨 Tema</button><button id="sndBtn" class="btn" type="button" aria-pressed="false">🔇 Suara</button><input id="sndVol" type="range" min="0" max="0.5" step="0.01" value="0.22" aria-label="Volume suara latar">
+ <div id="themePop" hidden role="group" aria-label="Pilih tema warna"><button type="button" data-t="biru" style="--c1:#f4f7fc;--c2:#0b7fb0"><i></i>Biru terang</button><button type="button" data-t="hijau" style="--c1:#f1f7f3;--c2:#0f766e"><i></i>Hijau</button><button type="button" data-t="senja" style="--c1:#fff6f0;--c2:#ea580c"><i></i>Senja</button><button type="button" data-t="gelap" style="--c1:#0a1222;--c2:#ffb703"><i></i>Gelap</button></div></div>
+
+<header class="hero" id="hero" data-title="Awal">
+ <div class="wrap">
+  <div>
+   <h1>Ilmu di balik bangunan yang berdiri kokoh.</h1>
+   <p class="sub">Gaya, tanah, beton, baja tulangan, gempa, dan trik lapangan — dijelaskan berurutan sambil Anda menggulir.</p>
+   <div class="chips"><span>SNI 2847:2019</span><span>SNI 1726:2019</span><span>SNI 1727:2020</span><span>SNI 2052:2017</span></div>
+   <p class="hint" style="margin-top:14px">Gulir otomatis: tombol ▶, tekan Enter, atau ketuk dua kali di area kosong.</p>
+  </div>
+  <svg viewBox="0 0 600 540" role="img" aria-label="Ilustrasi bangunan rangka beton dengan tower crane">
+   <path class="dr" pathLength="1" style="--i:0" d="M20 510H580"/>
+   <path class="dr am" pathLength="1" style="--i:1" d="M200 510V200M290 510V200M380 510V200"/>
+   <path class="dr" pathLength="1" style="--i:3" d="M190 430H390M190 350H390M190 270H390M190 200H390"/>
+   <path class="dr" pathLength="1" style="--i:5" d="M200 510L290 430L380 510M200 430L290 350L380 430"/>
+   <path class="dr" pathLength="1" style="--i:6" d="M474 510V70M486 510V70M474 510L486 450L474 390L486 330L474 270L486 210L474 150L486 90"/>
+   <path class="dr" pathLength="1" style="--i:8" d="M300 70H580M480 70L430 40H500L480 70M360 70V170"/>
+   <path class="dr am" pathLength="1" style="--i:10" d="M345 170H375V190H345Z"/>
+  </svg>
+ </div>
+</header>
+
+<main>
+<section class="sec" id="beban" data-title="Gaya &amp; Beban">
+ <div class="wrap">
+  <h2 class="rv">Bangunan adalah jalur untuk menyalurkan beban ke tanah.</h2>
+  <p class="lead rv">Beban dari atas diterima, dioper antar elemen (<i>load path</i>), dan berakhir di tanah. Gulir untuk menelusuri jalurnya.</p>
+  <div class="scrolly" id="scA">
+   <div class="stagecol"><svg class="stage" viewBox="0 0 400 300" role="img" aria-label="Jalur beban dari atap, pelat, kolom, pondasi, sampai tanah">
+    <g data-g="soil"><rect class="soilf" x="0" y="236" width="400" height="64"/><path class="la" d="M90 292V252M200 292V252M310 292V252"/><text x="120" y="288">reaksi tanah</text></g>
+    <g data-g="found"><rect class="am" x="62" y="226" width="56" height="12"/><rect class="am" x="172" y="226" width="56" height="12"/><rect class="am" x="282" y="226" width="56" height="12"/><text x="140" y="250">pondasi</text></g>
+    <g data-g="col"><rect class="cy" x="84" y="62" width="12" height="164"/><rect class="cy" x="194" y="62" width="12" height="164"/><rect class="cy" x="304" y="62" width="12" height="164"/><text x="324" y="150">kolom</text></g>
+    <g data-g="floor"><rect class="gn" x="60" y="140" width="280" height="10"/><rect class="gn" x="60" y="214" width="280" height="10"/><text x="346" y="214">sloof</text></g>
+    <g data-g="roof"><path class="cy" d="M45 62L200 16L355 62Z"/><text x="170" y="48">atap</text></g>
+    <g data-g="wind"><path class="lr" d="M6 90H46M32 82l14 8-14 8M6 120H46M32 112l14 8-14 8"/><text x="4" y="78" style="fill:var(--tag-hi)">angin</text></g>
+   </svg></div>
+   <div>
+    <div class="step" data-on="roof,wind"><div class="card"><h3>Beban: semua yang menekan bangunan</h3><ul>
+     <li><b>Mati (D)</b>: berat sendiri. Beton bertulang ≈ 24 kN/m³, baja 78,5 kN/m³.</li>
+     <li><b>Hidup (L)</b>: SNI 1727:2020 rumah tinggal 1,92 kN/m², kantor 2,4 kN/m², ruang publik 4,79 kN/m².</li>
+     <li><b>Angin (W)</b>: <code>q ≈ 0,613·V²</code> (N/m²). 30 m/s ≈ 0,55 kPa sebelum faktor bentuk.</li>
+     <li><b>Gempa</b>, hujan, suhu, dan penurunan tanah. Kombinasi mis. <code>1,2D + 1,6L + 0,5R</code>.</li></ul></div></div>
+    <div class="step" data-on="floor"><div class="card"><h3>Pelat ke balok</h3><p>Pelat melentur dan meneruskan beban ke balok (lentur &amp; geser), lalu ke kolom.</p><p>Kekakuan <code>I = b·h³/12</code>: tinggi 2× → kekakuan 8×. Lendutan <code>δ = 5wL⁴/(384EI)</code>: bentang 2× → lendutan 16×.</p></div></div>
+    <div class="step" data-on="col"><div class="card"><h3>Kolom: elemen paling kritis</h3><p>Menerima tekan yang menumpuk dari semua lantai. Kolom langsing bisa tekuk: <code>Pcr = π²EI/(KL)²</code>.</p><p>Rasio tulangan memanjang kolom 1%–8% luas penampang (SNI 2847:2019).</p></div></div>
+    <div class="step" data-on="found"><div class="card"><h3>Pondasi memperluas bidang tumpu</h3><p><code>tegangan = P / A</code>. Contoh: 300 kN, daya dukung izin 150 kPa → luas ≥ 2 m² (± 1,5 × 1,5 m). Cek juga guling, geser, dan penurunan.</p></div></div>
+    <div class="step" data-on="soil"><div class="card"><h3>Tanah: penerima akhir</h3><p>Penurunan seragam relatif aman; penurunan <b>berbeda</b> yang merobek bangunan (retak dinding mulai ± distorsi sudut 1/300). Karena itu penyelidikan tanah menentukan jenis pondasi.</p></div></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<div class="wrap"><figure class="banner rv" data-scene="soil" role="img" aria-label="Lapisan tanah dan sondir"><figcaption><b>Lapisan tanah menentukan pondasi.</b> Sondir, bor, dan uji lab membaca yang tak terlihat.</figcaption></figure></div>
+
+<section class="sec" id="tanah" data-title="Tanah &amp; Pondasi">
+ <div class="wrap">
+  <h2 class="rv">Kenali tanahnya dulu, baru pilih kakinya.</h2>
+  <p class="lead rv">Banyak kegagalan terjadi karena tanah salah dibaca, bukan karena beton jelek (SNI 8460:2017).</p>
+  <div class="grid g3" style="margin-bottom:18px">
+   <div class="card rv"><h3>Sondir (CPT)</h3><p>Kerucut ditekan; terbaca <b>qc</b> dan <b>fs</b>. Cepat untuk lempung/pasir halus.</p></div>
+   <div class="card rv"><h3>Bor + SPT</h3><p>Palu 63,5 kg jatuh 76 cm; pukulan untuk 30 cm terakhir = <b>N-SPT</b>. N ≥ 50: sangat padat.</p></div>
+   <div class="card rv"><div class="tag hi">Waspada</div><h3>Tanah bermasalah</h3><p>Lempung ekspansif, pasir lepas jenuh (likuifaksi), gambut, muka air tinggi.</p></div>
+  </div>
+  <div class="card rv" style="margin-bottom:26px"><h3>Daya dukung Terzaghi (memanjang)</h3>
+   <div class="formula">q_ult = c·Nc + γ·Df·Nq + 0,5·γ·B·Nγ → q_izin = q_ult / SF (SF umumnya ≥ 3)</div>
+   <p>c = kohesi, γ = berat isi, Df = kedalaman, B = lebar. Memperdalam atau melebarkan menaikkan daya dukung, tetapi tidak menghilangkan risiko penurunan pada lempung lunak.</p></div>
+  <h3>Pilih jenis pondasi</h3>
+  <div class="tabs" id="ftabs" role="tablist" aria-label="Jenis pondasi"></div>
+  <div class="fd card" id="fbox" aria-live="polite"></div>
+ </div>
+</section>
+
+<section class="sec" id="beton" data-title="Beton">
+ <div class="wrap">
+  <h2 class="rv">Batu buatan yang tumbuh karena reaksi kimia.</h2>
+  <p class="lead rv">Beton = semen + air + agregat (+ bahan tambah). Ia tidak sekadar mengering: ia <b>bereaksi</b>, dan reaksi itu butuh air dan waktu.</p>
+  <div class="grid g3" style="margin-bottom:18px">
+   <div class="card stat rv"><b><span class="count" data-to="28">0</span></b><small>hari: umur acuan uji kuat tekan</small></div>
+   <div class="card stat rv"><b><span class="count" data-to="17">0</span> MPa</b><small>fc′ minimum struktural (21 MPa sistem gempa khusus), SNI 2847:2019</small></div>
+   <div class="card stat rv"><b><span class="count" data-to="24">0</span></b><small>kN/m³: berat jenis beton bertulang</small></div>
+  </div>
+  <div class="grid g2">
+   <div class="card rv"><h3>Kimia hidrasi</h3><p>Mineral C₃S bereaksi dengan air membentuk gel <b>C-S-H</b> (pemberi kekuatan), kalsium hidroksida, dan panas.</p>
+    <div class="formula">2 C₃S + 6 H → C₃S₂H₃ + 3 CH + panas</div>
+    <p class="hint">C = CaO, S = SiO₂, H = H₂O. CH membuat pH pori ≈ 12,5–13 yang melindungi tulangan dari karat.</p></div>
+   <div class="card rv chart" id="chart"><h3>Kekuatan vs umur</h3><svg viewBox="0 0 460 280" role="img" aria-label="Kekuatan beton: 3 hari 40%, 7 hari 65%, 14 hari 88%, 21 hari 95%, 28 hari 100%"></svg>
+    <p class="hint">Perbandingan umum semen portland biasa (tabel PBI 1971). Beton terus menguat jika lembap.</p></div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+   <div class="card rv"><div class="tag hi">Aturan emas</div><h3>Faktor air-semen</h3><p>Air berlebih meninggalkan pori kapiler: kuat turun, rembes naik. <b>Jangan menambah air di lokasi</b>; pakai <i>superplasticizer</i> sesuai desain campuran (SNI 7656:2012).</p></div>
+   <div class="card rv"><div class="tag mid">Kontrol mutu</div><h3>Slump &amp; benda uji</h3><p>Slump (SNI 1972:2008) struktur bertulang umumnya 8–12 cm. Uji silinder 150×300 mm (SNI 1974:2011) atau kubus 150 mm (K). Ikuti spesifikasi proyek untuk frekuensi sampel.</p></div>
+   <div class="card rv"><div class="tag lo">Perawatan</div><h3>Curing</h3><p>Jaga lembap minimal <b>7 hari</b> (semen portland biasa). Cuaca panas/berangin: laju penguapan mendekati 1 kg/m²/jam berisiko retak susut plastis.</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+   <div class="card rv"><h3 style="color:var(--green)">✔ Lakukan</h3><ul><li>Cor berlapis 30–50 cm, padatkan dengan vibrator tusuk.</li><li>Tuang ready-mix kurang dari ±90 menit sejak pencampuran.</li><li>Tinggi jatuh bebas ≤ ±1,5 m; lebih dari itu pakai pipa/tremi.</li></ul></div>
+   <div class="card rv"><h3 style="color:var(--red)">✘ Hindari</h3><ul><li>Menambah air di truk atau lokasi.</li><li>Cold joint: lapisan baru setelah lapisan lama mengikat.</li><li>Permukaan terbuka tanpa curing di bawah matahari.</li></ul></div>
+  </div>
+  <div class="note rv">Beton massa (tebal ≥ ±1 m): selisih suhu inti–permukaan lebih dari ±20 °C berisiko retak termal. Perlu es, semen rendah panas, atau cor bertahap.</div>
+ </div>
+</section>
+
+<section class="sec" id="tulangan" data-title="Baja Tulangan">
+ <div class="wrap">
+  <h2 class="rv">Beton menekan, baja menarik.</h2>
+  <p class="lead rv">Kuat tarik beton hanya sekitar 8–12% dari kuat tekannya. Baja menutup kelemahan itu.</p>
+  <div class="grid g2">
+   <div class="card rv"><svg viewBox="0 0 420 250" role="img" aria-label="Balok sederhana: tekan di atas, tarik di bawah, tulangan bawah, sengkang rapat dekat tumpuan">
+    <path class="la" d="M70 20V70M130 20V70M190 20V70M250 20V70M310 20V70M360 20V70M62 20H368"/><text x="150" y="14">beban merata w</text>
+    <path class="cy" d="M50 80H380V130H50Z"/><rect x="52" y="82" width="326" height="14" fill="rgba(76,201,240,.35)"/><rect x="52" y="116" width="326" height="12" fill="rgba(255,138,138,.35)"/>
+    <text x="150" y="108">tekan (beton)</text><text x="150" y="124" style="fill:var(--tag-hi)">tarik → tulangan</text>
+    <path class="la" d="M60 124H370"/><path class="gn" d="M66 84v42M82 84v42M98 84v42M114 84v42M312 84v42M328 84v42M344 84v42M360 84v42"/>
+    <text x="52" y="160" style="fill:var(--tag-lo)">sengkang rapat dekat tumpuan (geser)</text>
+    <rect x="150" y="180" width="120" height="64" class="cy"/><rect x="160" y="188" width="100" height="48" fill="none" stroke="#0f8a6d" stroke-width="2.5" rx="5"/><circle cx="170" cy="228" r="5" fill="#e08a00"/><circle cx="210" cy="228" r="5" fill="#e08a00"/><circle cx="250" cy="228" r="5" fill="#e08a00"/><text x="278" y="214">selimut beton</text></svg>
+    <p class="hint">Ilustrasi konseptual, tidak berskala.</p></div>
+   <div class="card rv"><ul>
+    <li><b>Lentur:</b> serat atas tertekan, bawah tertarik, <code>σ = M·y/I</code>. Retak lentur muncul saat tarik melampaui <code>fr = 0,62√fc′</code>.</li>
+    <li><b>Tulangan:</b> BjTS 420B (fy 420 MPa, ulir, SNI 2052:2017); <code>Ec = 4700√fc′</code>. Desain <i>under-reinforced</i>: baja leleh duluan, ada tanda peringatan.</li>
+    <li><b>Geser:</b> retak diagonal ±45° dekat tumpuan; <code>Vs = Av·fyt·d/s</code>. Sengkang gempa berkait 135°.</li>
+    <li><b>Selimut:</b> pelindung karat dan api, serta menjaga lekatan. Wajib pakai <i>beton decking</i>.</li></ul></div>
+  </div>
+  <div class="card rv tw" style="margin-top:16px"><table><tr><th>Kondisi</th><th>Selimut minimum (SNI 2847:2019)</th></tr>
+   <tr><td>Dicor langsung di tanah &amp; permanen kontak tanah</td><td>75 mm</td></tr>
+   <tr><td>Terpapar cuaca/tanah, ≥ D19</td><td>50 mm</td></tr><tr><td>Terpapar cuaca/tanah, ≤ D16</td><td>40 mm</td></tr>
+   <tr><td>Pelat/dinding di dalam ruangan</td><td>20 mm</td></tr><tr><td>Balok/kolom (sengkang, tulangan utama)</td><td>40 mm</td></tr></table></div>
+ </div>
+</section>
+
+<section class="sec" id="gempa" data-title="Gempa">
+ <div class="wrap">
+  <h2 class="rv">Dirancang agar tidak runtuh, bukan agar tidak rusak.</h2>
+  <p class="lead rv">SNI 1726:2019 memakai gempa MCER (2% terlampaui dalam 50 tahun); gempa desain = 2/3-nya. Gempa kecil tak merusak, sangat kuat boleh merusak berat tetapi penghuni selamat.</p>
+  <div class="grid g2" style="align-items:start">
+   <div class="quake rv" id="quake">
+    <svg viewBox="0 0 520 300" role="img" aria-label="Perbandingan bangunan beraturan (A) dan bangunan lantai dasar lunak (B) saat gempa"><g class="ground">
+     <rect x="0" y="270" width="520" height="30" fill="rgba(160,120,70,.3)"/>
+     <g class="bA"><rect x="50" y="70" width="170" height="200" fill="rgba(76,201,240,.08)" stroke="#0b7fb0" stroke-width="2"/><path d="M50 120H220M50 170H220M50 220H220M105 70V270M165 70V270" stroke="#0b7fb0" stroke-width="2"/></g>
+     <g class="upB"><rect x="300" y="70" width="180" height="150" fill="rgba(255,183,3,.12)" stroke="#e08a00" stroke-width="2"/><path d="M300 120H480M300 170H480" stroke="#e08a00" stroke-width="2"/></g>
+     <g class="lowB"><line x1="306" y1="220" x2="306" y2="270" stroke="#0b7fb0" stroke-width="7"/><line x1="390" y1="220" x2="390" y2="270" stroke="#0b7fb0" stroke-width="7"/><line x1="474" y1="220" x2="474" y2="270" stroke="#0b7fb0" stroke-width="7"/></g>
+     <text x="60" y="290" style="font-size:12px">A: beraturan</text><text x="300" y="290" style="font-size:12px">B: lantai dasar lunak</text></g></svg>
+    <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;align-items:center"><button class="btn hot" id="qbtn" type="button">🌋 Guncang!</button><span class="hint" style="margin:0">Ilustrasi konseptual, bukan simulasi hitung.</span></div>
+    <p id="qcap" aria-live="polite">Tekan tombol untuk membandingkan. A bergoyang merata; pada B simpangan menumpuk di lantai dasar tanpa dinding.</p>
+   </div>
+   <div class="grid">
+    <div class="card rv"><h3>F = m × a</h3><p>Geser dasar <code>V = Cs·W</code>: bangunan lebih ringan menerima gaya gempa lebih kecil (bata ringan, baja ringan, atap ringan).</p></div>
+    <div class="card rv"><h3>Daktilitas &amp; kolom kuat–balok lemah</h3><p>Sendi plastis di ujung balok, kolom tetap utuh: <code>ΣMnc ≥ 1,2·ΣMnb</code>. Kategori SRPMB, SRPMM, SRPMK sesuai tingkat risiko.</p></div>
+    <div class="card rv"><h3>Tanah lunak memperbesar getaran</h3><p>Kelas situs ditentukan dari Vs30 (SE: &lt; 175 m/s). Contoh klasik: Mexico City 1985.</p></div>
+    <div class="card rv"><div class="tag hi">Soft story</div><h3>Lantai dasar terbuka</h3><p>Ruko/parkir terbuka dengan lantai atas penuh dinding membuat kolom bawah menanggung semua simpangan.</p></div>
+   </div>
+  </div>
+  <div class="note rv">Rumah sederhana tahan gempa bergantung pada detail: pondasi–sloof–kolom–ring balok terikat, kolom praktis rapat (±3 m), angkur dinding, sambungan tulangan benar. Dimensi pasti harus dari gambar dan perhitungan.</div>
+ </div>
+</section>
+
+<div class="wrap"><figure class="banner rv" data-scene="crane" role="img" aria-label="Tower crane saat senja"><figcaption><b>Dari tiang pertama sampai lantai teratas.</b> Setiap tahap bergantung pada mutu tahap sebelumnya.</figcaption></figure></div>
+
+<section class="hz" id="tahap" data-title="Tahapan">
+ <div class="hz-stick">
+  <div class="hz-head"><h2>Dari lahan kosong sampai serah terima.</h2><p class="lead" style="margin-bottom:0">Gulir: panel bergeser ke samping.</p></div>
+  <div class="hz-track" id="hzTrack">
+   <div class="panel"><h3>1. Survei &amp; perencanaan</h3><ul><li>Topografi, penyelidikan tanah, batas lahan.</li><li>Gambar kerja, RAB, perizinan (PBG).</li><li>Rencana mutu dan K3.</li></ul></div>
+   <div class="panel"><h3>2. Tanah &amp; pondasi</h3><ul><li><i>Bouwplank</i>; siku dengan segitiga 3-4-5.</li><li>Galian rapi, urugan pasir + lantai kerja 5–10 cm.</li><li>Sloof mengikat semua pondasi.</li></ul></div>
+   <div class="panel"><h3>3. Struktur beton</h3><ul><li>Sloof → kolom → balok &amp; pelat.</li><li>Cek tulangan dan selimut <b>sebelum</b> cor.</li><li>Cor menerus, padatkan, curing.</li></ul></div>
+   <div class="panel"><h3>4. Dinding &amp; partisi</h3><ul><li>Bata merah, batako, atau AAC.</li><li>Pasangan bertahap ±1–1,2 m/hari.</li><li>Kolom praktis, ring balok, angkur.</li></ul></div>
+   <div class="panel"><h3>5. Atap</h3><ul><li>Segitiga = bentuk stabil.</li><li>Baja ringan G550, SNI 7971:2013; bracing wajib.</li><li>Jangan memotong batang kuda-kuda.</li></ul></div>
+   <div class="panel"><h3>6. MEP</h3><ul><li>Grounding, MCB sesuai beban.</li><li>Pipa buangan miring ±1–2%; uji tekan sebelum ditutup.</li><li>Pasang sleeve sebelum cor.</li></ul></div>
+   <div class="panel"><h3>7. Finishing &amp; serah terima</h3><ul><li>Plester kering ±2–4 minggu sebelum cat.</li><li>Punch list dan gambar as-built.</li><li>Dokumen untuk SLF.</li></ul></div>
+  </div>
+  <div class="hz-prog"><i id="hzBar"></i></div>
+ </div>
+</section>
+
+<section class="sec" id="tips" data-title="Tips Lapangan">
+ <div class="wrap">
+  <h2 class="rv">Detail kecil yang menentukan umur bangunan.</h2>
+  <p class="lead rv">Angka berikut praktik umum. Utamakan gambar kerja dan spesifikasi proyek.</p>
+  <details class="rv"><summary>Bekisting &amp; perancah</summary><ul><li>Tekanan beton segar mendekati hidrostatik (≈ γ·h): cor kolom tinggi bertahap.</li><li>Celah bocor membuang pasta semen dan menimbulkan keropos.</li><li>Perancah tegak, pakai <i>base jack</i> di alas padat, bracing silang.</li><li>Bongkar berdasarkan kekuatan; praktik umum sisi ±2–3 hari, bawah pelat ±14 hari.</li></ul></details>
+  <details class="rv"><summary>Pembesian</summary><ul><li>Berat teoretis <code>0,00617 × d² kg/m</code> (D10 ≈ 0,617; D16 ≈ 1,58). Timbang untuk mendeteksi besi kurus.</li><li>Periksa jumlah, diameter, jarak sengkang, kait 135°, lewatan, selimut; foto sebelum cor.</li><li>Jangan membengkokkan ulang stek tanpa persetujuan.</li></ul></details>
+  <details class="rv"><summary>Pengecoran &amp; pemadatan</summary><ul><li>Siapkan akses truk, pompa, vibrator cadangan, penerangan, rencana siar.</li><li>Vibrator tegak, jarak ±30–60 cm, ±5–15 detik per titik; jangan diseret.</li><li>Ambil benda uji dari beton yang benar-benar masuk bekisting.</li></ul></details>
+  <details class="rv"><summary>Pasangan bata &amp; plesteran</summary><ul><li>Basahi bata merah; spesi ±10 mm, 1 semen : 4 pasir; siar vertikal berselang-seling.</li><li>Retak rambut: plester terlalu tebal (&gt; ±15–20 mm) atau cepat kering.</li><li>Pasang kawat jala di pertemuan beton–bata.</li></ul></details>
+  <details class="rv"><summary>Waterproofing &amp; K3</summary><ul><li>Kemiringan lantai ±1–2%; membran naik ±15–20 cm; uji genang 24–48 jam.</li><li>Galian lebih dalam ±1,5 m: pakai shoring atau lereng landai.</li><li>Lubang pelat ditutup, tepi diberi railing, stek berujung diberi rebar cap.</li></ul></details>
+ </div>
+</section>
+
+<section class="sec" id="retak" data-title="Membaca Retak">
+ <div class="wrap">
+  <h2 class="rv">Retak itu bahasa bangunan.</h2>
+  <p class="lead rv">Perhatikan pola, arah, lebar, dan apakah terus melebar. Retak ≈ 0,3 mm kira-kira setebal tiga lembar kertas HVS; batas lebar retak lentur umum ±0,3–0,4 mm.</p>
+  <div class="card tw rv"><table><tr><th>Pola</th><th>Tingkat</th><th>Makna dan tindakan</th></tr>
+   <tr><td>Retak rambut acak pada plester (&lt; ±0,2 mm)</td><td>Rendah</td><td>Susut; umumnya non-struktural.</td></tr>
+   <tr><td>Horizontal di pertemuan bata–beton</td><td>Sedang</td><td>Beda material; kawat jala dan angkur, pantau.</td></tr>
+   <tr><td>Diagonal di sudut jendela/pintu</td><td>Sedang</td><td>Konsentrasi tegangan; kolom praktis dan lintel masuk ≥ ±20 cm.</td></tr>
+   <tr><td>Diagonal dari sudut ke bawah dinding</td><td>Tinggi</td><td>Ciri penurunan berbeda; periksa pondasi, pasang crack gauge.</td></tr>
+   <tr><td>Vertikal halus di tengah bentang balok</td><td>Sedang–tinggi</td><td>Lentur normal; lebar &gt; ±0,3–0,4 mm perlu evaluasi.</td></tr>
+   <tr><td>Diagonal ±45° dekat tumpuan balok</td><td>Tinggi</td><td>Retak geser (getas): kosongkan beban, panggil insinyur struktur.</td></tr>
+   <tr><td>Sejajar tulangan + noda karat</td><td>Tinggi</td><td>Korosi (karbonasi, klorida, selimut tipis) mendorong selimut pecah.</td></tr>
+   <tr><td>Beton pecah di ujung kolom / retak X</td><td>Tinggi</td><td>Beban berlebih atau kerusakan gempa; perlu evaluasi dan perkuatan.</td></tr></table></div>
+  <p class="hint">Pemuaian: <code>ΔL = α·L·ΔT</code>. Beton 10 m, ΔT 30 °C → ±3 mm; karena itu bangunan panjang diberi dilatasi sesuai perhitungan.</p>
+ </div>
+</section>
+
+<section class="sec" id="kalku" data-title="Kalkulator">
+ <div class="wrap">
+  <h2 class="rv">Hitung cepat di halaman ini.</h2>
+  <p class="lead rv">Untuk edukasi dan pengecekan kasar. Bukan pengganti perhitungan atau persetujuan insinyur berwenang.</p>
+  <div class="grid g2 calc">
+   <div class="card rv"><h3>1 · Mutu K → fc′, Ec, fr</h3><label for="c1k">Mutu beton K (kg/cm²)</label><input id="c1k" type="number" value="300" min="0" step="25" inputmode="decimal">
+    <div class="qk"><button type="button" data-k="175">K-175</button><button type="button" data-k="225">K-225</button><button type="button" data-k="250">K-250</button><button type="button" data-k="300">K-300</button><button type="button" data-k="350">K-350</button></div>
+    <div class="out" id="c1o" aria-live="polite"></div><p class="hint">fc′ ≈ 0,83 × K × 0,0981 MPa; Ec = 4700√fc′; fr = 0,62√fc′.</p></div>
+   <div class="card rv"><h3>2 · Volume beton &amp; truk mixer</h3>
+    <div class="row"><div><label for="c2p">Panjang (m)</label><input id="c2p" type="number" value="12" min="0" step="0.1" inputmode="decimal"></div><div><label for="c2l">Lebar (m)</label><input id="c2l" type="number" value="8" min="0" step="0.1" inputmode="decimal"></div></div>
+    <div class="row"><div><label for="c2t">Tebal (cm)</label><input id="c2t" type="number" value="12" min="0" step="0.5" inputmode="decimal"></div><div><label for="c2n">Jumlah elemen</label><input id="c2n" type="number" value="1" min="1"></div></div>
+    <div class="out" id="c2o" aria-live="polite"></div><p class="hint">Termasuk cadangan 5%; truk mixer dihitung 7 m³.</p></div>
+   <div class="card rv"><h3>3 · Tinggi minimum balok / pelat</h3><label for="c3l">Bentang L (m)</label><input id="c3l" type="number" value="5" min="0" step="0.1" inputmode="decimal">
+    <label for="c3t">Tipe elemen &amp; tumpuan</label><select id="c3t"><option value="16">Balok sederhana (L/16)</option><option value="18.5">Balok satu ujung menerus (L/18,5)</option><option value="21">Balok dua ujung menerus (L/21)</option><option value="8">Balok kantilever (L/8)</option><option value="20">Pelat 1 arah sederhana (L/20)</option><option value="24">Pelat 1 arah satu ujung menerus (L/24)</option><option value="28">Pelat 1 arah dua ujung menerus (L/28)</option><option value="10">Pelat 1 arah kantilever (L/10)</option></select>
+    <div class="out" id="c3o" aria-live="polite"></div><p class="hint">Batas SNI 2847:2019 agar lendutan tak wajib dihitung (fy 420 MPa, beton normal, tanpa partisi rentan).</p></div>
+   <div class="card rv"><h3>4 · Berat tulangan</h3>
+    <div class="row"><div><label for="c4d">Diameter (mm)</label><select id="c4d"><option>6</option><option>8</option><option selected>10</option><option>12</option><option>13</option><option>16</option><option>19</option><option>22</option><option>25</option></select></div><div><label for="c4l">Panjang batang (m)</label><input id="c4l" type="number" value="12" min="0" inputmode="decimal"></div></div>
+    <label for="c4n">Jumlah batang</label><input id="c4n" type="number" value="10" min="1">
+    <div class="out" id="c4o" aria-live="polite"></div><p class="hint">berat = 0,00617 × d² × panjang × jumlah. Bandingkan hasil timbang dengan toleransi SNI 2052:2017.</p></div>
+   <div class="card rv"><h3>5 · Angin &amp; pemuaian</h3>
+    <div class="row"><div><label for="c5v">Angin V (m/s)</label><input id="c5v" type="number" value="30" min="0" inputmode="decimal"></div><div><label for="c5m">Bahan</label><select id="c5m"><option value="10">Beton (10×10⁻⁶)</option><option value="12" selected>Baja (12×10⁻⁶)</option><option value="23">Aluminium (23×10⁻⁶)</option></select></div></div>
+    <div class="row"><div><label for="c5l">Panjang L (m)</label><input id="c5l" type="number" value="10" min="0" inputmode="decimal"></div><div><label for="c5t">ΔT (°C)</label><input id="c5t" type="number" value="30" inputmode="decimal"></div></div>
+    <div class="out" id="c5o" aria-live="polite"></div></div>
+  </div>
+ </div>
+</section>
+
+<section class="sec" id="fakta" data-title="Fakta Menarik">
+ <div class="wrap">
+  <h2 class="rv">Sains di balik bangunan terkenal.</h2>
+  <div class="grid g3">
+   <div class="card rv"><div class="big">43,3 m</div><h3>Pantheon, Roma</h3><p>Kubah beton tanpa tulangan terbesar, ± tahun 126 M; agregat makin ringan ke puncak.</p></div>
+   <div class="card rv"><div class="big">660 ton</div><h3>Taipei 101</h3><p>Bola baja peredam bergoyang berlawanan fase untuk meredam angin dan gempa.</p></div>
+   <div class="card rv"><div class="big">1940</div><h3>Tacoma Narrows</h3><p>Runtuh akibat <i>flutter aeroelastik</i>, bukan sekadar resonansi.</p></div>
+   <div class="card rv"><div class="big">±15 cm</div><h3>Menara Eiffel</h3><p>Bertambah tinggi hingga sekitar 15 cm di musim panas akibat pemuaian besi.</p></div>
+   <div class="card rv"><div class="big">80 MPa</div><h3>Burj Khalifa</h3><p>Beton mutu tinggi dipompa lebih dari 600 m dengan desain campuran khusus.</p></div>
+   <div class="card rv"><div class="big">2000+ th</div><h3>Beton Romawi</h3><p>Penelitian 2023: gumpalan kapur dapat menutup retak kecil secara mandiri bila terkena air.</p></div>
+  </div>
+ </div>
+</section>
+
+<section class="sec" id="cek" data-title="Checklist">
+ <div class="wrap">
+  <h2 class="rv">Sebelum, saat, dan sesudah pengecoran.</h2>
+  <p class="lead rv">Centang tiap butir. Bilah menunjukkan kelengkapan (<span id="clTxt">0%</span>).</p>
+  <div class="cl-bar" role="progressbar" aria-label="Kelengkapan checklist" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="clWrap"><i id="clBar"></i></div>
+  <div class="grid g3 cl">
+   <div class="card rv"><h3>Sebelum cor</h3>
+    <label><input type="checkbox"><span>As &amp; elevasi sesuai gambar</span></label><label><input type="checkbox"><span>Diameter &amp; jumlah tulangan sesuai</span></label><label><input type="checkbox"><span>Sengkang &amp; kait 135° (zona gempa)</span></label><label><input type="checkbox"><span>Spacer selimut terpasang merata</span></label><label><input type="checkbox"><span>Lewatan benar; bekisting kokoh &amp; bersih</span></label><label><input type="checkbox"><span>Sleeve MEP terpasang; izin cor ditandatangani</span></label></div>
+   <div class="card rv"><h3>Saat cor</h3>
+    <label><input type="checkbox"><span>Cek surat jalan: mutu, jam muat, volume</span></label><label><input type="checkbox"><span>Uji slump &amp; ambil benda uji</span></label><label><input type="checkbox"><span>Tidak ada penambahan air di lokasi</span></label><label><input type="checkbox"><span>Jatuh bebas ≤ ±1,5 m; cor berlapis</span></label><label><input type="checkbox"><span>Pemadatan cukup, tanpa segregasi</span></label><label><input type="checkbox"><span>Bekisting &amp; tulangan tidak bergeser</span></label></div>
+   <div class="card rv"><h3>Setelah cor</h3>
+    <label><input type="checkbox"><span>Curing segera dan dijaga ≥ 7 hari</span></label><label><input type="checkbox"><span>Benda uji dirawat &amp; dikirim ke lab</span></label><label><input type="checkbox"><span>Beban tidak dipasang pada beton muda</span></label><label><input type="checkbox"><span>Bongkar bekisting sesuai umur/kekuatan</span></label><label><input type="checkbox"><span>Periksa keropos, retak, dimensi; dokumentasikan</span></label><label><input type="checkbox"><span>Hasil uji kuat tekan memenuhi kriteria</span></label></div>
+  </div>
+ </div>
+</section>
+</main>
+
+<footer>
+ <div class="wrap">
+  <h3>Standar &amp; rujukan</h3>
+  <ul><li>SNI 2847:2019 — Beton struktural untuk bangunan gedung</li><li>SNI 1726:2019 — Ketahanan gempa</li><li>SNI 1727:2020 — Beban desain minimum</li><li>SNI 2052:2017 — Baja tulangan beton</li><li>SNI 8460:2017 — Perancangan geoteknik</li><li>SNI 7656:2012 — Campuran beton normal</li><li>SNI 1972:2008 (slump); SNI 1974:2011 (kuat tekan silinder)</li><li>SNI 7971:2013 — Baja canai dingin</li><li>PPIUG 1983 — Pembebanan</li><li>UU 28/2002 &amp; PP 16/2021 — Bangunan Gedung</li></ul>
+  <p><b>Catatan penting:</b> Halaman ini materi edukasi umum, bukan pengganti perencanaan oleh ahli. Angka bertanda “umumnya/praktik umum” adalah acuan. Perencanaan dan pengawasan wajib mengikuti gambar kerja, perhitungan ahli struktur/geoteknik, dan edisi SNI yang berlaku.</p>
+ </div>
+</footer>
+
+<script>
+(()=>{try{
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches,mobile=matchMedia('(max-width:860px)');
+const fmt=(n,d=2)=>Number(n).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+/* Reveal & angka */
+function count(el){const to=+el.dataset.to;if(reduce){el.textContent=fmt(to,0);return}const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/1200);el.textContent=fmt(to*(1-Math.pow(1-p,3)),0);if(p<1)requestAnimationFrame(f)})(t0)}
+const rvIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');$$('.count',e.target).forEach(count);rvIO.unobserve(e.target)}}),{threshold:.12});
+$$('.rv').forEach(el=>rvIO.observe(el));
+
+/* Scroll: progress bar, nav muncul, panel horizontal (satu rAF, tanpa baca layout berulang) */
+const bar=$('#bar'),tn=$('#topnav'),hzS=$('#tahap'),track=$('#hzTrack'),hzBar=$('#hzBar');let tk=0,hzTop=0,hzD=0;
+function measure(){if(mobile.matches){hzS.style.height='';track.style.transform='';hzD=0;return}
+ hzD=Math.max(0,track.scrollWidth-innerWidth+innerWidth*.08);hzS.style.height=(hzD+innerHeight)+'px';hzTop=hzS.offsetTop}
+function frame(){tk=0;const y=scrollY,h=document.documentElement.scrollHeight-innerHeight;
+ bar.style.transform='scaleX('+(h>0?y/h:0)+')';tn.classList.toggle('show',y>innerHeight*.6);
+ if(hzD){const p=Math.min(1,Math.max(0,(y-hzTop)/hzD));track.style.transform='translate3d('+(-p*hzD)+'px,0,0)';hzBar.style.transform='scaleX('+p+')'}}
+addEventListener('scroll',()=>{if(!tk)tk=requestAnimationFrame(frame)},{passive:true});
+addEventListener('resize',()=>{measure();frame()});addEventListener('load',()=>{measure();frame()});measure();frame();
+
+/* Navigasi bagian */
+const secs=$$('[data-title]');
+secs.forEach(s=>{const a=document.createElement('a');a.href='#'+s.id;a.innerHTML=s.dataset.title;
+ a.addEventListener('click',e=>{e.preventDefault();s.id==='hero'?scrollTo({top:0,behavior:reduce?'auto':'smooth'}):s.scrollIntoView({behavior:reduce?'auto':'smooth'})});tn.appendChild(a)});
+const navIO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;$$('a',tn).forEach((a,i)=>{const on=secs[i]===e.target;a.classList.toggle('on',on);
+ if(on)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');if(on)tn.scrollTo({left:a.offsetLeft-tn.clientWidth/2+a.offsetWidth/2,behavior:'smooth'})})}),{rootMargin:'-45% 0px -50% 0px'});
+secs.forEach(s=>navIO.observe(s));
+
+/* Scrolly gaya & beban */
+(()=>{const sc=$('#scA'),stage=$('.stage',sc),steps=$$('.step',sc);
+ const apply=l=>$$('[data-g]',stage).forEach(el=>el.classList.toggle('on',el.dataset.g.split(' ').some(g=>l.includes(g))));
+ const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){steps.forEach(s=>s.classList.toggle('active',s===e.target));apply(e.target.dataset.on.split(','))}}),{rootMargin:'-42% 0px -42% 0px'});
+ steps.forEach(s=>io.observe(s));apply(steps[0].dataset.on.split(','));steps[0].classList.add('active')})();
+
+/* Grafik kekuatan beton */
+(()=>{const svg=$('#chart svg'),W=460,H=280,l=46,r=14,t=16,b=36,pw=W-l-r,ph=H-t-b,P=[[3,40],[7,65],[14,88],[21,95],[28,100]],X=d=>l+d/28*pw,Y=p=>t+ph-p/110*ph;let s='';
+ [0,25,50,75,100].forEach(p=>s+=`<line class="gl" x1="${l}" x2="${W-r}" y1="${Y(p)}" y2="${Y(p)}"/><text x="${l-8}" y="${Y(p)+4}" text-anchor="end">${p}%</text>`);
+ [0,7,14,21,28].forEach(d=>s+=`<text x="${X(d)}" y="${H-12}" text-anchor="middle">${d} hari</text>`);
+ let d=`M${X(0)} ${Y(0)}`,a=[0,0];P.forEach(c=>{const m=(X(a[0])+X(c[0]))/2;d+=` C${m} ${Y(a[1])} ${m} ${Y(c[1])} ${X(c[0])} ${Y(c[1])}`;a=c});
+ s+=`<path class="curve" pathLength="1" d="${d}"/>`;P.forEach(p=>s+=`<circle class="pt" cx="${X(p[0])}" cy="${Y(p[1])}" r="5"/><text x="${X(p[0])}" y="${Y(p[1])-11}" text-anchor="middle" style="font-weight:700">${p[1]}%</text>`);
+ svg.innerHTML=s})();
+
+/* Tab pondasi */
+(()=>{const G='<rect x="0" y="80" width="300" height="100" fill="rgba(160,120,70,.22)"/><path d="M0 80H300" stroke="#c8a064" stroke-width="2"/>',H='<rect x="0" y="165" width="300" height="35" fill="rgba(120,130,150,.45)"/>',
+ FD={telapak:{n:'Telapak',s:G+'<rect x="140" y="0" width="20" height="90" class="cy"/><rect x="95" y="90" width="110" height="18" class="am"/>',b:[['Cocok untuk','Tanah keras dangkal (±1–3 m), bangunan 1–4 lantai.'],['Prinsip','Memperluas bidang kontak: tegangan = P/A ≤ daya dukung izin.'],['Perhatikan','Lantai kerja 5–10 cm; semua telapak diikat sloof; selimut bawah 75 mm.']]},
+ menerus:{n:'Menerus',s:G+'<rect x="125" y="0" width="50" height="80" class="cy"/><path class="am" d="M110 80H190L212 125H88Z"/>',b:[['Cocok untuk','Rumah 1–2 lantai dengan dinding pemikul di tanah cukup baik.'],['Prinsip','Beban garis disebar oleh bentuk trapesium.'],['Perhatikan','Urugan pasir ±10 cm; dimensi ikut gambar. Tidak cukup untuk tanah lunak tebal.']]},
+ pancang:{n:'Tiang pancang',s:G+H+'<rect x="140" y="0" width="20" height="55" class="cy"/><rect x="95" y="55" width="110" height="25" class="am"/><rect x="105" y="80" width="12" height="100" class="gn"/><rect x="144" y="80" width="12" height="100" class="gn"/><rect x="183" y="80" width="12" height="100" class="gn"/>',b:[['Cocok untuk','Tanah lunak tebal, tanah keras dalam (±5–30 m), beban besar.'],['Prinsip','Daya dukung = tahanan ujung + gesekan selimut.'],['Perhatikan','Kriteria set atau kedalaman rencana; verifikasi PDA/loading test; getaran mengganggu sekitar.']]},
+ bore:{n:'Bore pile',s:G+H+'<rect x="140" y="0" width="20" height="50" class="cy"/><rect x="100" y="50" width="100" height="22" class="am"/><rect x="108" y="72" width="26" height="108" class="gn"/><rect x="166" y="72" width="26" height="108" class="gn"/>',b:[['Cocok untuk','Lokasi padat (getaran rendah), beban besar, diameter 0,4–2 m.'],['Prinsip','Bor → sangkar tulangan → cor tremie dari dasar ke atas.'],['Perhatikan','Dasar lubang bersih; casing/bentonit; uji integritas PIT atau cross-hole sonic.']]},
+ rakit:{n:'Rakit',s:G+'<rect x="40" y="0" width="14" height="76" class="cy"/><rect x="143" y="0" width="14" height="76" class="cy"/><rect x="246" y="0" width="14" height="76" class="cy"/><rect x="20" y="76" width="260" height="24" class="am"/>',b:[['Cocok untuk','Tanah lemah, beban relatif merata, kolom rapat.'],['Prinsip','Satu pelat besar menyebarkan beban dan mengurangi penurunan berbeda.'],['Perhatikan','Beton massa (panas hidrasi); muka air tinggi memberi gaya angkat dan butuh waterproofing.']]}};
+ const ft=$('#ftabs'),fb=$('#fbox');
+ function show(k){const v=FD[k];$$('button',ft).forEach(b=>b.setAttribute('aria-selected',b.dataset.k===k));
+  fb.innerHTML='<svg viewBox="0 0 300 180" role="img" aria-label="Sketsa pondasi '+v.n+'">'+v.s+'</svg><div><h3>'+v.n+'</h3><dl>'+v.b.map(x=>'<dt>'+x[0]+'</dt><dd>'+x[1]+'</dd>').join('')+'</dl></div>'}
+ Object.entries(FD).forEach(([k,v])=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.textContent=v.n;b.dataset.k=k;b.onclick=()=>show(k);ft.appendChild(b)});
+ show('telapak')})();
+
+/* Simulasi gempa */
+(()=>{const q=$('#quake'),c=$('#qcap');let t;$('#qbtn').onclick=()=>{clearTimeout(t);q.classList.add('shake');c.textContent='Perhatikan B: kolom lantai dasar (merah) menanggung hampir seluruh simpangan, lantai atas bergeser sebagai satu blok. Pada A simpangan terbagi merata.';t=setTimeout(()=>q.classList.remove('shake'),5200)}})();
+
+/* Kalkulator */
+(()=>{const v=id=>Math.max(0,parseFloat($('#'+id).value)||0),vs=id=>parseFloat($('#'+id).value)||0,o=(id,h)=>$('#'+id).innerHTML=h;
+ function c1(){const K=v('c1k'),fc=.83*K*.0980665,ec=4700*Math.sqrt(fc),fr=.62*Math.sqrt(fc);
+  o('c1o','fc′ ≈ <b>'+fmt(fc,1)+' MPa</b> · Ec ≈ <b>'+fmt(ec,0)+' MPa</b> · fr ≈ <b>'+fmt(fr,2)+' MPa</b><br>'+(fc<17?'Di bawah minimum beton struktural (17 MPa): hanya non-struktural.':fc<21?'Memenuhi 17 MPa; belum memenuhi 21 MPa untuk sistem gempa khusus.':'≥ 21 MPa: memenuhi minimum, termasuk sistem gempa khusus.'))}
+ function c2(){const n=Math.max(1,v('c2n')),vol=v('c2p')*v('c2l')*v('c2t')/100*n,vw=vol*1.05;o('c2o','Volume <b>'+fmt(vol)+' m³</b> → dipesan (+5%) <b>'+fmt(vw)+' m³</b><br>≈ '+Math.ceil(vw/7)+' truk mixer · berat ≈ '+fmt(vol*2.4,1)+' ton')}
+ function c3(){const h=v('c3l')/v('c3t')*1000;o('c3o','Tinggi minimum ≈ <b>'+fmt(h,0)+' mm</b> → praktisnya <b>'+fmt(Math.ceil(h/10),0)+' cm</b> atau lebih')}
+ function c4(){const d=v('c4d'),L=v('c4l'),n=Math.max(1,v('c4n')),p=.00617*d*d;o('c4o',fmt(p,3)+' kg/m · per batang <b>'+fmt(p*L,2)+' kg</b> · total <b>'+fmt(p*L*n,1)+' kg</b>')}
+ function c5(){const V=v('c5v'),q=.613*V*V,dl=v('c5m')*1e-6*v('c5l')*vs('c5t')*1000;o('c5o','Tekanan angin dasar q ≈ <b>'+fmt(q,0)+' N/m²</b> ('+fmt(q/1000,2)+' kPa)<br>Perubahan panjang ΔL ≈ <b>'+fmt(dl,2)+' mm</b>')}
+ const all=()=>{c1();c2();c3();c4();c5()};$$('.calc input,.calc select').forEach(e=>e.addEventListener('input',all));
+ $$('.qk button').forEach(b=>b.onclick=()=>{$('#c1k').value=b.dataset.k;c1()});all()})();
+
+/* Checklist */
+(()=>{const cb=$$('.cl input');cb.forEach(c=>c.addEventListener('change',()=>{const p=Math.round(cb.filter(x=>x.checked).length/cb.length*100);$('#clBar').style.transform='scaleX('+p/100+')';$('#clTxt').textContent=p+'%';$('#clWrap').setAttribute('aria-valuenow',p)}))})();
+
+/* Banner SVG (dijeda saat di luar layar) */
+(()=>{const sv=i=>'<svg viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'+i+'</svg>',
+ SC={crane:sv('<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#171a45"/><stop offset=".6" stop-color="#7a3b6e"/><stop offset="1" stop-color="#ffb070"/></linearGradient></defs><rect width="1200" height="300" fill="url(#g1)"/><circle cx="860" cy="230" r="44" fill="#fff3c4"/><rect y="262" width="1200" height="40" fill="#0d0b22"/><g stroke="#12122e" stroke-width="6" fill="none"><path d="M690 262V40M720 262V40M690 262L720 230L690 198L720 166L690 134L720 102L690 70L720 40M560 40H980M690 10H720L760 40"/><g class="sway" style="transform-origin:880px 40px"><path d="M880 40V170" stroke-width="2"/><path d="M866 170H894V192H866Z" fill="#12122e"/></g></g>'),
+ soil:sv('<rect width="1200" height="300" fill="#5aa9f5"/><rect y="70" width="1200" height="50" fill="#6b4a2b"/><rect y="120" width="1200" height="60" fill="#a8764a"/><rect y="180" width="1200" height="60" fill="#d8b87a"/><rect y="240" width="1200" height="60" fill="#4b5563"/><path d="M0 70H1200" stroke="#3f8f3a" stroke-width="8"/><rect x="946" y="30" width="8" height="200" fill="#f4c05a"/><path d="M943 230H957L950 250Z" fill="#e08a00"/><g font-family="Segoe UI,sans-serif" font-size="15" font-weight="700" fill="#fff"><text x="24" y="100">tanah atas</text><text x="24" y="155">lempung lunak</text><text x="24" y="215" fill="#4a3a1a">pasir</text><text x="24" y="275">tanah keras</text><text x="968" y="50" fill="#0b2a4a">sondir</text></g>'),
+ };
+ $$('.banner').forEach(b=>{b.insertAdjacentHTML('afterbegin',SC[b.dataset.scene]);b.tabIndex=0;b.setAttribute('role','button');
+  const go=()=>{b.classList.add('hot');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('hot'),1800)};b.addEventListener('click',go);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})});
+ const io=new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('vis',e.isIntersecting)));$$('.banner').forEach(b=>io.observe(b))})();
+
+/* Tur otomatis */
+(()=>{const btn=$('#tourBtn'),sp=$('#tourSpd'),sps=[.5,1,2],lb=['0,5×','1×','2×'];let on=false,y=0,last=0,k=1;
+ const tourEl=e=>e.target.closest&&e.target.closest('#tour');
+ function step(t){if(!on)return;const dt=Math.min(.05,(t-last)/1000);last=t;if(Math.abs(scrollY-y)>3)y=scrollY;y+=95*sps[k]*dt;
+  const max=document.documentElement.scrollHeight-innerHeight;if(y>=max){scrollTo({top:max,behavior:'instant'});stop();return}scrollTo({top:y,behavior:'instant'});requestAnimationFrame(step)}
+ function start(){const max=document.documentElement.scrollHeight-innerHeight;y=scrollY>=max-5?0:scrollY;on=true;last=performance.now();btn.textContent='⏸ Jeda';btn.classList.remove('hot');requestAnimationFrame(step)}
+ function stop(){on=false;btn.textContent='▶ Tur otomatis';btn.classList.add('hot')}
+ const toggle=()=>on?stop():start();btn.onclick=toggle;
+ sp.onclick=()=>{k=(k+1)%3;sp.textContent=lb[k];sp.setAttribute('aria-label','Kecepatan tur: '+lb[k].replace('×',' kali'))};
+ ['wheel','touchmove'].forEach(ev=>addEventListener(ev,e=>{if(on&&!tourEl(e))stop()},{passive:true}));
+ addEventListener('keydown',e=>{if(on&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(e.key)&&!tourEl(e))stop()});
+ document.addEventListener('click',e=>{if(on&&e.target.closest&&e.target.closest('#topnav,details,.tabs'))stop()});
+ /* Pintasan: Enter atau ketuk/klik dua kali di area kosong */
+ const IX='button,a,input,select,textarea,summary,label,[role=button],#tour,#topnav,.stat,.banner';let lastT=0,lt=0,lx=0,ly=0,sx=0,sy=0;
+ const tg=()=>{const n=Date.now();if(n-lastT<600)return;lastT=n;toggle();const g=getSelection();if(g)g.removeAllRanges()};
+ addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.repeat&&!e.target.closest(IX)){e.preventDefault();tg()}});
+ addEventListener('dblclick',e=>{if(!e.target.closest(IX))tg()});
+ addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+ addEventListener('touchend',e=>{const t=e.changedTouches[0],now=Date.now();if(Math.hypot(t.clientX-sx,t.clientY-sy)>10||e.target.closest(IX)){lt=0;return}
+  if(now-lt<320&&Math.hypot(t.clientX-lx,t.clientY-ly)<32){tg();lt=0}else{lt=now;lx=t.clientX;ly=t.clientY}},{passive:true})})();
+
+/* Suara latar (sintesis Web Audio, tanpa berkas luar) */
+(()=>{const btn=$('#sndBtn'),vol=$('#sndVol');let ctx,master,on=false;
+ function build(){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;ctx=new AC();master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;lp.connect(master);
+  [110,164.81,220,261.63,329.63,493.88].forEach((f,i)=>[-4,4].forEach(d=>{const o=ctx.createOscillator(),g=ctx.createGain(),l=ctx.createOscillator(),lg=ctx.createGain(),base=i<2?.12:.05;
+   o.type=i<2?'sine':'triangle';o.frequency.value=f;o.detune.value=d;g.gain.value=base;l.frequency.value=.05+i*.037;lg.gain.value=base*.6;
+   l.connect(lg);lg.connect(g.gain);o.connect(g);g.connect(lp);o.start();l.start()}));
+  const fl=ctx.createOscillator(),fg=ctx.createGain();fl.frequency.value=.04;fg.gain.value=350;fl.connect(fg);fg.connect(lp.frequency);fl.start();return true}
+ async function set(v){if(v&&!ctx&&!build()){btn.disabled=true;btn.textContent='Suara tidak didukung';return}
+  on=v;btn.setAttribute('aria-pressed',String(v));btn.textContent=v?'🔊 Suara':'🔇 Suara';
+  if(v){await ctx.resume();master.gain.setTargetAtTime(+vol.value,ctx.currentTime,.7)}
+  else if(ctx){master.gain.setTargetAtTime(0,ctx.currentTime,.3);setTimeout(()=>{if(!on)ctx.suspend()},1200)}}
+ btn.onclick=()=>set(!on);
+ vol.addEventListener('input',()=>{if(on)master.gain.setTargetAtTime(+vol.value,ctx.currentTime,.1)});
+ document.addEventListener('visibilitychange',()=>{if(!ctx)return;if(document.hidden)ctx.suspend();else if(on)ctx.resume()})})();
+
+/* Pemilih tema */
+(()=>{const root=document.documentElement,btn=$('#themeBtn'),pop=$('#themePop');
+ const apply=t=>{if(t==='biru')root.removeAttribute('data-theme');else root.dataset.theme=t;$$('button',pop).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.t===t)))};
+ let cur='biru';try{cur=localStorage.getItem('tema-konstruksi')||'biru'}catch(e){}
+ if(!$('[data-t="'+cur+'"]',pop))cur='biru';apply(cur);
+ const close=()=>{pop.hidden=true;btn.setAttribute('aria-expanded','false')};
+ btn.onclick=()=>{const open=pop.hidden;pop.hidden=!open;btn.setAttribute('aria-expanded',String(open))};
+ pop.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;apply(b.dataset.t);try{localStorage.setItem('tema-konstruksi',b.dataset.t)}catch(err){}});
+ document.addEventListener('click',e=>{if(!pop.hidden&&!e.target.closest('#themeBtn,#themePop'))close()});
+ addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){close();btn.focus()}})})();
+
+window.__ok=1;
+}catch(err){console.error(err)}})();
+<\/script>
+</body>
+</html>
+</script>
+
+<script type="text/plain" id="docGame">
+<!DOCTYPE html>
 <html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Kota Santai 3D — Digital Playground Dinas CKPKP</title>
 <style>
 :root{--g:rgba(20,30,58,.55);--a:#ffc94d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -43,7 +745,7 @@ body.photo .hud,body.photo #bt,body.photo #joy,body.photo #ts{display:none!impor
 <div id="modes" class="g"><button data-m="orbit">🧭 <span class="lb">Jelajah</span></button><button data-m="walk">🚶 <span class="lb">Jalan</span></button><button data-m="fly">🕊️ <span class="lb">Terbang</span></button><button data-m="cine">🎬 <span class="lb">Sinema</span></button></div></div>
 <div id="joy"><i></i></div><div id="md"></div><div id="ts"></div>
 <div id="pb" class="g"><button id="pF">Filter: Normal</button><button id="pS">📸 Ambil</button><button id="pX">✖ Keluar</button></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>
 <script>
 'use strict';
 const T=THREE,$=i=>document.getElementById(i),V3=(x,y,z)=>new T.Vector3(x,y,z),rnd=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),ss=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)},TAU=Math.PI*2;
@@ -295,4 +997,121 @@ const clock=new T.Clock();
 function loop(){requestAnimationFrame(loop);if(lost){clock.getDelta();return}let dt=Math.min(clock.getDelta(),.05);if(paused)dt=0;tt+=dt;try{update(dt);R.render(scene,cam)}catch(e){console.error(e)}}
 $('go').onclick=()=>{started=true;$('sp').classList.add('hide');setMode('orbit');oTD.set(0,6,0);orb.d=72;orb.ph=1.05;toast('Selamat datang! Kumpulkan 🪙 dan cari 3 🥚 rahasia di pojok kota');sfx.click()};
 Object.values(S.city||[]).forEach(o=>placeAt(o.i,o.j,o.t,o.c,o.r,0));syncTools();hud();setGfx(S.gfx);loop();
-</script></body></html>
+<\/script></body></html>
+</script>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const dec=id=>document.getElementById(id).textContent.replace(/<\\\/script/g,'<\/script');
+
+/* Judul huruf-per-huruf */
+(()=>{const h=$('#ttl');let i=0;'PENERANGAN SEMENTARA'.split('').forEach(ch=>{const s=document.createElement('span');if(ch===' '){s.className='sp';s.innerHTML='&nbsp;'}else{s.textContent=ch}s.style.setProperty('--i',i++);h.appendChild(s)})})();
+
+/* Jam WIB */
+const tick=()=>{const d=new Date();$('#clock').textContent='🕒 '+d.toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).replace(/\./g,':')+' WIB'};tick();setInterval(tick,1000);
+
+/* Angka naik */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const el=e.target,to=+el.dataset.c,t0=performance.now();io.unobserve(el);
+ (function f(t){const p=Math.min(1,(t-t0)/1100);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0)}),{threshold:.4});
+$$('[data-c]').forEach(e=>io.observe(e));
+
+/* Kartu 3D miring + kilau */
+$$('.card').forEach(c=>{
+ c.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+  c.style.setProperty('--ry',((x-.5)*8).toFixed(2)+'deg');c.style.setProperty('--rx',((.5-y)*8).toFixed(2)+'deg');c.style.setProperty('--mx',(x*100)+'%');c.style.setProperty('--my',(y*100)+'%')});
+ c.addEventListener('pointerleave',()=>{c.style.setProperty('--rx','0deg');c.style.setProperty('--ry','0deg')})});
+
+/* Kanvas latar: kota malam, jendela menyala, derek, mobil, bintang */
+const cv=$('#bg'),cx=cv.getContext('2d');let W,H,dpr=1,bl=[],stars=[],cars=[],rip=[],sparks=[],crane,dark=true,lamp=true,mx=-999,my=-999,T0=0,mix=1;
+function build(){dpr=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0);
+ bl=[];let x=-10;const base=H-34;while(x<W+20){const w=44+Math.random()*60,h=H*(.14+Math.random()*.3),cols=Math.max(2,Math.floor((w-10)/14)),rows=Math.max(2,Math.floor((h-12)/18)),win=[];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)win.push({on:Math.random()<.45,ph:Math.random()*6,x:x+8+c*((w-16)/cols),y:base-h+8+r*((h-14)/rows),w:Math.max(5,(w-16)/cols-5),h:Math.max(6,(h-14)/rows-7)});
+  bl.push({x,w,h,win,hue:210+Math.random()*30,top:Math.random()<.3?1:0});x+=w+4+Math.random()*8}
+ stars=Array.from({length:Math.floor(W*H/9000)},()=>({x:Math.random()*W,y:Math.random()*H*.6,r:Math.random()*1.3+.2,p:Math.random()*6}));
+ cars=Array.from({length:5},(_,i)=>({x:Math.random()*W,v:(40+Math.random()*50)*(i%2?1:-1),c:['#ff5a5f','#ffc94d','#4dabf7','#69db7c','#b197fc'][i]}));
+ const big=bl.reduce((a,b)=>b.h>a.h?b:a,bl[0]);crane={x:big.x+big.w*.5,y:base-big.h,h:Math.min(150,H*.22)}}
+build();addEventListener('resize',build);
+cv.addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY});addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY},{passive:true});addEventListener('pointerleave',()=>{mx=my=-999});
+function pop(x,y){rip.push({x,y,r:4,a:1});for(let i=0;i<14;i++){const a=Math.random()*6.28,s=40+Math.random()*120;sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,l:1})}
+ bl.forEach(b=>b.win.forEach(w=>{if(Math.hypot(w.x-x,w.y-y)<90)w.on=!w.on}))}
+addEventListener('pointerdown',e=>{if(e.target.closest('.glass,button,input,select,#view,.tools'))return;pop(e.clientX,e.clientY)});
+function frame(t){requestAnimationFrame(frame);if(document.hidden||$('#view').classList.contains('open'))return;const dt=Math.min(.05,(t-T0)/1000||0);T0=t;
+ mix+=((dark?1:0)-mix)*Math.min(1,dt*3);const base=H-34;
+ const g=cx.createLinearGradient(0,0,0,H);const L=(a,b)=>Math.round(a+(b-a)*mix);
+ g.addColorStop(0,`rgb(${L(120,6)},${L(190,11)},${L(245,30)})`);g.addColorStop(.7,`rgb(${L(205,24)},${L(232,36)},${L(255,82)})`);g.addColorStop(1,`rgb(${L(230,40)},${L(240,50)},${L(255,90)})`);cx.fillStyle=g;cx.fillRect(0,0,W,H);
+ if(mix>.05){cx.fillStyle='#fff';stars.forEach(s=>{cx.globalAlpha=mix*(.4+.6*Math.abs(Math.sin(t/900+s.p)));cx.beginPath();cx.arc(s.x,s.y,s.r,0,6.28);cx.fill()});cx.globalAlpha=1;
+  cx.fillStyle=`rgba(255,244,200,${mix})`;cx.beginPath();cx.arc(W*.86,H*.16,22,0,6.28);cx.fill();cx.fillStyle=`rgba(6,11,30,${mix*.9})`;cx.beginPath();cx.arc(W*.86+9,H*.16-4,19,0,6.28);cx.fill()}
+ else{cx.fillStyle='rgba(255,236,150,.95)';cx.beginPath();cx.arc(W*.86,H*.16,26,0,6.28);cx.fill()}
+ /* gedung */
+ bl.forEach(b=>{const y=base-b.h;cx.fillStyle=`hsl(${b.hue},${30-mix*8}%,${L(52,13)}%)`;cx.fillRect(b.x,y,b.w,b.h);cx.fillStyle=`rgba(255,255,255,${.06-mix*.03})`;cx.fillRect(b.x,y,3,b.h);
+  if(b.top){cx.fillStyle=`hsl(${b.hue},20%,${L(44,10)}%)`;cx.fillRect(b.x+b.w*.4,y-10,3,10)}
+  b.win.forEach(w=>{const near=Math.hypot(w.x+w.w/2-mx,w.y+w.h/2-my)<80,lit=lamp&&(w.on||near);
+   if(lit&&mix>.2){const f=.75+.25*Math.sin(t/700+w.ph);cx.fillStyle=near?`rgba(255,240,170,${f})`:`rgba(255,206,100,${f*(.4+.6*mix)})`;cx.shadowColor='rgba(255,200,90,.9)';cx.shadowBlur=near?14:6*mix}
+   else{cx.fillStyle=`rgba(${L(90,30)},${L(120,45)},${L(160,80)},${.55})`;cx.shadowBlur=0}
+   cx.fillRect(w.x,w.y,w.w,w.h);cx.shadowBlur=0})});
+ /* derek */
+ const cr=crane,sw=Math.sin(t/1400)*.5;cx.strokeStyle=dark?'#ffc94d':'#a24d00';cx.lineWidth=2;cx.beginPath();cx.moveTo(cr.x,cr.y);cx.lineTo(cr.x,cr.y-cr.h);cx.moveTo(cr.x-40,cr.y-cr.h);cx.lineTo(cr.x+90,cr.y-cr.h);cx.moveTo(cr.x,cr.y-cr.h-18);cx.lineTo(cr.x+30,cr.y-cr.h);cx.moveTo(cr.x,cr.y-cr.h-18);cx.lineTo(cr.x-24,cr.y-cr.h);cx.stroke();
+ const hx=cr.x+50+sw*34,hy=cr.y-cr.h+30+Math.sin(t/900)*8;cx.lineWidth=1;cx.beginPath();cx.moveTo(hx,cr.y-cr.h);cx.lineTo(hx,hy);cx.stroke();cx.fillStyle=cx.strokeStyle;cx.fillRect(hx-7,hy,14,9);
+ if(Math.floor(t/600)%2===0){cx.fillStyle='#ff4d4d';cx.shadowColor='#f00';cx.shadowBlur=10;cx.beginPath();cx.arc(cr.x,cr.y-cr.h-18,3,0,6.28);cx.fill();cx.shadowBlur=0}
+ /* tanah & jalan */
+ cx.fillStyle=`rgb(${L(80,12)},${L(90,16)},${L(110,32)})`;cx.fillRect(0,base,W,H-base);cx.fillStyle='rgba(255,255,255,.35)';for(let x=-((t/30)%60);x<W;x+=60)cx.fillRect(x,base+18,26,3);
+ cars.forEach(c=>{c.x+=c.v*dt;if(c.x>W+40)c.x=-40;if(c.x<-40)c.x=W+40;const y=base+(c.v>0?7:20);cx.fillStyle=c.c;cx.fillRect(c.x-12,y,24,8);cx.fillRect(c.x-7,y-5,14,6);
+  if(mix>.3){cx.fillStyle='rgba(255,240,170,.9)';cx.shadowColor='#ffe08a';cx.shadowBlur=12;cx.fillRect(c.x+(c.v>0?11:-13),y+2,3,3);cx.shadowBlur=0}});
+ /* sorotan kursor */
+ if(mx>0&&lamp){const sg=cx.createRadialGradient(mx,my,0,mx,my,150);sg.addColorStop(0,`rgba(255,226,140,${.22*mix+.1})`);sg.addColorStop(1,'rgba(255,226,140,0)');cx.fillStyle=sg;cx.fillRect(mx-150,my-150,300,300)}
+ /* riak & percikan */
+ rip.forEach(r=>{r.r+=240*dt;r.a-=dt*1.6;cx.strokeStyle=`rgba(255,201,77,${Math.max(0,r.a)})`;cx.lineWidth=2;cx.beginPath();cx.arc(r.x,r.y,r.r,0,6.28);cx.stroke()});rip=rip.filter(r=>r.a>0);
+ sparks.forEach(s=>{s.vy+=260*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;s.l-=dt*1.4;cx.fillStyle=`rgba(255,215,100,${Math.max(0,s.l)})`;cx.fillRect(s.x,s.y,2.5,2.5)});sparks=sparks.filter(s=>s.l>0)}
+requestAnimationFrame(frame);
+
+/* Tombol tema */
+function setDark(v){dark=v;document.body.classList.toggle('day',!v);$('#bSun').textContent=v?'☀️ Siang':'🌙 Malam'}
+$('#bSun').onclick=()=>setDark(!dark);
+$('#bLamp').onclick=e=>{lamp=!lamp;e.currentTarget.setAttribute('aria-pressed',lamp);e.currentTarget.textContent='💡 Lampu: '+(lamp?'ON':'OFF')};
+setDark(true);
+
+/* Tips penerangan sementara */
+const TIPS=[
+ ['Kabel &amp; sambungan','Gunakan kabel berisolasi tebal (jenis lapangan), hindari sambungan terbuka. Bungkus sambungan dengan <b>box tahan air</b> dan gantung kabel agar tidak terendam genangan.'],
+ ['Proteksi listrik','Pasang <b>MCB</b> sesuai beban dan <b>proteksi arus bocor (ELCB/RCCB)</b> di panel sementara. Pastikan grounding terpasang dan diperiksa berkala.'],
+ ['Tahan cuaca','Pilih lampu dengan rating <b>IP65</b> atau lebih untuk area terbuka. Lampu LED lebih dingin, hemat daya, dan tahan getaran dibanding halogen.'],
+ ['Tinggi &amp; arah lampu','Pasang lampu cukup tinggi dan miringkan ke bawah agar <b>tidak menyilaukan</b> pekerja di tangga, perancah, atau operator alat berat.'],
+ ['Jalur akses','Tangga, jalan masuk, dan koridor sementara perlu terang merata. Area gelap di sela perancah adalah <b>titik rawan tersandung dan jatuh</b>.'],
+ ['Pengecoran malam','Cor malam hari butuh pencahayaan merata di bekisting, pompa, dan area truk mixer. Sediakan <b>lampu cadangan</b> bila listrik padam di tengah pengecoran.'],
+ ['Hindari bayangan keras','Beberapa lampu dari sudut berbeda lebih baik daripada satu lampu sangat terang. Bayangan keras menyembunyikan <b>tulangan, lubang, dan tepi pelat</b>.'],
+ ['Rutin periksa','Cek tiap hari: kabel terkelupas, lampu retak, stop kontak kendor, dan beban panel. Ukur dengan <b>lux meter</b> bila memungkinkan, ikuti ketentuan K3 proyek.']];
+let ti=0,tm;const tipEl=$('#tip'),dots=$('#dots');TIPS.forEach(()=>dots.appendChild(document.createElement('i')));
+function showTip(n,imm){ti=(n+TIPS.length)%TIPS.length;clearTimeout(tm);const apply=()=>{tipEl.innerHTML='<b>'+TIPS[ti][0]+'</b><br>'+TIPS[ti][1];tipEl.classList.remove('out');[...dots.children].forEach((d,i)=>{d.className=i===ti?'on':'';if(i===ti){d.style.animation='none';d.offsetWidth;d.style.animation=''}})};
+ if(imm||reduce)apply();else{tipEl.classList.add('out');setTimeout(apply,300)}tm=setTimeout(()=>showTip(ti+1),7000)}
+$('#tipNext').onclick=()=>showTip(ti+1);showTip(0,true);
+
+/* Hitung cepat lux */
+(()=>{const g=id=>Math.max(0,parseFloat($('#'+id).value)||0);
+ function calc(){const area=g('lP')*g('lL'),lux=area>0?g('lLm')*g('lN')*.4/area:0;
+  const lv=[[20,'Kurang untuk kerja. Cocok hanya sebagai penanda atau akses sangat sederhana.'],[50,'Cukup untuk akses, jalan, dan area penyimpanan.'],[100,'Cukup untuk pekerjaan kasar: galian, urugan, angkut material.'],[200,'Cukup untuk pekerjaan umum: bekisting, pembesian, pengecoran.'],[1e9,'Baik untuk pekerjaan detail: finishing, instalasi MEP, pemeriksaan mutu.']];
+  const m=lv.find(x=>lux<x[0]);$('#lux').textContent=Math.round(lux).toLocaleString('id-ID')+' lux';$('#lTxt').textContent=m[1];$('#lMeter').style.left='calc('+Math.min(100,lux/300*100)+'% - 3px)'}
+ $$('#lLm,#lN,#lP,#lL').forEach(e=>e.addEventListener('input',calc));calc()})();
+
+/* Viewer: dua menu */
+const view=$('#view'),F={ilmu:$('#fIlmu'),game:$('#fGame')},TAB={ilmu:$('#tIlmu'),game:$('#tGame')},SRC={ilmu:'docIlmu',game:'docGame'},NAME={ilmu:'Ilmu Konstruksi Bangunan',game:'Kota Santai 3D'};let cur=null,opener=null;
+function stats(){try{const s=JSON.parse(localStorage.getItem('kotaSantai3D')||'null');if(s&&(s.score||(s.got&&s.got.length)||(s.vis&&s.vis.length))){const c=(s.got||[]).filter(i=>i[0]==='c').length;$('#gStat').innerHTML='🎮 Skor <b>'+(s.score||0)+'</b> · landmark <b>'+(s.vis||[]).length+'/5</b> · koin <b>'+c+'/16</b>'}}catch(e){}}
+stats();
+function openView(k){opener=document.activeElement;cur=k;view.classList.add('open');$('#dash').setAttribute('inert','');
+ for(const n in F){TAB[n].setAttribute('aria-selected',n===k);F[n].classList.toggle('show',n===k)}
+ const f=F[k];if(!f.dataset.ready){f.dataset.ready=1;$('#loadTxt').textContent='Memuat '+NAME[k]+'…';$('#load').classList.add('on');f.addEventListener('load',()=>$('#load').classList.remove('on'),{once:true});setTimeout(()=>$('#load').classList.remove('on'),6000);f.srcdoc=dec(SRC[k])}
+ else{$('#load').classList.remove('on');try{f.contentWindow.dispatchEvent(new Event('resize'))}catch(e){}}
+ setTimeout(()=>{try{f.contentWindow.focus()}catch(e){}},500)}
+function closeView(){view.classList.remove('open');cur=null;$('#dash').removeAttribute('inert');stats();if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});if(opener&&opener.focus)opener.focus()}
+$$('[data-open]').forEach(b=>b.addEventListener('click',()=>openView(b.dataset.open)));
+$('#vBack').onclick=closeView;
+$('#vFull').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen();else if(view.requestFullscreen)view.requestFullscreen().catch(()=>{})};
+addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input,select,textarea'))return;
+ if(e.key==='Escape'&&cur){closeView();return}
+ if(!cur){if(e.key==='1')openView('ilmu');if(e.key==='2')openView('game')}});
+/* Esc dari dalam iframe: teruskan */
+view.addEventListener('keydown',e=>{if(e.key==='Escape')closeView()});
+})();
+</script>
+</body></html>
