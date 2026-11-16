@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panduan Agen Hataf</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#07130c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<!--
+  PANDUAN AGEN HATAF (Agen Pencatatan Non Tender LPSE), tema wasit sepak bola.
+  Tata letak dan fitur sama dengan panduan GAS Cerdas (tema mata-mata).
+  File sefolder dengan halaman ini:
+    hataf.png             maskot Agen Hataf (logo & sudut atas)
+    favicon.png, apple-touch-icon.png
+    ikon-agen.png         ikon asli ekstensi (dipakai di langkah pin)
+    pasang-1..9.jpeg      foto tahapan pemasangan
+    pakai-1..10.jpeg      foto tahapan pemakaian
+    update.jpeg, kondisi.jpeg, aturan.jpeg, hasil.jpeg
+  Suara (nama bisa diubah di bagian SUARA pada script di bawah):
+    backsound.mp3       musik latar (diputar berulang)
+    sorak.mp3           riuh penonton, makin keras saat bola (kursor) bergerak cepat
+    tendang.mp3         bola ditendang
+    peluit.mp3          peluit pendek (pelanggaran / kartu)
+    kartu.mp3           kartu dicabut
+    gol.mp3             bola masuk gawang + sorak
+    peluit-panjang.mp3  peluit panjang tanda laga selesai
+  Jika file suara tidak ada, halaman memakai suara sintetis bawaan (kecuali sorak).
+  File ekstensi diunduh dari Google Drive (lihat tombol unduh).
+-->
+<style>
+  :root{
+    --navy:#111518;      /* hitam seragam wasit */
+    --biru:#13703f;      /* hijau tautan */
+    --emas:#f5c400;      /* kuning wasit / kartu kuning */
+    --langit:#1c3a28;
+    --oranye:#d7263d;    /* kartu merah */
+    --oranye-tua:#a81b2e;
+    --rumput:#2f8f4a;
+    --rumput-tua:#1f6b36;
+    --bg:#eef2e7;        /* kapur garis di atas rumput pucat */
+    --kertas:#ffffff;
+    --tinta:#14181c;
+    --lembut:#56605a;
+    --garis:#d6dfcc;
+    --muda:#eef4e6;
+    --papan:"Bebas Neue",Impact,"Arial Narrow Bold",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
+  body{
+    margin:0;background:var(--bg);color:var(--tinta);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.65;font-size:17px;overflow-x:hidden;
+    background-image:repeating-linear-gradient(90deg,rgba(47,143,74,.045) 0 90px,transparent 90px 180px);
+  }
+  a{color:var(--biru)}
+  a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--oranye);outline-offset:3px;border-radius:6px}
+
+  /* bilah progres: pita kuning-merah di paling atas */
+  #progres{position:fixed;left:0;top:0;height:4px;width:0;z-index:60;
+    background:linear-gradient(90deg,var(--emas),var(--oranye));box-shadow:0 0 10px rgba(245,196,0,.7)}
+
+  /* ===== HERO STADION MALAM ===== */
+  header.atas{
+    position:relative;overflow:hidden;color:#fff;--s:0;
+    background:linear-gradient(180deg,#03070a 0%,#081310 38%,#0d2318 70%,#123320 100%);
+    padding-bottom:150px;
+  }
+  header.atas::before{ /* kilat blitz kamera penonton */
+    content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+    background-image:
+      radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent 60%),
+      radial-gradient(1.2px 1.2px at 28% 32%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 46% 12%,#fff,transparent 60%),
+      radial-gradient(1.2px 1.2px at 63% 26%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 78% 14%,#fff,transparent 60%),
+      radial-gradient(1.2px 1.2px at 91% 30%,#fff,transparent 60%);
+  }
+
+  /* papan skor (pengganti bulan) */
+  .papan-skor{position:absolute;right:7%;top:58px;pointer-events:none;z-index:1;
+    background:#05080a;border:2px solid #2a3a30;border-radius:8px;padding:6px 12px 4px;
+    box-shadow:0 0 30px 6px rgba(245,196,0,.10),inset 0 0 0 1px rgba(255,255,255,.05);
+    font-family:var(--papan);letter-spacing:.06em;text-align:center;line-height:1}
+  .papan-skor .tim{display:flex;gap:10px;align-items:center;font-size:19px;color:#e9efe9}
+  .papan-skor .skor{color:var(--emas);font-size:26px;text-shadow:0 0 8px rgba(245,196,0,.7)}
+  .papan-skor .menit{display:block;margin-top:4px;font-size:15px;color:#ff5a5a;text-shadow:0 0 6px rgba(255,80,80,.7)}
+
+  /* tiang lampu stadion + sorotnya menyapu lapangan */
+  .tiang{position:absolute;top:22px;width:10px;height:150px;pointer-events:none;
+    background:linear-gradient(90deg,#1a221d,#2c3830,#1a221d)}
+  .tiang::before{content:"";position:absolute;left:50%;top:-14px;width:58px;height:20px;margin-left:-29px;border-radius:4px;
+    background:repeating-linear-gradient(90deg,#fffbe6 0 9px,#d8d2b0 9px 11px);
+    box-shadow:0 0 26px 10px rgba(255,248,210,.45)}
+  .tiang.a{left:6%}
+  .tiang.b{right:30%}
+  .sorot{position:absolute;top:10px;width:300px;height:125%;pointer-events:none;transform-origin:50% 0;
+    background:linear-gradient(to bottom,rgba(255,248,205,.30),rgba(255,248,205,0) 85%);
+    clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);animation:sapu 9s ease-in-out infinite alternate;mix-blend-mode:screen}
+  .sorot.a{left:calc(6% - 145px)}
+  .sorot.b{right:calc(30% - 145px);animation-duration:11s;animation-delay:-4s}
+  @keyframes sapu{from{transform:rotate(-24deg)}to{transform:rotate(22deg)}}
+
+  .tribun{position:absolute;left:0;bottom:96px;height:120px;width:2600px;pointer-events:none;will-change:transform}
+  .tribun.jauh{bottom:150px;height:120px;opacity:.6}
+  .tribun svg{display:block;width:100%;height:100%}
+  .tribun .kilat{animation:kilat 2.6s steps(1) infinite}
+  @keyframes kilat{0%,92%{opacity:0}93%,96%{opacity:1}97%,100%{opacity:0}}
+
+  /* rumput lapangan dengan pola potong bergaris */
+  .lapangan{position:absolute;left:0;right:0;bottom:0;height:120px;pointer-events:none;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.85) 0 3px,transparent 3px),
+      repeating-linear-gradient(90deg,#2b8444 0 70px,#2f8f4a 70px 140px);
+    box-shadow:inset 0 14px 22px rgba(0,0,0,.35)}
+
+  .agen{
+    position:absolute;left:4%;bottom:62px;display:flex;align-items:flex-end;z-index:2;
+    transform:translate(calc(var(--s) * 70vw),calc(var(--s) * -10px));
+    will-change:transform;pointer-events:none
+  }
+  .jejak{ /* garis kapur di belakang wasit */
+    height:14px;margin-bottom:6px;margin-right:2px;
+    width:calc(110px + var(--s) * 30vw);
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.85) 0 12px,transparent 12px 22px) center/100% 3px no-repeat;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000);mask-image:linear-gradient(90deg,transparent,#000)
+  }
+  .sosok{width:78px;height:auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55));overflow:visible}
+  .sosok.berlari{animation:lari .55s ease-in-out infinite}
+  @keyframes lari{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .sosok .kaki-a,.sosok .kaki-b,.sosok .lengan{transform-box:fill-box;transform-origin:50% 0}
+  .sosok .kaki-a{animation:ayun .55s ease-in-out infinite alternate}
+  .sosok .kaki-b{animation:ayun .55s ease-in-out infinite alternate-reverse}
+  .sosok .kartu-angkat{transform-box:fill-box;transform-origin:50% 100%;animation:kibas 1.1s ease-in-out infinite alternate}
+  @keyframes ayun{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
+  @keyframes kibas{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+  .badan{display:flex;transition:transform .6s ease}
+  .agen.balik{flex-direction:row-reverse}
+  .agen.balik .badan{transform:scaleX(-1)}
+  .agen.balik .jejak{-webkit-mask-image:linear-gradient(270deg,transparent,#000);mask-image:linear-gradient(270deg,transparent,#000);margin-right:0;margin-left:2px}
+
+  .lebar{max-width:880px;margin:0 auto;padding:0 20px;position:relative;z-index:3}
+  .bar{display:flex;align-items:center;gap:12px;padding:14px 0}
+  .bar img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 3px 8px rgba(0,0,0,.5))}
+  .bar a.merek{font-family:var(--papan);font-weight:400;font-size:25px;letter-spacing:.05em}
+  .bar a{color:#fff;text-decoration:none;font-weight:600}
+  .bar .kembali{margin-left:auto;font-weight:500;font-size:15px;opacity:.92}
+  .bar .kembali:hover{text-decoration:underline}
+  .judul{padding:46px 0 30px;position:relative}
+  .label-rahasia{display:inline-block;font-family:var(--papan);font-size:17px;letter-spacing:.14em;color:var(--emas);
+    border:2px solid var(--emas);border-radius:4px;padding:2px 10px 0;margin-bottom:16px;transform:rotate(-2deg);opacity:.95}
+  .judul h1{margin:0 0 12px;font-family:var(--papan);font-weight:400;font-size:clamp(40px,7vw,66px);line-height:1;letter-spacing:.02em;max-width:14ch}
+  .judul p{margin:0;max-width:46ch;font-size:18px;color:#d9e6dc}
+  .maskot{position:absolute;right:0;bottom:-6px;width:150px;height:auto;pointer-events:none;
+    filter:drop-shadow(0 10px 18px rgba(0,0,0,.5));transform:rotate(4deg)}
+
+  .gelombang{position:absolute;left:0;right:0;bottom:-1px;height:56px;z-index:3;display:block;width:100%}
+  .gelombang path{fill:var(--bg)}
+
+  main{padding:0 0 60px}
+
+  /* ===== KARTU UNDUH (map perlengkapan wasit) ===== */
+  .unduh{
+    background:var(--kertas);border-radius:4px 16px 16px 16px;padding:22px;margin-top:-26px;position:relative;z-index:5;
+    display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;
+    box-shadow:0 14px 34px rgba(17,21,24,.22);border:1px solid var(--garis);
+    border-top:5px solid var(--emas)
+  }
+  .unduh::before{content:"PERLENGKAPAN WASIT";position:absolute;left:-1px;top:-30px;font-family:var(--papan);font-size:17px;letter-spacing:.1em;
+    background:var(--emas);color:#1d1700;padding:3px 14px 0;border-radius:8px 8px 0 0}
+  .stempel{position:absolute;right:16px;top:-22px;width:36px;height:50px;border-radius:4px;pointer-events:none;
+    background:linear-gradient(135deg,#ffe34d,var(--emas));transform:rotate(9deg);box-shadow:0 4px 10px rgba(0,0,0,.25);
+    display:grid;place-items:center;font-family:var(--papan);font-size:13px;letter-spacing:.06em;color:#3b2f00;writing-mode:vertical-rl}
+  .unduh h2{margin:0 0 4px;font-size:27px;font-family:var(--papan);font-weight:400;letter-spacing:.03em}
+  .unduh p{margin:0;color:var(--lembut);font-size:15px;max-width:44ch}
+  .aksi{display:flex;gap:10px;flex-wrap:wrap}
+  .tombol{
+    display:inline-flex;align-items:center;gap:9px;background:var(--navy);color:#fff;text-decoration:none;
+    padding:12px 22px 12px 14px;border-radius:10px;font-weight:700;border:2px solid var(--navy);font-size:16px
+  }
+  .tombol svg{width:30px;height:30px;transition:transform .45s ease}
+  .tombol:hover{background:var(--rumput-tua);border-color:var(--rumput-tua)}
+  .tombol:hover svg{transform:translateX(8px) rotate(220deg)}
+  .tombol.sekunder{background:transparent;color:var(--navy);border-color:var(--navy)}
+  .tombol.sekunder:hover{background:var(--muda)}
+
+  .catatan{
+    background:#fff9da;border-left:5px solid var(--emas);
+    padding:14px 18px;border-radius:8px;margin:24px 0;font-size:15.5px
+  }
+  .catatan.merah{background:#fdecee;border-left-color:var(--oranye)}
+  .catatan strong{display:block;margin-bottom:2px;font-family:var(--papan);font-weight:400;font-size:21px;letter-spacing:.03em}
+  .catatan ul{margin:6px 0 0;padding-left:20px}
+
+  .daftar-isi{margin:0 0 6px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  .daftar-isi a{
+    display:inline-block;padding:6px 14px;border:1px solid var(--garis);border-radius:999px;
+    background:var(--kertas);text-decoration:none;font-size:14.5px;color:var(--tinta)
+  }
+  .daftar-isi a:hover{border-color:var(--biru);color:var(--biru)}
+
+  h2.bagian{margin:46px 0 6px;font-size:36px;line-height:1.1;color:var(--navy);font-family:var(--papan);font-weight:400;letter-spacing:.02em}
+  .pengantar{margin:0 0 22px;color:var(--lembut)}
+
+  /* ===== JALUR BOLA ===== */
+  .rute{position:relative;padding-left:58px}
+  .rute-garis{
+    position:absolute;left:18px;top:0;bottom:0;width:4px;border-radius:4px;
+    background:repeating-linear-gradient(to bottom,#b8c6ad 0 9px,transparent 9px 18px)
+  }
+  .rute-isi{
+    position:absolute;left:18px;top:0;width:4px;height:0;border-radius:4px;z-index:1;
+    background:linear-gradient(to bottom,var(--emas),var(--rumput));
+    box-shadow:0 0 12px rgba(245,196,0,.55)
+  }
+  .rute-jet{
+    position:absolute;left:20px;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;z-index:4;pointer-events:none
+  }
+  .rute-jet svg{display:block;width:40px;height:40px;filter:drop-shadow(0 5px 6px rgba(17,21,24,.35))}
+
+  ol.langkah{list-style:none;margin:0;padding:0;counter-reset:l}
+  ol.langkah > li{
+    counter-increment:l;position:relative;
+    background:var(--kertas);border:1px solid var(--garis);border-radius:14px;
+    padding:20px;margin-bottom:20px;
+    box-shadow:0 6px 18px rgba(17,21,24,.07);
+    transition:border-color .3s,box-shadow .3s
+  }
+  ol.langkah > li:last-child{margin-bottom:0}
+  ol.langkah > li::before{ /* nomor punggung */
+    content:counter(l);position:absolute;left:-58px;top:16px;z-index:2;
+    width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;
+    display:grid;place-items:center;font-family:var(--papan);font-size:23px;padding-top:2px;
+    border:3px solid var(--bg);transition:background .3s,color .3s,transform .3s
+  }
+  ol.langkah > li::after{ /* stempel SAH saat langkah sudah dilewati */
+    content:"SAH";position:absolute;right:16px;top:-13px;font-family:var(--papan);font-size:16px;letter-spacing:.14em;
+    color:var(--biru);border:2px solid var(--biru);border-radius:4px;padding:1px 9px 0;background:var(--kertas);
+    opacity:0;transform:rotate(-6deg) scale(1.8);transition:opacity .25s,transform .35s cubic-bezier(.3,1.6,.5,1);pointer-events:none
+  }
+  ol.langkah > li.lewat{border-color:#bfe0c8;box-shadow:0 8px 22px rgba(19,112,63,.12)}
+  ol.langkah > li.lewat::before{background:var(--emas);color:#1d1700;animation:mendarat .5s ease}
+  ol.langkah > li.lewat::after{opacity:.95;transform:rotate(-6deg) scale(1)}
+  @keyframes mendarat{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+  ol.langkah h3{margin:2px 0 6px;font-size:20px;line-height:1.3;color:var(--navy)}
+  ol.langkah p{margin:0 0 10px}
+  ol.langkah p:last-child{margin-bottom:0}
+  ol.langkah ul{margin:0 0 10px;padding-left:20px}
+
+  /* ===== BOLA DITENDANG KE GAWANG ===== */
+  .peluru{position:absolute;left:20px;top:0;width:26px;height:26px;z-index:5;display:none;pointer-events:none;
+    transform:translate(-50%,0);filter:drop-shadow(0 4px 5px rgba(17,21,24,.45))}
+  .peluru svg{display:block;width:100%;height:100%}
+  .sasaran{display:flex;align-items:center;gap:16px;margin:96px 0 0;min-height:56px;flex-wrap:wrap}
+  .sasaran-ikon{position:relative;width:132px;height:84px;flex:none}
+  .sasaran-ikon svg.gawang{display:block;width:100%;height:100%;overflow:visible}
+  .jaring{transform-box:fill-box;transform-origin:50% 0;transition:transform .5s cubic-bezier(.3,1.8,.5,1) .05s}
+  .sasaran.kena .jaring{transform:scale(1.07,1.12)}
+  .bola-gawang{opacity:0;transition:opacity .2s ease .1s}
+  .sasaran.kena .bola-gawang{opacity:1}
+  .sinar{opacity:0;transition:opacity .4s ease .3s}
+  .sasaran.kena .sinar{opacity:1}
+  .sinar .denyut{transform-box:fill-box;transform-origin:50% 50%;animation:denyut 1.4s ease-in-out infinite alternate}
+  @keyframes denyut{from{opacity:.4;transform:scale(.95)}to{opacity:.9;transform:scale(1.06)}}
+  .sasaran-teks{color:var(--navy);flex:1;min-width:200px;font-family:var(--papan);font-size:26px;letter-spacing:.03em;line-height:1.15}
+  .sasaran .teks-akhir{display:none}
+  .sasaran.kena .teks-awal{display:none}
+  .sasaran.kena .teks-akhir{display:inline;color:var(--biru)}
+  .ledak{position:absolute;left:50%;top:40%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;
+    pointer-events:none;opacity:0;z-index:3;
+    background:radial-gradient(circle,#fff 0%,#fff6c2 30%,#f5c400 55%,rgba(245,196,0,0) 72%)}
+  .ledak::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:3px solid #ffe36b}
+  .sasaran.kena .ledak{animation:ledak .9s ease-out}
+  @keyframes ledak{0%{opacity:1;transform:scale(.2)}60%{opacity:1;transform:scale(2.6);}100%{opacity:0;transform:scale(3.6)}}
+
+  /* kartu muncul dari samping saat di-scroll (hanya jika JS aktif) */
+  .js .muncul{opacity:0;transform:translateX(46px) rotate(.6deg);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
+  .js .muncul.tampil{opacity:1;transform:none}
+
+  figure{margin:14px 0 0}
+  figure img{
+    display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--garis);
+    background:var(--muda);cursor:zoom-in
+  }
+  figcaption{font-size:14px;color:var(--lembut);margin-top:6px}
+  .foto-kosong{
+    border:2px dashed #b8c6ad;border-radius:10px;padding:34px 16px;text-align:center;
+    color:var(--lembut);background:var(--muda);font-size:14.5px
+  }
+  .kartu-info{background:var(--kertas);border:1px solid var(--garis);border-radius:14px;padding:20px;box-shadow:0 6px 18px rgba(17,21,24,.07)}
+  .kartu-info p{margin:0 0 10px}
+  .kartu-info ul{margin:0 0 10px;padding-left:20px}
+
+  code,kbd{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em;
+    background:var(--muda);padding:2px 7px;border-radius:6px;word-break:break-all
+  }
+  .salin{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0}
+  .salin button{
+    font:inherit;font-size:14px;padding:5px 12px;border-radius:8px;
+    border:1px solid var(--navy);background:transparent;color:var(--navy);font-weight:600
+  }
+  .salin button:hover{background:var(--muda)}
+
+  details{background:var(--kertas);border:1px solid var(--garis);border-radius:12px;padding:4px 18px;margin-bottom:10px}
+  summary{font-weight:700;padding:12px 0;color:var(--navy)}
+  details[open] summary{border-bottom:1px solid var(--garis);margin-bottom:10px}
+  details p,details ul{margin:0 0 12px}
+  details ul{padding-left:20px}
+
+  footer{border-top:1px solid var(--garis);padding:22px 0 40px;color:var(--lembut);font-size:14.5px}
+
+  #pembesar{
+    position:fixed;inset:0;background:rgba(5,10,7,.92);display:none;
+    align-items:center;justify-content:center;padding:18px;z-index:80
+  }
+  #pembesar.buka{display:flex}
+  #pembesar img{max-width:100%;max-height:100%;border-radius:8px}
+
+  /* tombol suara */
+  #tombol-suara{
+    position:fixed;right:16px;bottom:16px;z-index:70;display:flex;align-items:center;gap:8px;
+    background:var(--navy);color:#fff;border:2px solid var(--emas);border-radius:999px;
+    padding:9px 16px 9px 12px;font-family:inherit;font-size:14px;font-weight:600;line-height:1;
+    box-shadow:0 8px 20px rgba(17,21,24,.35)
+  }
+  #tombol-suara:hover{background:#1f2a24}
+  #tombol-suara svg{width:22px;height:22px;flex:none}
+  #tombol-suara .silang{display:none}
+  #tombol-suara.mati .silang{display:inline}
+  #tombol-suara.mati .gelom{display:none}
+
+  /* ===== SCROLLBAR BUATAN SENDIRI (bola menggelinding) ===== */
+  #gulir{position:fixed;right:4px;top:84px;bottom:84px;width:28px;z-index:65;display:none;touch-action:none}
+  #gulir.ada{display:block}
+  #gulir-rel{position:absolute;left:12px;top:0;bottom:0;width:4px;border-radius:4px;
+    background:rgba(17,21,24,.2);box-shadow:0 0 0 1px rgba(255,255,255,.55)}
+  #gulir-isi{position:absolute;left:0;top:0;width:100%;height:0;border-radius:4px;
+    background:linear-gradient(to bottom,var(--emas),var(--rumput))}
+  #gulir-jet{position:absolute;left:50%;top:0;width:30px;height:44px;margin-left:-15px;z-index:2;touch-action:none}
+  #gulir-jet .gj-svg{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.45))}
+  #gulir-jet .gj-api{position:absolute;left:50%;bottom:calc(100% - 12px);width:12px;height:8px;margin-left:-6px;
+    transform-origin:50% 100%;opacity:.9;
+    background:repeating-linear-gradient(90deg,rgba(17,21,24,.55) 0 2px,transparent 2px 5px);
+    -webkit-mask-image:linear-gradient(to top,#000,transparent);mask-image:linear-gradient(to top,#000,transparent);
+    transition:height .18s ease}
+  #gulir.turbo .gj-api{height:30px}
+  #gulir-jet:hover .gj-svg{filter:drop-shadow(0 0 5px rgba(245,196,0,.9))}
+
+  /* ===== KURSOR BOLA ===== */
+  #kursor-jet,#jet-kawan{position:fixed;left:0;top:0;width:60px;height:60px;pointer-events:none;
+    will-change:transform;opacity:0}
+  #kursor-jet{z-index:9999;transition:opacity .15s}
+  #jet-kawan{z-index:9997}
+  #kursor-jet .bayang,#jet-kawan .bayang{position:absolute;left:14px;top:40px;width:32px;height:8px;border-radius:50%;
+    background:rgba(0,0,0,.28);filter:blur(2px)}
+  #kursor-jet .spin,#jet-kawan .spin{position:absolute;left:12px;top:12px;width:36px;height:36px}
+  #kursor-jet .spin svg,#jet-kawan .spin svg{display:block;width:36px;height:36px;overflow:visible}
+  #jet-kawan .spin{filter:hue-rotate(0deg) drop-shadow(0 0 0 #000)}
+  #jet-kawan .spin::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--oranye);opacity:.9}
+  .cincin-bidik{position:absolute;left:2px;top:2px;width:56px;height:56px;border-radius:50%;opacity:0;
+    border:2px dashed var(--oranye);transition:opacity .15s}
+  #kursor-jet.klik .cincin-bidik{opacity:1;animation:radar 2.4s linear infinite}
+  #kursor-jet.klik{filter:drop-shadow(0 0 6px rgba(215,38,61,.7))}
+  #kursor-jet.zoom .spin{transform:scale(1.25)}
+  @keyframes radar{to{transform:rotate(360deg)}}
+  #kursor-jejak{position:fixed;left:0;top:0;z-index:9998;pointer-events:none}
+  @media (hover:hover) and (pointer:fine){
+    html.kursor-jet, html.kursor-jet *{cursor:none !important}
+  }
+
+  /* bola scrollbar: garis laju di belakang, berbalik saat scroll naik */
+  #gulir-jet .gj-api{transition:height .18s ease,opacity .3s ease}
+  #gulir-jet .gj-svg{transition:opacity .3s ease}
+  #gulir-jet.naik .gj-api{bottom:auto;top:calc(100% - 12px);transform-origin:50% 0;
+    -webkit-mask-image:linear-gradient(to bottom,#000,transparent);mask-image:linear-gradient(to bottom,#000,transparent)}
+  #gulir-jet.pergi .gj-svg,#gulir-jet.pergi .gj-api{opacity:0}
+
+  /* gambar kecil seukuran huruf di sebelah teks */
+  .ikon-teks{height:1em;width:auto;vertical-align:-.14em;margin:0 .05em;border-radius:.2em;display:inline-block}
+
+  @media (max-width:560px){
+    body{font-size:16px}
+    .sosok{width:58px}
+    .papan-skor{right:4%;top:62px;padding:4px 8px 3px}
+    .papan-skor .tim{font-size:14px;gap:6px}
+    .papan-skor .skor{font-size:19px}
+    .tiang.b{display:none}.sorot.b{display:none}
+    .maskot{width:96px;bottom:auto;top:-30px;opacity:.95}
+    header.atas{padding-bottom:136px}
+    .rute{padding-left:46px}
+    .rute-garis,.rute-isi{left:14px}
+    .rute-jet{left:16px;width:32px;height:32px;margin:-16px 0 0 -16px}
+    .rute-jet svg{width:32px;height:32px}
+    ol.langkah > li{padding:16px}
+    ol.langkah > li::before{left:-46px;width:34px;height:34px;font-size:19px;top:14px}
+    .judul{padding-top:34px}
+    .judul p{max-width:none}
+    .sasaran-ikon{width:110px;height:70px}
+    .stempel{right:10px}
+  }
+  @media (max-width:760px){ .maskot{display:none} }
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .sosok.berlari,.sosok .kaki-a,.sosok .kaki-b,.sosok .kartu-angkat,.sorot,.tribun .kilat{animation:none}
+    .js .muncul{opacity:1;transform:none;transition:none}
+    ol.langkah > li.lewat::before{animation:none}
+    .tombol svg,.badan,.jaring{transition:none}
+    .sasaran.kena .ledak{animation:none}
+    .sinar .denyut{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="progres" aria-hidden="true"></div>
+
+<!-- gambar yang dipakai berulang -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs><clipPath id="klip-bola"><circle cx="32" cy="32" r="29"/></clipPath></defs>
+  <!-- bola sepak, pusat (32,32) -->
+  <symbol id="bola" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="29" fill="#fff"/>
+    <g clip-path="url(#klip-bola)" fill="#14181c">
+      <polygon points="32.00 23.00 40.56 29.22 37.29 39.28 26.71 39.28 23.44 29.22"/>
+      <polygon points="32.00 13.00 23.44 6.78 26.71 -3.28 37.29 -3.28 40.56 6.78"/>
+      <polygon points="50.07 26.13 53.34 16.07 63.92 16.07 67.19 26.13 58.63 32.35"/>
+      <polygon points="43.17 47.37 53.75 47.37 57.02 57.43 48.46 63.65 39.90 57.43"/>
+      <polygon points="20.83 47.37 24.10 57.43 15.54 63.65 6.98 57.43 10.25 47.37"/>
+      <polygon points="13.93 26.13 5.37 32.35 -3.19 26.13 0.08 16.07 10.66 16.07"/>
+      <path fill="none" stroke="#14181c" stroke-width="1.6" d="M32 23L32 13M40.56 29.22L50.07 26.13M37.29 39.28L43.17 47.37M26.71 39.28L20.83 47.37M23.44 29.22L13.93 26.13M40.56 6.78L53.34 16.07M58.63 32.35L53.75 47.37M39.9 57.43L24.1 57.43M10.25 47.37L5.37 32.35M10.66 16.07L23.44 6.78"/>
+    </g>
+    <circle cx="32" cy="32" r="29" fill="none" stroke="#14181c" stroke-width="2.4"/>
+    <path d="M14 22 A21 21 0 0 1 24 12" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="32" cy="32" r="29" fill="url(#kilau-bola)"/>
+  </symbol>
+  <defs>
+    <radialGradient id="kilau-bola" cx="38%" cy="34%" r="70%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".25"/>
+      <stop offset=".6" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".28"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<header class="atas" id="atas">
+  <div class="tiang a" aria-hidden="true"></div>
+  <div class="tiang b" aria-hidden="true"></div>
+  <div class="sorot a" aria-hidden="true"></div>
+  <div class="sorot b" aria-hidden="true"></div>
+  <div class="papan-skor" aria-hidden="true">
+    <div class="tim"><span>HATAF</span><span class="skor">3 - 0</span><span>MANUAL</span></div>
+    <span class="menit" id="menit">00'</span>
+  </div>
+  <div class="tribun jauh" data-v="0.12" aria-hidden="true"></div>
+  <div class="tribun dekat" data-v="0.32" aria-hidden="true"></div>
+  <div class="lapangan" aria-hidden="true"></div>
+
+  <div class="agen" aria-hidden="true">
+    <div class="jejak"></div>
+    <div class="badan">
+      <!-- wasit berlari menghadap kanan, mengangkat kartu kuning -->
+      <svg class="sosok berlari" viewBox="0 0 66 100">
+        <ellipse cx="31" cy="97" rx="20" ry="3" fill="#000" opacity=".4"/>
+        <g class="kaki-a"><rect x="22" y="66" width="8" height="22" rx="3" fill="#e2b48c"/><rect x="22" y="78" width="8" height="12" fill="#111"/><rect x="22" y="78" width="8" height="2.4" fill="#f5c400"/><path d="M20 89 h12 v5 h-14 z" fill="#05070a"/></g>
+        <g class="kaki-b"><rect x="33" y="66" width="8" height="22" rx="3" fill="#d6a67e"/><rect x="33" y="78" width="8" height="12" fill="#111"/><rect x="33" y="78" width="8" height="2.4" fill="#f5c400"/><path d="M31 89 h12 v5 h-14 z" fill="#05070a"/></g>
+        <path d="M19 58 h25 l2 13 h-29 z" fill="#0b0d10"/>
+        <path d="M18 33 Q31 28 44 33 L46 61 Q31 65 16 61 Z" fill="#14181c"/>
+        <path d="M19 37 L44 37" stroke="#f5c400" stroke-width="2"/>
+        <path d="M17.6 44 L45 44" stroke="#f5c400" stroke-width="1.4" opacity=".8"/>
+        <path d="M26 31 L31 38 L36 31" fill="none" stroke="#f5c400" stroke-width="2.2"/>
+        <rect x="21" y="45" width="6" height="5" rx="1" fill="#f5c400" opacity=".9"/>
+        <path d="M22 37 Q14 48 18 56" stroke="#14181c" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <circle cx="18.5" cy="57" r="3.4" fill="#e2b48c"/>
+        <g class="kartu-angkat">
+          <path d="M41 36 Q49 26 50 16" stroke="#14181c" stroke-width="7" stroke-linecap="round" fill="none"/>
+          <circle cx="50" cy="14.5" r="3.6" fill="#e2b48c"/>
+          <rect x="46" y="1" width="11" height="15" rx="1.6" fill="#f5c400" stroke="#8a6d00" stroke-width=".8" transform="rotate(12 51 8)"/>
+        </g>
+        <circle cx="31.5" cy="21" r="8" fill="#e2b48c"/>
+        <path d="M23.5 19 Q23 10.5 31.5 11 Q40 10.5 39.8 18 Q36 14.5 31 15.4 Q27 16 23.5 19 Z" fill="#1c1a18"/>
+        <rect x="29" y="18.5" width="11" height="3.4" rx="1.5" fill="#0b0e13"/>
+        <path d="M36 25 h5" stroke="#c9ccd1" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M40 26 Q37 30 33 31" stroke="#111" stroke-width=".9" fill="none"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="lebar">
+    <div class="bar">
+      <img src="hataf.png" alt="Logo Agen Hataf">
+      <a class="merek" href="#atas">Agen Hataf</a>
+      <a class="kembali" href="#masalah">Bantuan</a>
+    </div>
+    <div class="judul">
+      <img class="maskot" src="hataf.png" alt="" aria-hidden="true">
+      <span class="label-rahasia">LAGA RESMI: LPSE · NON TENDER</span>
+      <h1>Pasang &amp; pakai Agen Hataf <img class="ikon-teks" src="ikon-agen.png" alt=""></h1>
+      <p>Ekstensi Chrome Agen Pencatatan Non Tender: membuat paket sesuai RKA SIPD, mencatatnya ke sheet, lalu mengisi realisasi, penyedia, dan bukti di LPSE. Ikuti bolanya dari sepak mula sampai gol.</p>
+    </div>
+  </div>
+
+  <svg class="gelombang" viewBox="0 0 1200 56" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 56V30C150 6 300 6 450 24s300 28 450 6 225-26 300-12V56Z"/>
+  </svg>
+</header>
+
+<main class="lebar">
+
+  <section class="unduh" aria-labelledby="judul-unduh">
+    <span class="stempel" aria-hidden="true">RESMI</span>
+    <div>
+      <h2 id="judul-unduh">Unduh ekstensi dari Google Drive</h2>
+      <p>Agen Pencatatan Non Tender versi 3.9.0, berupa satu file ZIP. Cukup dipasang sekali. Perbaikan kode berikutnya dikirim otomatis.</p>
+    </div>
+    <div class="aksi">
+      <a class="tombol" href="https://drive.google.com/open?id=1LoHCnhGLFHQj4p5m1j41ylPE5GqEqpQZ&amp;usp=drive_copy" target="_blank" rel="noopener">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#bola"/></svg>Unduh dari Drive
+      </a>
+    </div>
+  </section>
+
+  <div class="catatan">
+    <strong>Pakai komputer, bukan HP.</strong>
+    Ekstensi manual hanya bisa dipasang di Chrome versi komputer (Windows, Mac, Linux). Chrome di HP tidak mendukungnya.
+  </div>
+
+  <ul class="daftar-isi">
+    <li><a href="#pasang">1. Pasang ekstensi</a></li>
+    <li><a href="#pakai">2. Login &amp; pakai agen</a></li>
+    <li><a href="#update">Update otomatis</a></li>
+    <li><a href="#aturan">Aturan &amp; kondisi khusus</a></li>
+    <li><a href="#masalah">Jika ada masalah</a></li>
+  </ul>
+
+  <h2 class="bagian" id="pasang">Langkah pemasangan di Chrome</h2>
+  <p class="pengantar">Pemanasan sebelum laga. Cukup sekali per komputer.</p>
+
+  <div class="rute">
+    <div class="rute-garis" aria-hidden="true"></div>
+    <ol class="langkah">
+
+      <li class="muncul">
+        <h3>Unduh file ZIP dari Drive</h3>
+        <p>Klik <strong>Unduh dari Drive</strong> di atas, lalu klik tombol unduh di halaman Google Drive. File <code>AgenPencatatanNonTender-ekstensi-v3.9.0.zip</code> tersimpan di folder <em>Downloads</em>.</p>
+        <figure>
+          <img src="pasang-1.jpeg" alt="File ZIP Agen Pencatatan Non Tender di folder Downloads" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>File ZIP di folder Downloads.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Ekstrak ZIP ke folder tetap</h3>
+        <p>Klik kanan file ZIP, pilih <strong>Extract All…</strong> lalu <strong>Extract</strong>. Hasilnya adalah sebuah folder.</p>
+        <p><strong>Penting:</strong> taruh folder hasil ekstrak di tempat yang tidak akan dihapus atau dipindah, misalnya <code>Documents\AgenPencatatan</code>. Ekstensi akan berhenti bekerja jika foldernya hilang.</p>
+        <figure>
+          <img src="pasang-2.jpeg" alt="Folder hasil ekstrak dengan peringatan jangan dihapus" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Folder hasil ekstrak. Jangan dihapus atau dipindah.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Buka halaman ekstensi Chrome</h3>
+        <p>Buka tab baru, salin alamat ini, tempel di kolom alamat, lalu tekan <kbd>Enter</kbd>.</p>
+        <p><span class="salin"><code>chrome://extensions</code><button type="button" data-salin="chrome://extensions">Salin</button></span></p>
+        <p>Alamat ini tidak bisa diklik dari website, jadi harus disalin lalu ditempel sendiri.</p>
+        <figure>
+          <img src="pasang-3.jpeg" alt="Halaman chrome://extensions" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Halaman Extensions di Chrome.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Aktifkan Developer mode</h3>
+        <p>Nyalakan saklar <strong>Developer mode</strong> di pojok kanan atas.</p>
+        <figure>
+          <img src="pasang-4.jpeg" alt="Saklar Developer mode di pojok kanan atas" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Saklar Developer mode harus menyala.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Klik Load unpacked, pilih folder hasil ekstrak</h3>
+        <p>Klik <strong>Load unpacked</strong>, pilih folder dari langkah 2, lalu klik <strong>Select Folder</strong>. Pilih folder yang di dalamnya langsung ada file <code>manifest.json</code>. Jika yang terlihat masih folder lagi, masuk satu tingkat lagi.</p>
+        <figure>
+          <img src="pasang-5.jpeg" alt="Memilih folder ekstensi lewat Load unpacked" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Load unpacked, lalu pilih folder yang berisi manifest.json.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Ekstensi terpasang</h3>
+        <p>Kartu <strong>Agen Pencatatan Non Tender</strong> versi 3.9.0 muncul di halaman ekstensi dengan saklar menyala.</p>
+        <figure>
+          <img src="pasang-6.jpeg" alt="Kartu Agen Pencatatan Non Tender versi 3.9.0 terpasang" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Terpasang: versi 3.9.0.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Sudah punya versi lama? Timpa lalu Reload</h3>
+        <p>Ekstrak ZIP baru <strong>menimpa folder yang sama</strong>, lalu klik ikon <strong>↻ Reload</strong> pada kartu ekstensi.</p>
+        <p><strong>Jangan klik Remove.</strong> Jika ekstensi dihapus, login PPTK dan pengaturan ikut hilang.</p>
+        <figure>
+          <img src="pasang-7.jpeg" alt="Reload menjaga login PPTK, Remove menghapusnya" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Reload aman. Remove menghapus login.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Sematkan ikon agen ke toolbar</h3>
+        <p>Klik ikon <strong>puzzle</strong> di sebelah kolom alamat, lalu klik ikon <strong>pin</strong> di samping Agen Pencatatan Non Tender <img class="ikon-teks" src="ikon-agen.png" alt="" onerror="this.style.display='none'"> agar tombolnya selalu terlihat.</p>
+        <figure>
+          <img src="pasang-8.jpeg" alt="Menyematkan ikon agen lewat ikon puzzle" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Ikon puzzle, lalu pin.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Matikan skrip Tampermonkey versi lama</h3>
+        <p>Jika sebelumnya memakai skrip agen lewat Tampermonkey, nonaktifkan skrip itu. Jika tidak, panel agen akan muncul dobel di LPSE.</p>
+        <figure>
+          <img src="pasang-9.jpeg" alt="Saklar Tampermonkey dimatikan" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Tampermonkey mati, panel tidak dobel.</figcaption>
+        </figure>
+      </li>
+
+    </ol>
+  </div>
+
+  <h2 class="bagian" id="pakai">Login &amp; jalankan agen</h2>
+  <p class="pengantar">Urutan laganya: login, Upload RKA, Proses Semua RKA, Catat ke Sheet, lengkapi sheet, lalu Isi Realisasi.</p>
+
+  <div class="rute">
+    <div class="rute-garis" aria-hidden="true"></div>
+    <ol class="langkah">
+
+      <li class="muncul">
+        <h3>Klik ikon agen, lalu login LPSE</h3>
+        <p>Klik ikon agen di toolbar. Popup menampilkan urutan kerja dan pintasan halaman. Klik <strong>Buka LPSE dan login</strong>, lalu masuk dengan akun <strong>PPK atau Pejabat Pengadaan</strong> Anda.</p>
+        <p>Setelah login, panel Agen Hataf muncul di kanan bawah halaman LPSE dengan dua tab: <strong>① Buat &amp; Catat Paket</strong> dan <strong>② Isi Realisasi</strong>.</p>
+        <figure>
+          <img src="pakai-1.jpeg" alt="Popup ekstensi dengan tombol Buka LPSE dan login" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Popup agen berisi urutan kerja.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Masuk dengan akun PPTK</h3>
+        <p>Di panel, isi <strong>username</strong> dan <strong>password PPTK</strong> yang diberikan admin, lalu klik <strong>Masuk</strong>.</p>
+        <figure>
+          <img src="pakai-2.jpeg" alt="Form Masuk akun PPTK di panel agen" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Login PPTK di panel agen.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Pilih sub kegiatan</h3>
+        <p>Hanya sub kegiatan milik Anda yang tampil. Tanda <strong>✔</strong> berarti RKA sudah diupload, sedangkan tanda <strong>⚠</strong> (kotak merah) berarti belum. Tahun anggaran terdeteksi otomatis dari RKA di sheet.</p>
+        <figure>
+          <img src="pakai-3.jpeg" alt="Daftar sub kegiatan dengan tanda centang dan peringatan" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>✔ RKA sudah ada, ⚠ RKA belum diupload.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Upload RKA dalam 3 langkah</h3>
+        <p>Klik <strong>Upload RKA sekarang</strong>. Halaman upload terbuka di tab baru, langsung di dalam ekstensi.</p>
+        <ul>
+          <li><strong>Langkah 1:</strong> pilih PDF RKA dari SIPD (formulir RKA Belanja SKPD).</li>
+          <li><strong>Langkah 2:</strong> klik <strong>Baca dokumen</strong>. Sub kegiatan, kode rekening, uraian, dan nilai terbaca otomatis. Periksa tabel validasi: jumlah item per rekening dicocokkan dengan angka di dokumen.</li>
+          <li><strong>Langkah 3:</strong> klik <strong>Simpan ke sheet RKA</strong>.</li>
+        </ul>
+        <p>Kembali ke tab LPSE. Status sub kegiatan berubah hijau.</p>
+        <figure>
+          <img src="pakai-4.jpeg" alt="Halaman Upload RKA SIPD ke sheet RKA" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>RKA terbaca dan tersimpan ke sheet RKA.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Buat paket: Proses Semua RKA</h3>
+        <p>Buka halaman <strong>Rencana Pencatatan</strong>, lalu klik <strong>Proses Semua RKA</strong>. Agen mengatur tahun anggaran dan filter, memindai setiap RUP, mencocokkannya dengan item RKA sub kegiatan Anda, lalu membuat paket yang cocok secara otomatis.</p>
+        <p>Tombol <strong>Cek nilai</strong> membantu menemukan pencatatan yang belum sesuai angka sesudah perubahan, untuk dihapus bila perlu.</p>
+        <figure>
+          <img src="pakai-5.jpeg" alt="Rencana Pencatatan dengan paket yang dicentang otomatis" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Paket yang cocok dicentang lalu dibuat otomatis.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Catat ke Sheet</h3>
+        <p>Buka halaman <strong>Daftar Paket</strong>, lalu klik <strong>Catat ke Sheet</strong>. Kode RUP, nama paket, jenis, metode, nilai, kode paket, dan status LPSE ditulis ke sheet <strong>DAFTAR PAKET</strong>.</p>
+        <p>Hanya paket yang cocok dengan RKA dan sudah memakai angka sesudah yang dicatat.</p>
+        <figure>
+          <img src="pakai-6.jpeg" alt="Daftar Paket dicatat ke sheet PENCATATAN LPSE" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Daftar Paket tercatat ke sheet.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Lengkapi sheet ISIAN REALISASI</h3>
+        <p>Buka spreadsheet sub kegiatan. Untuk setiap paket, pilih <strong>SIKaP</strong> atau <strong>Non SIKaP</strong>. Kolom yang tidak berlaku otomatis terkunci dan berwarna abu-abu. Provinsi dan kabupaten/kota dipilih dari dropdown bertingkat.</p>
+        <figure>
+          <img src="pakai-7.jpeg" alt="Sheet ISIAN REALISASI dengan pilihan SIKaP dan Non SIKaP" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Kolom yang tidak berlaku terkunci abu-abu.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Upload bukti ke Google Drive</h3>
+        <p>Lewat menu <strong>Upload Bukti</strong> di spreadsheet, file bukti tersimpan rapi di Google Drive, satu folder untuk setiap paket.</p>
+        <figure>
+          <img src="pakai-8.jpeg" alt="Menu Upload Bukti dan folder bukti per paket di Drive" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Satu folder bukti untuk setiap paket.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Tab ②: Muat data, lalu Uji dulu</h3>
+        <p>Di panel, buka tab <strong>② Isi Realisasi</strong>. Klik <strong>Muat Data Sheet</strong> dan, bila perlu, <strong>Cocokkan Kode Paket</strong>.</p>
+        <p>Jalankan <strong>Uji</strong> terlebih dahulu. Agen mengisi formulir tanpa menekan simpan akhir, jadi hasilnya bisa Anda periksa.</p>
+        <figure>
+          <img src="pakai-9.jpeg" alt="Formulir realisasi terisi saat mode Uji" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Mode Uji: formulir terisi, belum disimpan.</figcaption>
+        </figure>
+      </li>
+
+      <li class="muncul">
+        <h3>Jalankan &amp; Simpan Semua</h3>
+        <p>Sudah benar? Klik <strong>Jalankan &amp; Simpan Semua</strong>. Agen mengisi realisasi, penyedia, nilai PDN dan UMK, serta mengunggah bukti, paket demi paket.</p>
+        <p>Ada yang gagal? Alasannya tertulis di sheet. Perbaiki, lalu klik <strong>Lanjutkan</strong>.</p>
+        <figure>
+          <img src="pakai-10.jpeg" alt="Realisasi tersimpan otomatis paket demi paket" loading="lazy" onerror="fotoKosong(this)">
+          <figcaption>Realisasi tersimpan otomatis.</figcaption>
+        </figure>
+      </li>
+
+    </ol>
+  </div>
+
+  <div class="sasaran">
+    <div class="sasaran-ikon" aria-hidden="true">
+      <!-- gawang sasaran; titik masuk bola di (66,46) -->
+      <svg class="gawang" viewBox="0 0 132 84">
+        <ellipse cx="66" cy="81" rx="62" ry="3" fill="#000" opacity=".16"/>
+        <g class="sinar"><ellipse class="denyut" cx="66" cy="46" rx="40" ry="26" fill="#f5c400" opacity=".4"/></g>
+        <g class="jaring">
+          <path d="M14 10 L28 22 L104 22 L118 10 Z M28 22 L28 76 M104 22 L104 76" fill="rgba(255,255,255,.35)" stroke="#9aa79d" stroke-width="1"/>
+          <path d="M28 22 H104 V76 H28 Z" fill="rgba(240,245,240,.6)"/>
+          <path d="M37.5 22V76M47 22V76M56.5 22V76M66 22V76M75.5 22V76M85 22V76M94.5 22V76M28 31H104M28 40H104M28 49H104M28 58H104M28 67H104" stroke="#9aa79d" stroke-width="1"/>
+          <path d="M14 10 L28 22 M118 10 L104 22 M14 10 L28 76 M118 10 L104 76" stroke="#9aa79d" stroke-width="1"/>
+        </g>
+        <svg class="bola-gawang" x="57" y="37" width="18" height="18" viewBox="0 0 64 64"><use href="#bola"/></svg>
+        <!-- tiang & mistar -->
+        <path d="M10 78 V8 H122 V78" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/>
+        <path d="M10 78 V8 H122 V78" fill="none" stroke="#14181c" stroke-opacity=".25" stroke-width="1"/>
+        <rect x="4" y="77" width="124" height="3" rx="1.5" fill="#fff" opacity=".9"/>
+      </svg>
+      <span class="ledak"></span>
+    </div>
+    <div class="sasaran-teks"><span class="teks-awal">Tujuan akhir: semua paket tercatat &amp; realisasi terisi</span><span class="teks-akhir">GOOOL! Paket tercatat, realisasi terisi!</span></div>
+  </div>
+
+  <h2 class="bagian" id="update">Pasang sekali, update otomatis</h2>
+  <p class="pengantar">Mulai versi 3.9.0, ekstensi tidak perlu dipasang ulang setiap ada perbaikan.</p>
+  <div class="kartu-info muncul">
+    <p>Kode agen tersimpan di Google Drive dan dikirim lewat Apps Script loader. Ekstensi mengeceknya otomatis paling lama <strong>lima menit sekali</strong>, dan hanya mengunduh bila kodenya berubah. Kode baru langsung dipakai saat halaman LPSE dimuat ulang.</p>
+    <ul>
+      <li>Judul panel bertanda <strong>☁</strong> berarti kode dari Drive, sedangkan <strong>📦</strong> berarti versi bawaan ZIP.</li>
+      <li>Internet atau Drive bermasalah? Agen tetap jalan dengan salinan terakhir.</li>
+      <li>Mau cek sekarang? Klik ikon agen, lalu <strong>Cek update kode sekarang</strong>.</li>
+    </ul>
+    <figure>
+      <img src="update.jpeg" alt="Alur Google Drive, Apps Script loader, dan ekstensi di komputer" loading="lazy" onerror="fotoKosong(this)">
+      <figcaption>Drive → Apps Script LOADER → ekstensi di komputer.</figcaption>
+    </figure>
+  </div>
+
+  <h2 class="bagian" id="aturan">Aturan pertandingan</h2>
+  <p class="pengantar">Wasit yang baik tahu aturannya. Baca ini sebelum menjalankan agen.</p>
+
+  <div class="catatan merah">
+    <strong>Kartu merah: jangan dilanggar</strong>
+    <ul>
+      <li>Jangan biarkan komputer <strong>sleep</strong> atau <strong>terkunci</strong> selama agen bekerja.</li>
+      <li>Hanya <strong>satu agen</strong> yang boleh berjalan. Selama tab ① bekerja, tab ② dikunci, begitu pula sebaliknya.</li>
+    </ul>
+  </div>
+  <div class="catatan">
+    <strong>Kartu kuning: boleh, tapi perhatikan</strong>
+    <ul>
+      <li>Jendela Chrome boleh di-<em>minimize</em>. Agen tetap bekerja, dan setiap RUP dicoba ulang hingga dua kali.</li>
+      <li>Link Web App terkunci di dalam ekstensi, jadi data hanya dikirim ke alamat resmi.</li>
+    </ul>
+  </div>
+  <figure class="muncul">
+    <img src="aturan.jpeg" alt="Aturan penting: boleh diminimize, jangan sleep, satu agen saja, link terkunci" loading="lazy" onerror="fotoKosong(this)">
+    <figcaption>Empat aturan penting.</figcaption>
+  </figure>
+
+  <h2 class="bagian">Kondisi khusus</h2>
+  <div class="kartu-info muncul">
+    <ul>
+      <li><strong>Paket sudah selesai</strong> di LPSE otomatis dilewati, dan ditandai <strong>SELESAI</strong> di sheet.</li>
+      <li><strong>Paket dibatalkan?</strong> Barisnya ditandai <strong>PAKET BATAL</strong>. Jalankan <strong>Proses Semua RKA</strong> lagi: paket baru dibuatkan dan barisnya diperbarui.</li>
+      <li>Paket tetap diproses selama <strong>minimal satu baris realisasinya siap</strong>. Simpan akhir menunggu tanggal paket selesai diisi.</li>
+      <li><strong>Halaman Upload RKA tidak bisa dibuka?</strong> Klik <strong>Buka di jendela Samaran</strong>.</li>
+    </ul>
+    <figure>
+      <img src="kondisi.jpeg" alt="Kondisi khusus: paket selesai, dibatalkan, siap, dan jendela samaran" loading="lazy" onerror="fotoKosong(this)">
+      <figcaption>Kondisi khusus yang ditangani agen.</figcaption>
+    </figure>
+  </div>
+
+  <h2 class="bagian" id="masalah">Jika ada masalah</h2>
+  <p class="pengantar">Klik pertanyaan untuk membuka jawabannya.</p>
+
+  <details>
+    <summary>Panel agen tidak muncul di LPSE</summary>
+    <ul>
+      <li>Pastikan sudah login di <code>spse.inaproc.id</code> dengan akun PPK atau Pejabat Pengadaan.</li>
+      <li>Muat ulang tab LPSE dengan <kbd>F5</kbd>.</li>
+      <li>Cek di <code>chrome://extensions</code> bahwa saklar Agen Pencatatan Non Tender menyala.</li>
+    </ul>
+  </details>
+  <details>
+    <summary>Panel agen muncul dobel</summary>
+    <p>Skrip Tampermonkey versi lama masih aktif. Matikan skrip itu (langkah pemasangan nomor 9), lalu muat ulang halaman LPSE.</p>
+  </details>
+  <details>
+    <summary>Ekstensi tiba-tiba hilang atau error setelah folder dipindah</summary>
+    <p>Ekstensi dibaca langsung dari folder hasil ekstrak. Kembalikan folder ke tempat semula, atau ulangi <strong>Load unpacked</strong> dari lokasi baru. Lain kali, simpan di folder tetap.</p>
+  </details>
+  <details>
+    <summary>Ada paket yang gagal diisi</summary>
+    <p>Alasannya tertulis di sheet, dan setiap langkah tercatat di <strong>LOG AGEN</strong>. Perbaiki datanya di sheet, lalu klik <strong>Lanjutkan</strong> di tab ②.</p>
+  </details>
+  <details>
+    <summary>Cara memperbarui ke versi baru</summary>
+    <p>Perbaikan kode agen datang otomatis dari Drive (lihat <a href="#update">Update otomatis</a>). Jika ada versi ZIP baru, unduh dari Drive, ekstrak menimpa folder yang sama, lalu klik <strong>↻ Reload</strong> pada kartu ekstensi. Jangan klik Remove.</p>
+  </details>
+
+  <figure class="muncul" style="margin-top:34px">
+    <img src="hasil.jpeg" alt="Sebelum berhari-hari, sesudah beberapa klik" loading="lazy" onerror="fotoKosong(this)">
+    <figcaption>Hasilnya: pekerjaan berhari-hari jadi beberapa klik. Anda cukup memeriksa, bukan mengetik ulang.</figcaption>
+  </figure>
+
+</main>
+
+
+<footer>
+  <div class="lebar">
+    Panduan Agen Hataf, Agen Pencatatan Non Tender v3.9.0. Contoh data di foto (kode RUP, nama penyedia, nilai) hanya ilustrasi. Jika layar berbeda dari foto, ikuti nama tombolnya, karena tampilan LPSE dan Chrome bisa berubah antar versi.
+  </div>
+</footer>
+
+<button type="button" id="tombol-suara" class="mati" aria-pressed="false" title="Nyalakan atau matikan suara">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>
+    <path class="gelom" d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path class="silang" d="M16.5 9l5 6m0-6l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <span class="teks">Suara mati</span>
+</button>
+
+<div id="gulir" aria-hidden="true">
+  <div id="gulir-rel">
+    <div id="gulir-isi"></div>
+    <div id="gulir-jet">
+      <span class="gj-api"></span>
+      <svg class="gj-svg" viewBox="0 0 64 64"><use href="#bola"/></svg>
+    </div>
+  </div>
+</div>
+
+<div id="pembesar" role="dialog" aria-label="Foto diperbesar"><img alt=""></div>
+
+<script>
+  // Foto belum diunggah: tampilkan kotak pengganti
+  function fotoKosong(img){
+    var kotak = document.createElement('div');
+    kotak.className = 'foto-kosong';
+    kotak.innerHTML = 'Foto belum ditambahkan.<br>Simpan sebagai <code>' +
+      (img.getAttribute('src') || '') + '</code>';
+    img.replaceWith(kotak);
+  }
+
+  document.documentElement.classList.add('js');
+  var gulirSeret = false; // true saat bola scrollbar sedang diseret
+
+  // ===== TRIBUN PENONTON (dibuat sekali, lalu bergeser pelan saat scroll) =====
+  (function(){
+    function acak(seed){ return function(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }; }
+    var SYAL = ['#f5c400', '#d7263d', '#ffffff', '#2f8f4a'];
+    function tribun(el, seed, warna, ramai){
+      var r = acak(seed), s = '', baris = ramai ? 4 : 3;
+      // anak tangga tribun
+      for (var b = 0; b < baris; b++){
+        var y = 200 - b * 46;
+        s += '<rect x="0" y="' + (y - 14) + '" width="2600" height="14" fill="' + warna + '" opacity=".75"/>';
+      }
+      for (var b2 = baris - 1; b2 >= 0; b2--){
+        var dasar = 200 - b2 * 46 - 14;
+        for (var x = 6 + r() * 10; x < 2600; x += 15 + r() * 8){
+          var tinggi = 26 + r() * 8;
+          s += '<rect x="' + (x - 6).toFixed(1) + '" y="' + (dasar - tinggi + 9).toFixed(1) + '" width="12" height="' + (tinggi - 9).toFixed(1) + '" rx="4" fill="' + warna + '"/>';
+          s += '<circle cx="' + x.toFixed(1) + '" cy="' + (dasar - tinggi + 4).toFixed(1) + '" r="5.2" fill="' + warna + '"/>';
+          if (ramai && r() < 0.16){ // tangan terangkat
+            s += '<path d="M' + (x + 5).toFixed(1) + ' ' + (dasar - tinggi + 12).toFixed(1) + ' l5 -16" stroke="' + warna + '" stroke-width="3.4" stroke-linecap="round"/>';
+          }
+          if (r() < 0.22){ // syal warna tim
+            s += '<rect x="' + (x - 6).toFixed(1) + '" y="' + (dasar - tinggi + 11).toFixed(1) + '" width="12" height="3" fill="' + SYAL[Math.floor(r() * 4)] + '" opacity="' + (ramai ? '.85' : '.5') + '"/>';
+          }
+          if (ramai && r() < 0.05){ // bendera
+            var fx = x + 4, fy = dasar - tinggi - 14;
+            s += '<path d="M' + fx.toFixed(1) + ' ' + (fy + 30).toFixed(1) + ' V' + fy.toFixed(1) + '" stroke="#ccc" stroke-width="1.4"/>' +
+                 '<path d="M' + fx.toFixed(1) + ' ' + fy.toFixed(1) + ' h18 l-4 6 l4 6 h-18 z" fill="' + SYAL[Math.floor(r() * 2)] + '"/>';
+          }
+          if (ramai && r() < 0.035){ // blitz kamera HP
+            s += '<circle class="kilat" style="animation-delay:-' + (r() * 2.6).toFixed(2) + 's" cx="' + (x + 2).toFixed(1) + '" cy="' + (dasar - tinggi + 12).toFixed(1) + '" r="3" fill="#fffbe0"/>';
+          }
+        }
+      }
+      el.innerHTML = '<svg viewBox="0 0 2600 200" preserveAspectRatio="none">' + s + '</svg>';
+    }
+    var j = document.querySelector('.tribun.jauh'), d = document.querySelector('.tribun.dekat');
+    if (j) tribun(j, 7, '#17271d', false);
+    if (d) tribun(d, 31, '#070d09', true);
+  })();
+
+  // ===== KURSOR BOLA + DUEL DENGAN BOLA LAWAN DI SCROLLBAR =====
+  // Bola menggantikan kursor dan menggelinding sesuai arah gerak; di atas tombol/tautan
+  // muncul cincin bidik merah; tahan klik = bola membesar (tendangan keras).
+  // Kursor menyentuh scrollbar: bola di scrollbar keluar sebagai bola lawan, lalu
+  // adu penalti (saling tendang, kartu dicabut) atau main operan/juggling bareng (acak).
+  (function(){
+    var mq = window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)');
+    if (!mq || !mq.matches) return; // HP/tablet tidak punya kursor
+    var kurangGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var thumb = document.getElementById('gulir-jet');
+    var bar = document.getElementById('gulir');
+
+    function bolaHtml(){
+      return '<span class="bayang"></span><span class="cincin-bidik"></span>' +
+        '<div class="spin"><svg viewBox="0 0 64 64"><use href="#bola"/></svg></div>';
+    }
+
+    var jetEl = document.createElement('div');
+    jetEl.id = 'kursor-jet'; jetEl.setAttribute('aria-hidden', 'true');
+    jetEl.innerHTML = bolaHtml();
+    var kawan = document.createElement('div');
+    kawan.id = 'jet-kawan'; kawan.setAttribute('aria-hidden', 'true');
+    kawan.innerHTML = bolaHtml();
+    var cv = document.createElement('canvas');
+    cv.id = 'kursor-jejak';
+    document.body.appendChild(kawan);
+    document.body.appendChild(cv);
+    document.body.appendChild(jetEl);
+
+    var cx = cv.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    function ukur(){
+      cv.width = Math.floor(window.innerWidth * dpr);
+      cv.height = Math.floor(window.innerHeight * dpr);
+      cv.style.width = window.innerWidth + 'px';
+      cv.style.height = window.innerHeight + 'px';
+      cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    ukur();
+    window.addEventListener('resize', ukur);
+
+    var spinEl = jetEl.querySelector('.spin'), spinK = kawan.querySelector('.spin');
+    var mx = -100, my = -100, px = -100, py = -100, vx = 0, vy = 0, putar = 0;
+    var turbo = false, tampil = false, bersih = true;
+    var partikel = [], cincin = [], rudal = [], kartu = [], hantu = [];
+    var tLama = performance.now();
+    var R_BOLA = 18;
+
+    // status duel
+    var duel = null, dwell = 0, cooldown = 1.5, rusak = 0, wasRusak = false;
+    var gx = 0, gy = 0, gPutar = 0, gHidup = false, gLoncat = 0;
+
+    function pusatKursor(){ return { x: px, y: py }; }
+    function pusatKawan(){ return { x: gx, y: gy - gLoncat }; }
+    function pusatThumb(){
+      var r = thumb.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: r.width > 0 };
+    }
+    function posisi(el, x, y, sudut, skala){
+      el.style.transform = 'translate3d(' + (x - 30).toFixed(1) + 'px,' + (y - 30).toFixed(1) + 'px,0)';
+      el.querySelector('.spin').style.transform = 'rotate(' + sudut.toFixed(1) + 'deg) scale(' + (skala || 1) + ')';
+    }
+
+    // pelanggaran: kartu dicabut + konfeti
+    function ledak(x, y){
+      kartu.push({ x: x, y: y - 10, l: 0, m: 1.1, merah: Math.random() < 0.35, rot: (Math.random() - 0.5) * 30 });
+      cincin.push({ x: x, y: y, l: 0, m: 0.6 });
+      var warna = ['#f5c400', '#d7263d', '#ffffff', '#2f8f4a'];
+      for (var i = 0; i < 34; i++){
+        var a = Math.random() * 6.2832, sp = 90 + Math.random() * 300;
+        partikel.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60, l: 0, m: 0.5 + Math.random() * 0.6,
+                        r: 2 + Math.random() * 2.5, w: warna[Math.floor(Math.random() * 4)], rot: Math.random() * 6 });
+      }
+      mainkan('peluit');
+    }
+    function tembakRudal(dari, ke){
+      rudal.push({ x: dari.x, y: dari.y, ke: ke, ang: 0, putar: 0 });
+      mainkan('tendang');
+    }
+
+    // ----- siklus duel -----
+    function mulaiDuel(S){
+      var tipe = Math.random() < 0.5 ? 'tembak' : 'manuver';
+      duel = { tipe: tipe, t: 0, fase: 'keluar', sx: S.x, sy: S.y, dihit: { k: false, w: false } };
+      gx = duel.sx; gy = duel.sy; gHidup = true; gLoncat = 0;
+      if (tipe === 'tembak'){
+        duel.tx = Math.max(60, Math.min(window.innerWidth - 60, px - 200));
+        duel.ty = Math.max(60, Math.min(window.innerHeight - 130, py - 40));
+      }
+      thumb.classList.add('pergi');
+      kawan.style.opacity = '1';
+    }
+    function bersihkanDuel(){
+      duel = null; rudal.length = 0; gHidup = false; gLoncat = 0;
+      kawan.style.opacity = '0';
+      thumb.classList.remove('pergi');
+    }
+    function selesaiDuel(){
+      var S = pusatThumb();
+      if (S.ok) cincin.push({ x: S.x, y: S.y, l: 0, m: 0.5 });
+      bersihkanDuel(); cooldown = 6;
+    }
+    function akhiriDuel(){ bersihkanDuel(); cooldown = 3; }
+    function matikanKawan(){ gHidup = false; kawan.style.opacity = '0'; }
+
+    function jalankanDuel(dt){
+      var d = duel; d.t += dt;
+      if (gulirSeret || !tampil){ akhiriDuel(); return; }
+      var C = pusatKursor();
+      var gxLama = gx;
+
+      if (d.tipe === 'tembak'){ // adu penalti: bidik, saling tendang, kartu dicabut
+        if (d.fase === 'keluar'){
+          var u = Math.min(1, d.t / 0.8), e = 1 - Math.pow(1 - u, 3);
+          gx = d.sx + (d.tx - d.sx) * e; gy = d.sy + (d.ty - d.sy) * e;
+          if (u >= 1){ d.fase = 'kunci'; d.t0 = d.t; }
+        } else if (d.fase === 'kunci'){
+          gLoncat = Math.abs(Math.sin(d.t * 9)) * 6; // memantul-mantul siap ditendang
+          if (d.t - d.t0 >= 0.6){ d.fase = 'tembak'; d.t1 = d.t; gLoncat = 0; }
+        } else {
+          if (!d.f1){ d.f1 = true; tembakRudal({ x: px, y: py }, 'kawan'); }
+          if (!d.f2 && d.t - d.t1 >= 0.12){ d.f2 = true; tembakRudal({ x: gx, y: gy }, 'kursor'); }
+          if (d.t - d.t1 > 2.4){ // jaga-jaga: paksa kena
+            if (!d.dihit.k){ ledak(C.x, C.y); rusak = 1.2; d.dihit.k = true; }
+            if (!d.dihit.w){ var K = pusatKawan(); ledak(K.x, K.y); matikanKawan(); d.dihit.w = true; }
+            rudal.length = 0;
+          }
+          if (d.dihit.k && d.dihit.w){
+            if (!d.tSelesai) d.tSelesai = d.t;
+            if (d.t - d.tSelesai > 1.1) selesaiDuel();
+          }
+        }
+      } else { // operan: bola lawan menempel lalu juggling
+        var Fx = px - 64, Fy = py + 10, kk = Math.min(1, dt * 7);
+        if (d.fase === 'keluar'){
+          gx += (Fx - gx) * kk; gy += (Fy - gy) * kk;
+          if (d.t > 0.9){ d.fase = 'putar'; d.t0 = d.t; cincin.push({ x: C.x, y: C.y, l: 0, m: 0.5 }); mainkan('tendang'); }
+        } else if (d.fase === 'putar'){
+          var s = d.t - d.t0;
+          gx += (Fx - gx) * kk; gy += (Fy - gy) * kk;
+          gLoncat = Math.abs(Math.sin(s / 2.1 * 4 * Math.PI)) * 46; // empat kali juggling
+          gPutar += dt * 720;
+          if (s >= 2.1){ d.fase = 'pulang'; d.t0 = d.t; gLoncat = 0; }
+        } else { // kembali ke scrollbar
+          var S = pusatThumb(), Tx = S.x, Ty = S.y;
+          gx += (Tx - gx) * Math.min(1, dt * 5); gy += (Ty - gy) * Math.min(1, dt * 5);
+          if (Math.sqrt((Tx - gx) * (Tx - gx) + (Ty - gy) * (Ty - gy)) < 14 || d.t - d.t0 > 1.6) selesaiDuel();
+        }
+      }
+      gPutar += (gx - gxLama) / R_BOLA * 57.3;
+    }
+
+    function updateRudal(dt){
+      for (var i = rudal.length - 1; i >= 0; i--){
+        var r = rudal[i];
+        var T = r.ke === 'kawan' ? pusatKawan() : pusatKursor();
+        var dx = T.x - r.x, dy = T.y - r.y, jarak = Math.sqrt(dx * dx + dy * dy);
+        if (jarak < 18 || !duel){
+          rudal.splice(i, 1);
+          if (duel){
+            ledak(T.x, T.y);
+            if (r.ke === 'kursor'){ rusak = 1.2; duel.dihit.k = true; }
+            else { matikanKawan(); duel.dihit.w = true; }
+          }
+          continue;
+        }
+        r.ang = Math.atan2(dy, dx); r.putar += dt * 20;
+        r.x += dx / jarak * 620 * dt; r.y += dy / jarak * 620 * dt;
+      }
+    }
+
+    // ----- input mouse -----
+    document.addEventListener('mousemove', function(e){
+      mx = e.clientX; my = e.clientY;
+      if (!tampil){
+        tampil = true; px = mx; py = my; vx = 0; vy = 0;
+        jetEl.style.opacity = '1';
+        document.documentElement.classList.add('kursor-jet');
+      }
+      var t = e.target;
+      jetEl.classList.toggle('klik', !!(t && t.closest && t.closest('a,button,summary,figure img')));
+    });
+    document.documentElement.addEventListener('mouseleave', function(){
+      tampil = false; jetEl.style.opacity = '0'; turbo = false; jetEl.classList.remove('zoom');
+    });
+    document.addEventListener('mousedown', function(){
+      if (!tampil) return;
+      turbo = true; jetEl.classList.add('zoom');
+      if (!kurangGerak){
+        cincin.push({ x: px, y: py, l: 0, m: 0.5 });
+        for (var i = 0; i < 10; i++){ // cipratan rumput
+          var a = Math.PI * (1 + Math.random()), sp = 80 + Math.random() * 160;
+          partikel.push({ x: px, y: py + 12, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, l: 0, m: 0.5, r: 2, w: Math.random() < 0.5 ? '#2f8f4a' : '#5cb85c', rot: 0, rumput: true });
+        }
+      }
+    });
+    function lepas(){ if (turbo){ turbo = false; jetEl.classList.remove('zoom'); } }
+    document.addEventListener('mouseup', lepas);
+    window.addEventListener('blur', lepas);
+
+    function gambarKartu(k, u){
+      var naik = Math.min(1, u * 4), a = u > 0.75 ? (1 - u) / 0.25 : 1;
+      cx.save();
+      cx.translate(k.x, k.y - naik * 26);
+      cx.rotate((k.rot + (1 - naik) * 40) * Math.PI / 180);
+      cx.scale(0.4 + naik * 0.6, 0.4 + naik * 0.6);
+      cx.globalAlpha = a;
+      cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fillRect(-11, -14, 26, 36);
+      cx.fillStyle = k.merah ? '#d7263d' : '#f5c400'; cx.fillRect(-13, -17, 26, 36);
+      cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(-13, -17, 26, 6);
+      cx.restore();
+    }
+
+    function frame(t){
+      var dt = Math.min(0.05, (t - tLama) / 1000); tLama = t;
+      cooldown -= dt;
+
+      // riuh penonton: makin cepat bola bergerak makin keras, diam = senyap, tahan klik = paling keras
+      var tv = 0;
+      if (suaraAktif && tampil){
+        var kc = Math.sqrt(vx * vx + vy * vy);
+        if (turbo) tv = 0.6; else if (kc > 1.2) tv = Math.min(0.5, kc / 28 * 0.7);
+      }
+      jetVol += (tv - jetVol) * Math.min(1, dt * (tv > jetVol ? 9 : 3));
+      if (jetSuara) jetSuara.volume = Math.max(0, Math.min(1, jetVol));
+
+      if (tampil){
+        var dx = mx - px, dy = my - py; px = mx; py = my;
+        vx += (dx - vx) * 0.25; vy += (dy - vy) * 0.25;
+        var kec = Math.sqrt(vx * vx + vy * vy);
+        var gaya = Math.min(1, kec / 28);
+
+        // bola menggelinding: sudut putar = jarak tempuh / jari-jari
+        if (!kurangGerak) putar += (dx + dy * 0.35) / R_BOLA * 57.3;
+        posisi(jetEl, px, py, putar, turbo ? 1.25 : 1);
+
+        // bayangan bola saat bergerak cepat
+        if (!kurangGerak && kec > 6) hantu.push({ x: px, y: py, l: 0, m: 0.25, a: gaya });
+        if (hantu.length > 40) hantu.splice(0, hantu.length - 40);
+
+        // kena tendangan: bola berkedip (tetap terlihat supaya kursor tidak hilang)
+        if (rusak > 0){
+          rusak -= dt; wasRusak = true;
+          jetEl.style.opacity = (Math.floor(t / 80) % 2) ? '0.35' : '1';
+        } else if (wasRusak){ wasRusak = false; jetEl.style.opacity = '1'; }
+
+        // sentuh scrollbar = tantangan bola lawan
+        if (!duel && cooldown <= 0 && !gulirSeret && !kurangGerak){
+          var br = bar.getBoundingClientRect();
+          if (br.width > 0 && px >= br.left - 4 && px <= br.right + 4 && py >= br.top - 4 && py <= br.bottom + 4) dwell += dt;
+          else dwell = Math.max(0, dwell - dt * 2);
+          if (dwell > 0.28){
+            dwell = 0;
+            var S0 = pusatThumb();
+            if (S0.ok) mulaiDuel(S0);
+          }
+        } else if (!duel) dwell = 0;
+      }
+
+      if (duel) jalankanDuel(dt);
+      if (rudal.length) updateRudal(dt);
+
+      // bola lawan
+      if (duel && gHidup){
+        posisi(kawan, gx, gy - gLoncat, gPutar, 1);
+        if (!kurangGerak && duel.tipe === 'manuver' && duel.fase === 'putar') hantu.push({ x: gx, y: gy - gLoncat, l: 0, m: 0.3, a: 0.6, merah: true });
+      }
+      if (partikel.length > 420) partikel.splice(0, partikel.length - 420);
+
+      // ----- gambar efek -----
+      var kunci = duel && duel.tipe === 'tembak' && duel.fase === 'kunci';
+      if (partikel.length || cincin.length || rudal.length || kartu.length || hantu.length || kunci || rusak > 0){
+        cx.clearRect(0, 0, window.innerWidth, window.innerHeight); bersih = false;
+
+        cx.globalCompositeOperation = 'source-over';
+        for (var h = hantu.length - 1; h >= 0; h--){
+          var gh = hantu[h]; gh.l += dt;
+          if (gh.l >= gh.m){ hantu.splice(h, 1); continue; }
+          var uh = gh.l / gh.m;
+          cx.fillStyle = gh.merah ? 'rgba(215,38,61,' + ((1 - uh) * 0.25).toFixed(3) + ')'
+                                  : 'rgba(255,255,255,' + ((1 - uh) * 0.45 * gh.a).toFixed(3) + ')';
+          cx.beginPath(); cx.arc(gh.x, gh.y, R_BOLA * (1 - uh * 0.3), 0, 6.2832); cx.fill();
+        }
+        for (var j = partikel.length - 1; j >= 0; j--){
+          var p = partikel[j]; p.l += dt;
+          if (p.l >= p.m){ partikel.splice(j, 1); continue; }
+          p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.95; p.vy = p.vy * 0.95 + 320 * dt; p.rot += dt * 9;
+          var u2 = p.l / p.m;
+          cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot);
+          cx.globalAlpha = 1 - u2; cx.fillStyle = p.w;
+          if (p.rumput) cx.fillRect(-0.8, -p.r * 2, 1.6, p.r * 4);
+          else cx.fillRect(-p.r, -p.r * 0.6, p.r * 2, p.r * 1.2);
+          cx.restore();
+        }
+        for (var k2 = kartu.length - 1; k2 >= 0; k2--){
+          var kk2 = kartu[k2]; kk2.l += dt;
+          if (kk2.l >= kk2.m){ kartu.splice(k2, 1); continue; }
+          gambarKartu(kk2, kk2.l / kk2.m);
+        }
+        cx.globalAlpha = 1;
+        for (var q2 = cincin.length - 1; q2 >= 0; q2--){
+          var c = cincin[q2]; c.l += dt;
+          if (c.l >= c.m){ cincin.splice(q2, 1); continue; }
+          var w = c.l / c.m;
+          cx.strokeStyle = 'rgba(245,196,0,' + ((1 - w) * 0.85).toFixed(3) + ')';
+          cx.lineWidth = 3 * (1 - w) + 0.5;
+          cx.beginPath(); cx.arc(c.x, c.y, 20 + w * 60, 0, 6.2832); cx.stroke();
+        }
+        for (var m = 0; m < rudal.length; m++){ // bola kecil melesat dengan garis laju
+          var ru = rudal[m];
+          cx.save(); cx.translate(ru.x, ru.y); cx.rotate(ru.ang);
+          cx.strokeStyle = 'rgba(255,255,255,.6)'; cx.lineWidth = 2; cx.lineCap = 'round';
+          cx.beginPath(); cx.moveTo(-34, -5); cx.lineTo(-12, -5); cx.moveTo(-40, 0); cx.lineTo(-12, 0); cx.moveTo(-30, 5); cx.lineTo(-12, 5); cx.stroke();
+          cx.rotate(ru.putar);
+          cx.fillStyle = '#fff'; cx.strokeStyle = '#14181c'; cx.lineWidth = 1.6;
+          cx.beginPath(); cx.arc(0, 0, 8, 0, 6.2832); cx.fill(); cx.stroke();
+          cx.fillStyle = '#14181c'; cx.beginPath();
+          for (var v = 0; v < 5; v++){ var av = v * 1.2566 - 1.5708; cx[v ? 'lineTo' : 'moveTo'](Math.cos(av) * 3.2, Math.sin(av) * 3.2); }
+          cx.closePath(); cx.fill();
+          cx.restore();
+        }
+        if (rusak > 0){ // bintang pusing berputar di atas bola
+          for (var b2 = 0; b2 < 3; b2++){
+            var an = t / 220 + b2 * 2.094, sx = px + Math.cos(an) * 30, sy = py - 26 + Math.sin(an) * 8;
+            cx.fillStyle = 'rgba(245,196,0,.95)';
+            cx.beginPath(); cx.moveTo(sx, sy - 6); cx.lineTo(sx + 1.6, sy - 1.6); cx.lineTo(sx + 6, sy); cx.lineTo(sx + 1.6, sy + 1.6);
+            cx.lineTo(sx, sy + 6); cx.lineTo(sx - 1.6, sy + 1.6); cx.lineTo(sx - 6, sy); cx.lineTo(sx - 1.6, sy - 1.6); cx.closePath(); cx.fill();
+          }
+        }
+        if (kunci){ // penanda bidikan penalti
+          var pul = 30 + Math.sin(t / 60) * 3;
+          var pts = [pusatKursor(), pusatKawan()];
+          cx.strokeStyle = 'rgba(215,38,61,.95)'; cx.lineWidth = 2;
+          for (var z = 0; z < 2; z++){
+            var P = pts[z];
+            cx.beginPath(); cx.arc(P.x, P.y, pul, 0, 6.2832); cx.stroke();
+            cx.beginPath();
+            cx.moveTo(P.x - pul - 6, P.y); cx.lineTo(P.x - pul + 6, P.y);
+            cx.moveTo(P.x + pul - 6, P.y); cx.lineTo(P.x + pul + 6, P.y);
+            cx.moveTo(P.x, P.y - pul - 6); cx.lineTo(P.x, P.y - pul + 6);
+            cx.moveTo(P.x, P.y + pul - 6); cx.lineTo(P.x, P.y + pul + 6);
+            cx.stroke();
+          }
+          cx.setLineDash([5, 7]); cx.strokeStyle = 'rgba(255,255,255,.6)';
+          cx.beginPath(); cx.moveTo(pts[0].x, pts[0].y); cx.lineTo(pts[1].x, pts[1].y); cx.stroke();
+          cx.setLineDash([]);
+        }
+      } else if (!bersih){
+        cx.clearRect(0, 0, window.innerWidth, window.innerHeight); bersih = true;
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  // ===== SCROLLBAR BUATAN SENDIRI =====
+  // Scrollbar bawaan browser disembunyikan. Roda mouse, sentuhan, dan keyboard tetap bisa dipakai;
+  // bola di sisi kanan bisa diseret, klik pada jalurnya meloncat ke posisi itu,
+  // dan bola menggelinding mengikuti arah scroll.
+  (function(){
+    var g = document.getElementById('gulir');
+    var rel = document.getElementById('gulir-rel');
+    var isi = document.getElementById('gulir-isi');
+    var jet = document.getElementById('gulir-jet');
+    var bola = jet.querySelector('.gj-svg');
+    var doc = document.documentElement;
+    var seret = false, yLama = 0, tTurbo = null;
+
+    function clamp(n){ return Math.max(0, Math.min(1, n)); }
+    function maks(){ return doc.scrollHeight - window.innerHeight; }
+
+    function perbarui(){
+      var m = maks();
+      g.classList.toggle('ada', m > 8);
+      if (m <= 8) return;
+      var frac = clamp((window.scrollY || window.pageYOffset) / m);
+      var ruang = rel.clientHeight - jet.offsetHeight;
+      var atas = frac * ruang;
+      jet.style.top = atas + 'px';
+      isi.style.height = (atas + jet.offsetHeight / 2) + 'px';
+      bola.style.transform = 'rotate(' + (atas / 13 * 57.3).toFixed(1) + 'deg)';
+    }
+    function turboOn(){
+      g.classList.add('turbo');
+      clearTimeout(tTurbo);
+      tTurbo = setTimeout(function(){ if (!seret) g.classList.remove('turbo'); }, 180);
+    }
+    function keFrac(clientY, lembut){
+      var r = rel.getBoundingClientRect();
+      var ruang = r.height - jet.offsetHeight;
+      if (ruang <= 0) return;
+      var f = clamp((clientY - r.top - jet.offsetHeight / 2) / ruang);
+      if (lembut) window.scrollTo({ top: f * maks(), behavior: 'smooth' });
+      else window.scrollTo(0, f * maks());
+    }
+
+    window.addEventListener('scroll', function(){
+      var y = window.scrollY || window.pageYOffset;
+      if (y > yLama + 1) jet.classList.remove('naik');
+      else if (y < yLama - 1) jet.classList.add('naik');
+      if (Math.abs(y - yLama) > 30) turboOn();
+      yLama = y;
+      perbarui();
+    }, { passive: true });
+    window.addEventListener('resize', perbarui);
+    window.addEventListener('load', perbarui);
+
+    jet.addEventListener('pointerdown', function(e){
+      seret = true; gulirSeret = true;
+      doc.style.scrollBehavior = 'auto'; // seret harus langsung, tanpa animasi halus
+      try { jet.setPointerCapture(e.pointerId); } catch (x) {}
+      g.classList.add('turbo');
+      e.preventDefault(); e.stopPropagation();
+    });
+    jet.addEventListener('pointermove', function(e){ if (seret) keFrac(e.clientY, false); });
+    function selesai(){
+      if (!seret) return;
+      seret = false; gulirSeret = false; doc.style.scrollBehavior = '';
+      g.classList.remove('turbo');
+    }
+    jet.addEventListener('pointerup', selesai);
+    jet.addEventListener('pointercancel', selesai);
+
+    g.addEventListener('pointerdown', function(e){
+      if (jet.contains(e.target)) return;
+      keFrac(e.clientY, true); turboOn();
+    });
+
+    perbarui();
+  })();
+
+  // ===== SUARA =====
+  // Ganti nama file di sini jika berbeda. Semua file diletakkan sefolder dengan halaman ini.
+  var SUARA = {
+    backsound: 'backsound.mp3',       // musik latar (diputar berulang)
+    jet:       'sorak.mp3',           // riuh penonton, volumenya mengikuti kecepatan bola/kursor
+    tendang:   'tendang.mp3',         // bola ditendang
+    peluit:    'peluit.mp3',          // peluit pelanggaran
+    kartu:     'kartu.mp3',           // kartu dicabut
+    gol:       'gol.mp3',             // bola masuk gawang
+    akhir:     'peluit-panjang.mp3'   // peluit panjang
+  };
+
+  var suaraAktif = false, bgm = null, jetSuara = null, jetVol = 0, ctxAudio = null, dimatikanUser = false;
+  try { dimatikanUser = localStorage.getItem('suaraMatiHataf') === '1'; } catch (e) {}
+  var tombolSuara = document.getElementById('tombol-suara');
+
+  function ambilCtx(){
+    if (!ctxAudio){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) ctxAudio = new AC();
+    }
+    if (ctxAudio && ctxAudio.state === 'suspended') ctxAudio.resume();
+    return ctxAudio;
+  }
+  function derau(ctx, detik){
+    var n = Math.floor(ctx.sampleRate * detik);
+    var buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    var src = ctx.createBufferSource(); src.buffer = buf; return src;
+  }
+  function tiup(ctx, t, mulai, lama){ // satu tiupan peluit: nada tinggi bergetar
+    var o = ctx.createOscillator(), lfo = ctx.createOscillator(), lg = ctx.createGain(), og = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 2900;
+    lfo.frequency.value = 34; lg.gain.value = 110; lfo.connect(lg); lg.connect(o.frequency);
+    og.gain.setValueAtTime(0.0001, t + mulai); og.gain.exponentialRampToValueAtTime(0.14, t + mulai + 0.02);
+    og.gain.setValueAtTime(0.14, t + mulai + lama - 0.03); og.gain.exponentialRampToValueAtTime(0.0001, t + mulai + lama);
+    o.connect(og); og.connect(ctx.destination);
+    o.start(t + mulai); lfo.start(t + mulai); o.stop(t + mulai + lama + 0.02); lfo.stop(t + mulai + lama + 0.02);
+  }
+  function sorakSintesis(ctx, t, lama, kuat){
+    var n = derau(ctx, lama), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = 'bandpass'; f.frequency.value = 1000; f.Q.value = 0.6;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(kuat, t + 0.3); g.gain.exponentialRampToValueAtTime(0.001, t + lama);
+    n.connect(f); f.connect(g); g.connect(ctx.destination); n.start(t); n.stop(t + lama);
+  }
+  // Suara cadangan buatan sendiri, dipakai jika file suara belum ada
+  function sintesis(nama){
+    var ctx = ambilCtx(); if (!ctx) return;
+    var t = ctx.currentTime, o, og;
+    if (nama === 'peluit'){ tiup(ctx, t, 0, 0.16); tiup(ctx, t, 0.26, 0.36); }
+    else if (nama === 'akhir'){ tiup(ctx, t, 0, 0.22); tiup(ctx, t, 0.32, 0.22); tiup(ctx, t, 0.66, 1.2); }
+    else if (nama === 'tendang' || nama === 'kartu'){
+      o = ctx.createOscillator(); og = ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(nama === 'kartu' ? 420 : 150, t); o.frequency.exponentialRampToValueAtTime(50, t + 0.18);
+      og.gain.setValueAtTime(0.8, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + 0.22);
+    } else { sorakSintesis(ctx, t, 2.6, 0.5); } // gol
+  }
+  function mainkan(nama){
+    if (!suaraAktif) return;
+    var a = new Audio(SUARA[nama]);
+    a.volume = nama === 'gol' || nama === 'akhir' ? 0.9 : (nama === 'peluit' ? 0.5 : 0.7);
+    var cadangan = false;
+    function pakaiSintesis(){ if (cadangan) return; cadangan = true; sintesis(nama); }
+    a.addEventListener('error', pakaiSintesis);
+    var pr = a.play();
+    if (pr && pr.catch) pr.catch(pakaiSintesis);
+  }
+
+  function perbaruiTombol(){
+    tombolSuara.classList.toggle('mati', !suaraAktif);
+    tombolSuara.setAttribute('aria-pressed', suaraAktif ? 'true' : 'false');
+    tombolSuara.querySelector('.teks').textContent = suaraAktif ? 'Suara nyala' : 'Suara mati';
+  }
+  function nyalakanSuara(){
+    suaraAktif = true; ambilCtx();
+    if (!bgm){ bgm = new Audio(SUARA.backsound); bgm.loop = true; bgm.volume = 0.3; }
+    if (!jetSuara){ jetSuara = new Audio(SUARA.jet); jetSuara.loop = true; jetSuara.volume = 0; }
+    var pr = bgm.play();
+    if (pr && pr.catch) pr.catch(function(){});
+    var pj = jetSuara.play(); // mulai senyap; volume diatur oleh gerak kursor
+    if (pj && pj.catch) pj.catch(function(){});
+    perbaruiTombol();
+  }
+  function matikanSuara(){
+    suaraAktif = false; if (bgm) bgm.pause(); if (jetSuara) jetSuara.pause(); jetVol = 0; perbaruiTombol();
+  }
+  function simpanSuara(mati){ try { localStorage.setItem('suaraMatiHataf', mati ? '1' : '0'); } catch (e) {} }
+
+  tombolSuara.addEventListener('click', function(){
+    if (suaraAktif){ matikanSuara(); simpanSuara(true); }
+    else { nyalakanSuara(); simpanSuara(false); }
+  });
+
+  // Browser melarang suara otomatis sebelum pengunjung menyentuh atau mengklik halaman,
+  // jadi suara dimulai pada interaksi pertama (kecuali sudah pernah dimatikan).
+  function mulaiPertama(e){
+    document.removeEventListener('pointerdown', mulaiPertama);
+    document.removeEventListener('keydown', mulaiPertama);
+    document.removeEventListener('touchend', mulaiPertama);
+    if (!dimatikanUser && !suaraAktif && !tombolSuara.contains(e.target)) nyalakanSuara();
+  }
+  document.addEventListener('pointerdown', mulaiPertama);
+  document.addEventListener('keydown', mulaiPertama);
+  document.addEventListener('touchend', mulaiPertama);
+
+  (function(){
+    var kurangGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var hero = document.getElementById('atas');
+    var progres = document.getElementById('progres');
+    var menit = document.getElementById('menit');
+    var lapisan = [].slice.call(document.querySelectorAll('.tribun'));
+
+    function clamp(n){ return Math.max(0, Math.min(1, n)); }
+
+    // Siapkan jalur: isi garis, bola menggelinding, bola tendangan, dan gawang di ujung
+    var agenHero = hero.querySelector('.agen');
+    var SVG_BOLA = '<svg viewBox="0 0 64 64"><use href="#bola"/></svg>';
+
+    var rutes = [].slice.call(document.querySelectorAll('.rute')).map(function(el){
+      var isi = document.createElement('div'); isi.className = 'rute-isi'; isi.setAttribute('aria-hidden','true');
+      var jet = document.createElement('div'); jet.className = 'rute-jet'; jet.setAttribute('aria-hidden','true');
+      jet.innerHTML = SVG_BOLA;
+      var peluru = document.createElement('div'); peluru.className = 'peluru'; peluru.setAttribute('aria-hidden','true');
+      peluru.innerHTML = SVG_BOLA;
+      el.appendChild(isi); el.appendChild(jet); el.appendChild(peluru);
+      var sasaran = el.nextElementSibling;
+      if (sasaran && !sasaran.classList.contains('sasaran')) sasaran = null;
+      return { el: el, isi: isi, jet: jet, bola: jet.querySelector('svg'), peluru: peluru, sasaran: sasaran, sudah: false, anim: null,
+               items: [].slice.call(el.querySelectorAll('ol.langkah > li')) };
+    });
+
+    // Bola di ujung jalur ditendang melengkung ke tengah gawang
+    function tembak(r){
+      if (r.sudah || r.anim || !r.sasaran) return;
+      if (kurangGerak || !r.peluru.animate){ r.sasaran.classList.add('kena'); r.sudah = true; mainkan('gol'); return; }
+      var ikon = r.sasaran.querySelector('.sasaran-ikon');
+      var rr = r.el.getBoundingClientRect();
+      var ir = ikon.getBoundingClientRect();
+      var awal = rr.height + 8;
+      // titik masuk: tengah jaring gawang (66,46 dari 132x84)
+      var tujuanX = ir.left + ir.width * (66 / 132);
+      var tujuanY = ir.top + ir.height * (46 / 84);
+      var dx = tujuanX - (rr.left + 20);
+      var jarak = tujuanY - (rr.top + awal + 13); // pusat bola tepat di jaring
+      if (jarak < 10) jarak = 10;
+      r.peluru.style.top = awal + 'px';
+      r.peluru.style.display = 'block';
+      mainkan('tendang');
+      r.anim = r.peluru.animate(
+        [{ transform: 'translate(-50%,0) rotate(0deg) scale(1)' },
+         { transform: 'translate(calc(-50% + ' + (dx * 0.45) + 'px),' + (jarak * 0.2 - 60) + 'px) rotate(540deg) scale(1.15)', offset: 0.5 },
+         { transform: 'translate(calc(-50% + ' + dx + 'px),' + jarak + 'px) rotate(1080deg) scale(.7)' }],
+        { duration: 950, easing: 'cubic-bezier(.3,0,.7,1)' }
+      );
+      var ledakEl = r.sasaran.querySelector('.ledak');
+      r.anim.onfinish = function(){
+        r.peluru.style.display = 'none'; r.anim = null; r.sudah = true;
+        if (ledakEl){
+          ledakEl.style.left = (tujuanX - ir.left) + 'px';
+          ledakEl.style.top = (tujuanY - ir.top) + 'px';
+        }
+        r.sasaran.classList.add('kena');
+        mainkan('gol');
+        setTimeout(function(){ if (r.sudah) mainkan('akhir'); }, 900);
+      };
+    }
+    function isiUlang(r){
+      if (r.anim){ r.anim.onfinish = null; r.anim.cancel(); r.anim = null; }
+      r.peluru.style.display = 'none';
+      if (r.sasaran) r.sasaran.classList.remove('kena');
+      r.sudah = false;
+    }
+
+    var yLama = window.scrollY || window.pageYOffset || 0;
+    var arah = 1; // 1 = scroll turun, -1 = scroll naik (wasit berbalik)
+
+    function perbarui(){
+      var y = window.scrollY || window.pageYOffset;
+      var vh = window.innerHeight;
+      var tinggiDoc = document.documentElement.scrollHeight - vh;
+      var frac = tinggiDoc > 0 ? clamp(y / tinggiDoc) : 1;
+
+      if (Math.abs(y - yLama) > 2){ arah = y > yLama ? 1 : -1; yLama = y; }
+      agenHero.classList.toggle('balik', arah < 0);
+
+      progres.style.width = (frac * 100) + '%';
+      var mnt = Math.round(frac * 90);
+      menit.textContent = (mnt < 10 ? '0' : '') + mnt + "'";
+
+      if (!kurangGerak){
+        var s = clamp(y / (hero.offsetHeight * 1.1));
+        hero.style.setProperty('--s', s.toFixed(4));
+        lapisan.forEach(function(a){
+          var v = parseFloat(a.getAttribute('data-v')) || 0.2;
+          a.style.transform = 'translate3d(' + (-y * v).toFixed(1) + 'px,0,0)';
+        });
+      }
+
+      // Garis acuan turun dari 45% ke 95% tinggi layar seiring scroll,
+      // sehingga ujung jalur pasti terkejar saat halaman sudah mentok di bawah.
+      var acuan = vh * (0.45 + 0.5 * frac);
+
+      rutes.forEach(function(r){
+        var rect = r.el.getBoundingClientRect();
+        var p = clamp((acuan - rect.top) / rect.height);
+        if (tinggiDoc > 0 && y >= tinggiDoc - 4) p = 1; // sudah di dasar halaman
+        var h = p * rect.height;
+        r.isi.style.height = h + 'px';
+        r.jet.style.top = h + 'px';
+        r.bola.style.transform = 'rotate(' + (h / 20 * 57.3).toFixed(1) + 'deg)'; // bola menggelinding
+        r.items.forEach(function(li){
+          if (li.offsetTop + 34 <= h) li.classList.add('lewat');
+          else li.classList.remove('lewat');
+        });
+        if (p >= 0.985 && arah > 0) tembak(r);
+        else if (p < 0.9 && (r.sudah || r.anim)) isiUlang(r);
+      });
+    }
+
+    var menunggu = false;
+    function jadwal(){
+      if (menunggu) return;
+      menunggu = true;
+      requestAnimationFrame(function(){ menunggu = false; perbarui(); });
+    }
+    window.addEventListener('scroll', jadwal, { passive: true });
+    window.addEventListener('resize', jadwal);
+    window.addEventListener('load', jadwal);
+    perbarui();
+
+    // Kartu muncul saat masuk layar
+    var kartu = [].slice.call(document.querySelectorAll('.muncul'));
+    if ('IntersectionObserver' in window && !kurangGerak){
+      var io = new IntersectionObserver(function(daftar){
+        daftar.forEach(function(d){
+          if (d.isIntersecting){ d.target.classList.add('tampil'); io.unobserve(d.target); }
+        });
+      }, { threshold: 0.12 });
+      kartu.forEach(function(k){ io.observe(k); });
+    } else {
+      kartu.forEach(function(k){ k.classList.add('tampil'); });
+    }
+  })();
+
+  // Tombol salin alamat
+  document.querySelectorAll('button[data-salin]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var teks = b.getAttribute('data-salin');
+      var selesai = function(){
+        var lama = b.textContent; b.textContent = 'Tersalin';
+        setTimeout(function(){ b.textContent = lama; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(teks).then(selesai, function(){ prompt('Salin alamat ini:', teks); });
+      } else { prompt('Salin alamat ini:', teks); }
+    });
+  });
+
+  // Klik foto untuk memperbesar
+  var pembesar = document.getElementById('pembesar');
+  var fotoBesar = pembesar.querySelector('img');
+  document.querySelectorAll('figure img').forEach(function(img){
+    img.addEventListener('click', function(){
+      fotoBesar.src = img.src; fotoBesar.alt = img.alt;
+      pembesar.classList.add('buka');
+    });
+  });
+  pembesar.addEventListener('click', function(){ pembesar.classList.remove('buka'); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') pembesar.classList.remove('buka');
+  });
+</script>
+</body>
+</html>
