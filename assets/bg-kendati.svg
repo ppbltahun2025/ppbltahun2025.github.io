@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 420" preserveAspectRatio="xMidYMax slice">
+  <!-- Latar KENDATI: siluet gedung gaya blueprint (SIMBG / PPBL). Transparan, ditumpuk di atas gradasi CSS. -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b4b91" stop-opacity=".0"/>
+      <stop offset=".55" stop-color="#0a3a72" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#061631" stop-opacity=".95"/>
+    </linearGradient>
+    <pattern id="jendela" width="18" height="22" patternUnits="userSpaceOnUse">
+      <rect x="5" y="6" width="7" height="9" rx="1" fill="#f0b429" fill-opacity=".22"/>
+    </pattern>
+  </defs>
+
+  <!-- gedung lapis belakang -->
+  <g fill="url(#g)" stroke="#7fb2ff" stroke-opacity=".22" stroke-width="1.2">
+    <path d="M0 420V250h70v-40h60v210z"/>
+    <path d="M150 420V170h90v250z"/>
+    <path d="M260 420V230l55-40 55 40v190z"/>
+    <path d="M395 420V120h40V90h40v30h40v300z"/>
+    <path d="M540 420V210h120v210z"/>
+    <path d="M680 420V150h70v-30h20v30h70v270z"/>
+    <path d="M860 420V240h100v180z"/>
+    <path d="M980 420V100h110v320z"/>
+    <path d="M1110 420V200h60l40-35 40 35v220z"/>
+    <path d="M1270 420V140h90v280z"/>
+    <path d="M1380 420V230h80v-30h50v220z"/>
+    <path d="M1525 420V180h75v240z"/>
+  </g>
+
+  <!-- jendela menyala -->
+  <g fill="url(#jendela)">
+    <rect x="152" y="180" width="86" height="240"/>
+    <rect x="397" y="130" width="116" height="290"/>
+    <rect x="682" y="160" width="156" height="260"/>
+    <rect x="982" y="110" width="106" height="310"/>
+    <rect x="1272" y="150" width="86" height="270"/>
+    <rect x="1527" y="190" width="70" height="230"/>
+  </g>
+
+  <!-- garis ukur blueprint -->
+  <g stroke="#9cc4ff" stroke-opacity=".28" stroke-width="1" fill="none" stroke-dasharray="4 6">
+    <path d="M395 70h120M395 64v12M515 64v12"/>
+    <path d="M980 80h110M980 74v12M1090 74v12"/>
+    <path d="M1600 140h-75M1525 134v12"/>
+  </g>
+  <g fill="#9cc4ff" fill-opacity=".38" font-family="Segoe UI,Arial,sans-serif" font-size="11" letter-spacing="1">
+    <text x="425" y="62">± 32.00 m</text>
+    <text x="1005" y="72">± 40.00 m</text>
+  </g>
+
+  <!-- crane -->
+  <g stroke="#f0b429" stroke-opacity=".45" stroke-width="2" fill="none">
+    <path d="M1200 420V60M1190 420V60M1190 60h170M1190 60l-60 0M1195 60l0-24M1195 36l165 24M1195 36l-65 24"/>
+    <path d="M1340 60v70" stroke-dasharray="3 4"/>
+    <rect x="1330" y="130" width="20" height="14" fill="#f0b429" fill-opacity=".35"/>
+  </g>
+
+  <!-- tanah -->
+  <rect y="408" width="1600" height="12" fill="#04101f"/>
+</svg>

@@ -146,6 +146,51 @@
       to{opacity:1; transform:translateY(0)}
     }
 
+    /* ===== LATAR ANIMASI HALAMAN AWAL (hanya home-mode) =====
+       Lapis 1 (::before): langit malam + cahaya biru/emas yang bergeser pelan + grid blueprint.
+       Lapis 2 (::after) : siluet gedung assets/bg-kendati.svg yang bergeser sangat pelan. */
+    body.home-mode{background:#061631}
+    body.home-mode::before,
+    body.home-mode::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
+    }
+    body.home-mode::before{
+      inset:-20%;
+      background:
+        radial-gradient(38% 34% at 22% 26%, rgba(11,75,145,.85), transparent 70%),
+        radial-gradient(30% 28% at 78% 18%, rgba(240,180,41,.30), transparent 70%),
+        radial-gradient(42% 40% at 70% 78%, rgba(19,104,190,.55), transparent 72%),
+        radial-gradient(26% 24% at 30% 82%, rgba(240,180,41,.16), transparent 70%),
+        linear-gradient(rgba(127,178,255,.07) 1px, transparent 1px) 0 0/44px 44px,
+        linear-gradient(90deg, rgba(127,178,255,.07) 1px, transparent 1px) 0 0/44px 44px,
+        linear-gradient(180deg, #050f22 0%, #071b3a 55%, #061631 100%);
+      animation:latarCahaya 28s ease-in-out infinite alternate;
+    }
+    body.home-mode::after{
+      background:
+        url("assets/bg-kendati.svg") 0 100%/1200px 315px repeat-x,
+        radial-gradient(120% 60% at 50% 0%, transparent 55%, rgba(2,8,18,.55) 100%);
+      animation:latarGedung 90s linear infinite;
+      opacity:.95;
+    }
+    @keyframes latarCahaya{
+      0%  {transform:translate3d(0,0,0) rotate(0deg)}
+      50% {transform:translate3d(3%,-2%,0) rotate(2deg)}
+      100%{transform:translate3d(-3%,2%,0) rotate(-2deg)}
+    }
+    @keyframes latarGedung{
+      from{background-position:0 100%, 0 0}
+      to  {background-position:-1200px 100%, 0 0}
+    }
+    @media (prefers-reduced-motion:reduce){
+      body.home-mode::before,
+      body.home-mode::after{animation:none}
+    }
+
     /* ===== Logo tunggal (lingkaran, halaman detail) ===== */
     .logo-wrap{
       width:96px;
