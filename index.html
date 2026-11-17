@@ -283,15 +283,21 @@
       background-size:cover;
       background-repeat:no-repeat;
       opacity:0;
+      z-index:1;
       transform:scale(1.02);
-      transition:opacity 2.4s ease-in-out;
+      transition:opacity 2s ease-in-out;   /* samakan dengan FADE_MS di JS */
       will-change:opacity, transform;
+      backface-visibility:hidden;
     }
-    .bg-slide.active{
-      opacity:1;
-      animation:bgZoom 10s linear forwards;
-    }
-    .bg-slide.alt.active{animation-name:bgZoomAlt}
+    /* foto yang baru masuk berada DI ATAS foto lama, lalu memudar masuk.
+       Foto lama tetap 100% terlihat sampai tertutup penuh, jadi tidak ada
+       momen layar menggelap di tengah pergantian. */
+    .bg-slide.front{z-index:2}
+    .bg-slide.show{opacity:1}
+    /* Ken Burns (zoom pelan). Animasi TIDAK dilepas dari foto yang sedang keluar,
+       supaya foto lama tidak "melompat" kembali ke ukuran awal saat memudar. */
+    .bg-slide.kb{animation:bgZoom 9s linear forwards}
+    .bg-slide.alt.kb{animation-name:bgZoomAlt}
     @keyframes bgZoom{
       from{transform:scale(1.02) translate3d(0,0,0)}
       to  {transform:scale(1.08) translate3d(-1%,-.6%,0)}
@@ -301,7 +307,7 @@
       to  {transform:scale(1.02) translate3d(0,0,0)}
     }
     @media (prefers-reduced-motion:reduce){
-      .bg-slide.active{animation:none; transform:scale(1.02)}
+      .bg-slide.kb{animation:none}
     }
 
     /* ===== Logo tunggal (lingkaran, halaman detail) ===== */
@@ -1387,78 +1393,138 @@
 </script>
 
 <script>
-  // ================== SLIDESHOW LATAR HOME (JPEG, tiap 5 detik) ==================
+  // ================== SLIDESHOW LATAR HOME (tiap 5 detik, transisi halus) ==================
   (function initBgSlideshow(){
     const GITHUB_API = "https://api.github.com/repos/ppbltahun2025/ppbltahun2025.github.io/contents/assets/background?ref=main";
     const BG_BASE    = "https://ppbltahun2025.github.io/assets/background/";
-    const INTERVAL   = 5000;   // jeda tiap foto (ms): 5000 = 5 detik
+    const INTERVAL   = 5000;    // jeda tiap foto (ms): 5000 = 5 detik
+    const FADE_MS    = 2000;    // HARUS sama dengan "transition: opacity" .bg-slide di CSS
+    const LOAD_LIMIT = 25000;   // foto yang lebih lambat dari ini dilewati dulu (tetap diunduh di latar)
+    const CACHE_KEY  = "bgFilesV2";
+    const CACHE_TTL  = 10 * 60 * 1000;   // daftar dari GitHub dianggap baru selama 10 menit
 
-    // CADANGAN: dipakai kalau daftar otomatis dari GitHub gagal dimuat.
-    // Isi dengan nama file JPEG di folder assets/background, mis. ["bg1.jpg","bg2.jpg"]
-    const FALLBACK_FILES = [];
+    // DAFTAR PASTI, tidak bergantung pada GitHub API (API ini dibatasi 60 permintaan/jam
+    // per alamat IP, jadi bisa gagal di jaringan kantor yang dipakai banyak orang).
+    // Kalau menambah foto baru ke folder assets/background, tulis juga namanya di sini.
+    const KNOWN_FILES = [
+      "WhatsApp Image 2026-11-17 at 17.09.07.jpeg",
+      "Untitled.jpg",
+      "RSGS.jpg",
+      "DJI_0487.JPG",
+      "DJI_0421.JPG"
+    ];
+    const IMG_EXT = /\.(jpe?g|png|webp|avif)$/i;
 
     const layers = [document.getElementById("bgSlideA"), document.getElementById("bgSlideB")];
     if (!layers[0] || !layers[1]) return;
 
     let urls = [];
     let index = -1;
-    let front = 0;
+    let front = 1;      // lapis yang sedang tampil di depan (awal: B, jadi foto pertama masuk ke A)
     let timer = null;
 
-    async function loadFileList(){
+    const delay = (ms, val) => new Promise(r => setTimeout(() => r(val), ms));
+    const natural = (a, b) => a.localeCompare(b, undefined, { numeric: true });
+
+    // ---- daftar file: GitHub API (cache 10 menit) + daftar pasti ----
+    function readCache(){
       try {
-        const cached = sessionStorage.getItem("bgFiles");
-        if (cached) return JSON.parse(cached);
+        const c = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
+        if (c && Date.now() - c.t < CACHE_TTL && Array.isArray(c.files)) return c.files;
       } catch(e){}
-      try {
-        const res = await fetch(GITHUB_API, { headers: { "Accept": "application/vnd.github+json" } });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        const files = data
-          .filter(f => f.type === "file" && /\.jpe?g$/i.test(f.name))
-          .map(f => f.name)
-          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-        try { sessionStorage.setItem("bgFiles", JSON.stringify(files)); } catch(e){}
-        return files;
-      } catch(err){
-        console.warn("Slideshow: gagal membaca daftar dari GitHub, memakai FALLBACK_FILES.", err);
-        return FALLBACK_FILES;
-      }
+      return null;
+    }
+    function writeCache(files){
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), files })); } catch(e){}
     }
 
+    async function loadFileList(){
+      let api = readCache();
+      if (!api){
+        try {
+          const res = await fetch(GITHUB_API, { headers: { "Accept": "application/vnd.github+json" } });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+          api = data
+            .filter(f => f.type === "file" && IMG_EXT.test(f.name))
+            .map(f => ({ name: f.name, size: f.size || 0 }));
+          writeCache(api);
+        } catch(err){
+          console.warn("Slideshow: daftar GitHub gagal dimuat, memakai KNOWN_FILES.", err);
+          api = [];
+        }
+      }
+
+      // gabungkan: semua dari API + yang ada di KNOWN_FILES tapi belum ada di API
+      const byName = new Map();
+      api.forEach(f => byName.set(f.name, f.size));
+      KNOWN_FILES.forEach(n => { if (!byName.has(n)) byName.set(n, 0); });
+
+      // foto pertama = yang paling kecil (cepat tampil), sisanya urut nama
+      const names = [...byName.keys()];
+      const sized = names.filter(n => byName.get(n) > 0).sort((a, b) => byName.get(a) - byName.get(b));
+      const first = sized.length ? sized[0] : KNOWN_FILES.find(n => byName.has(n));
+      const rest  = names.filter(n => n !== first).sort(natural);
+      return first ? [first, ...rest] : rest;
+    }
+
+    // ---- muat + decode dulu SEBELUM tampil, supaya tidak patah saat transisi ----
+    const loaded = new Map();   // url -> Promise<boolean>
     function preload(url){
-      return new Promise(resolve => {
+      if (loaded.has(url)) return loaded.get(url);
+      const p = new Promise(resolve => {
         const img = new Image();
-        img.onload = () => resolve(true);
+        img.decoding = "async";
+        img.onload = () => {
+          const d = img.decode ? img.decode() : Promise.resolve();
+          d.then(() => resolve(true), () => resolve(true));
+        };
         img.onerror = () => resolve(false);
         img.src = url;
       });
+      loaded.set(url, p);
+      p.then(ok => { if (!ok) loaded.delete(url); });   // yang gagal boleh dicoba lagi nanti
+      return p;
+    }
+
+    // ---- crossfade: foto baru naik ke depan, foto lama baru dimatikan setelah tertutup ----
+    function crossfadeTo(url){
+      const incoming = layers[1 - front];
+      const outgoing = layers[front];
+
+      clearTimeout(incoming._t);
+      incoming.style.backgroundImage = `url("${url}")`;
+      incoming.classList.remove("show", "kb");
+      incoming.classList.add("front");
+      outgoing.classList.remove("front");
+      void incoming.offsetWidth;                 // mulai ulang animasi zoom dari awal
+      incoming.classList.add("kb", "show");
+
+      outgoing._t = setTimeout(() => outgoing.classList.remove("show"), FADE_MS + 250);
+      front = 1 - front;
     }
 
     async function showNext(){
-      if (!urls.length) return;
-      // cari foto berikutnya yang berhasil dimuat (lewati yang rusak)
+      if (!urls.length) return false;
       for (let tries = 0; tries < urls.length; tries++){
-        index = (index + 1) % urls.length;
-        const url = urls[index];
-        if (await preload(url)){
-          const next = 1 - front;
-          layers[next].style.backgroundImage = `url("${url}")`;
-          layers[next].classList.remove("active");
-          void layers[next].offsetWidth;            // restart animasi zoom
-          layers[next].classList.add("active");
-          layers[front].classList.remove("active");
-          front = next;
-          return;
-        }
+        const cand = (index + 1) % urls.length;
+        const url = urls[cand];
+        const ok = await Promise.race([preload(url), delay(LOAD_LIMIT, false)]);
+        index = cand;
+        if (!ok) continue;            // gagal / terlalu lambat: lewati (yang lambat tetap diunduh di latar)
+        crossfadeTo(url);
+        if (urls.length > 1) preload(urls[(index + 1) % urls.length]);   // siapkan foto berikutnya
+        return true;
       }
+      return false;
     }
 
     function schedule(){
       stop();
       timer = setTimeout(async () => {
-        await showNext();      // foto berikutnya dimuat penuh dulu, baru tampil
-        schedule();            // lalu tunggu 5 detik lagi
+        // hemat memori & data: jangan ganti foto saat sedang di halaman Detail
+        if (document.body.classList.contains("home-mode")) await showNext();
+        schedule();
       }, INTERVAL);
     }
     function start(){ schedule(); }
@@ -1473,11 +1539,12 @@
     (async function(){
       const files = await loadFileList();
       urls = files.map(name => BG_BASE + encodeURIComponent(name));
+      console.info("Slideshow: " + urls.length + " foto", files);
       if (!urls.length){
-        console.warn("Slideshow: tidak ada file JPEG. Isi FALLBACK_FILES atau cek folder assets/background.");
+        console.warn("Slideshow: tidak ada foto. Isi KNOWN_FILES atau cek folder assets/background.");
         return;
       }
-      await showNext();                 // foto pertama langsung tampil
+      await showNext();                 // foto pertama (yang terkecil) langsung tampil
       if (urls.length > 1) start();
     })();
   })();
