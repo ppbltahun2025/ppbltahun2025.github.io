@@ -155,6 +155,93 @@
     /* ===== Latar Home: HANYA foto slideshow dari assets/background ===== */
     body.home-mode{background:#061631}
 
+    /* ===== ORB: satu-satunya yang terlihat saat web pertama dibuka ===== */
+    .home-orb{
+      position:fixed;
+      top:50%; left:50%;
+      width:112px; height:112px;
+      margin:-56px 0 0 -56px;
+      padding:0;
+      border:none;
+      border-radius:50%;
+      background:var(--cream);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      z-index:5;
+      box-shadow:0 10px 30px rgba(0,0,0,.45), 0 0 0 5px rgba(255,255,255,.18);
+      transition:transform .45s cubic-bezier(.34,1.56,.64,1), opacity .3s ease, box-shadow .3s ease;
+    }
+    body.home-mode .home-orb{display:flex}
+    .home-orb img{width:76%; height:76%; object-fit:contain; pointer-events:none}
+    .home-orb::before{
+      content:"";
+      position:absolute;
+      inset:-10px;
+      border-radius:50%;
+      border:2px solid rgba(240,180,41,.6);
+      animation:hubPulse 2.4s ease-out infinite;
+    }
+    .home-orb:hover{
+      transform:scale(1.08);
+      box-shadow:0 14px 34px rgba(0,0,0,.55), 0 0 0 5px rgba(240,180,41,.6);
+    }
+    body.home-open .home-orb{
+      transform:scale(0);
+      opacity:0;
+      pointer-events:none;
+    }
+
+    /* ===== Kartu Home: biru TRANSPARAN, mekar dari orb ===== */
+    #homeView{
+      background:rgba(7,27,58,.42);
+      -webkit-backdrop-filter:blur(10px);
+      backdrop-filter:blur(10px);
+      border-color:rgba(255,255,255,.28);
+      animation:none;
+      transform-origin:center center;
+      transition:transform .7s cubic-bezier(.22,1,.36,1), opacity .45s ease, border-radius .7s ease, visibility 0s linear 0s;
+    }
+    #homeView.closed{
+      transform:scale(.1);
+      opacity:0;
+      border-radius:50%;
+      visibility:hidden;
+      pointer-events:none;
+      transition:transform .5s cubic-bezier(.55,0,.55,.2), opacity .35s ease .1s, border-radius .5s ease, visibility 0s linear .55s;
+    }
+    #homeView > *{transition:opacity .45s ease .3s}
+    #homeView.closed > *{opacity:0; transition:opacity .15s ease}
+    #homeView h1,
+    #homeView .subtitle,
+    #homeView footer{text-shadow:0 1px 6px rgba(0,0,0,.65)}
+
+    /* menu hexagon langsung terbuka saat kartu mekar */
+    #homeView.open .home-hub-item{
+      transform:translate(var(--tx), var(--ty)) scale(1);
+      opacity:1;
+      pointer-events:auto;
+      transition-delay:calc(.4s + var(--delay, 0s));
+    }
+    #homeView.open .home-hub::before{animation:none; opacity:0}
+
+    .home-close{
+      position:absolute;
+      top:14px; right:14px;
+      z-index:6;
+      width:34px; height:34px;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.35);
+      color:#eaf1ff;
+      font-size:14px;
+      border-radius:50%;
+      cursor:pointer;
+      transition:background .18s ease, transform .18s ease;
+    }
+    .home-close:hover{background:rgba(255,255,255,.28); transform:rotate(90deg)}
+
     /* ===== SLIDESHOW LATAR (foto JPEG, ganti tiap 5 detik) =====
        Dua lapis saling bertukar: crossfade + blur-ke-tajam + zoom pelan (Ken Burns).
        Berada di bawah lapis ::before (cahaya & grid) dan ::after (gedung). */
@@ -391,6 +478,7 @@
       box-shadow:0 10px 26px rgba(0,0,0,.4), 0 0 0 5px rgba(255,255,255,.10);
       transition:box-shadow .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
     }
+    .home-hub{touch-action:manipulation; user-select:none; -webkit-user-select:none}
     .home-hub img{
       width:76%; height:76%;
       object-fit:contain;
@@ -698,10 +786,16 @@
     </table>
   </div>
 
+  <!-- Orb: satu-satunya yang tampil saat web dibuka; klik untuk membuka menu -->
+  <button class="home-orb" id="homeOrb" type="button" aria-label="Buka menu KENDATI" title="Klik untuk membuka menu">
+    <img src="assets/icon-menu.png" alt="Buka menu KENDATI">
+  </button>
+
   <div class="view-wrap">
 
     <!-- ===== HALAMAN HOME ===== -->
-    <main class="card" id="homeView">
+    <main class="card closed" id="homeView">
+      <button class="home-close" id="homeClose" type="button" aria-label="Tutup menu">&#10005;</button>
       <div class="logo-wrap pill">
         <img class="logo" id="homeLogo" src="assets/home.png" alt="Logo Utama">
       </div>
@@ -921,7 +1015,7 @@
     }).join("");
 
     hexGrid.innerHTML = `
-      <div class="home-hub" id="homeHub" tabindex="0" role="button" aria-label="Buka menu layanan">
+      <div class="home-hub" id="homeHub" tabindex="0" role="button" aria-label="Buka menu layanan" title="Klik 2 kali untuk menutup">
         <img src="${HUB_ICON}" alt="Menu layanan">
       </div>
       ${items}
@@ -931,39 +1025,31 @@
       btn.addEventListener("click", () => openSegment(btn.dataset.id));
     });
 
-    // di HP/tablet (tanpa hover), tap logo untuk buka/tutup menunya
-    const homeHub = document.getElementById("homeHub");
-    const isTouchDevice = () => window.matchMedia("(hover: none)").matches;
-    homeHub.addEventListener("click", () => {
-      if (isTouchDevice()) hexGrid.classList.toggle("pinned");
-    });
-    homeHub.addEventListener("focus", () => hexGrid.classList.add("pinned"));
-    homeHub.addEventListener("blur", () => hexGrid.classList.remove("pinned"));
-    document.addEventListener("click", (e) => {
-      if (!hexGrid.contains(e.target)) hexGrid.classList.remove("pinned");
-    });
-
     fitHomeToViewport();
   }
 
   // ================== HOME: muat 1 layar, TANPA SCROLL ==================
   function fitHomeToViewport(){
-    if (!document.body.classList.contains("home-mode")) return;
-
-    homeView.style.transform = "none";
+    const wrap = document.querySelector(".view-wrap");
+    if (!document.body.classList.contains("home-mode")){
+      wrap.style.transform = "none";
+      return;
+    }
+    wrap.style.transform = "none";
 
     const pad = 20;
     const availW = window.innerWidth - pad * 2;
     const availH = window.innerHeight - pad * 2;
-    const rect = homeView.getBoundingClientRect();
+    const w = wrap.offsetWidth;
+    const h = wrap.offsetHeight;
 
-    const scale = Math.min(1, availW / rect.width, availH / rect.height);
+    const scale = Math.min(1, availW / w, availH / h);
 
     if (scale < 0.999) {
-      homeView.style.transformOrigin = "center center";
-      homeView.style.transform = `scale(${scale})`;
+      wrap.style.transformOrigin = "center center";
+      wrap.style.transform = `scale(${scale})`;
     } else {
-      homeView.style.transform = "none";
+      wrap.style.transform = "none";
     }
   }
 
@@ -1012,6 +1098,7 @@
 
     document.body.classList.remove("home-mode");
     document.documentElement.classList.remove("home-mode");
+    document.querySelector(".view-wrap").style.transform = "none";
     setHero(seg.hero);
     switchAudio(seg.audio);
 
@@ -1033,6 +1120,29 @@
   }
 
   backBtn.addEventListener("click", goHome);
+
+  // ---- Orb <-> kartu menu (mekar / menyusut) ----
+  const homeOrb = document.getElementById("homeOrb");
+  const homeClose = document.getElementById("homeClose");
+
+  function openHome(){
+    homeView.classList.remove("closed");
+    homeView.classList.add("open");
+    document.body.classList.add("home-open");
+  }
+  function closeHome(){
+    homeView.classList.remove("open");
+    homeView.classList.add("closed");
+    document.body.classList.remove("home-open");
+  }
+  homeOrb.addEventListener("click", openHome);
+  homeClose.addEventListener("click", (e) => { e.stopPropagation(); closeHome(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeHome(); });
+  // klik 2 kali logo lingkaran di tengah kartu = menyusut kembali jadi orb
+  document.addEventListener("dblclick", (e) => {
+    if (!homeView.classList.contains("open")) return;
+    if (e.target.closest("#homeHub")) closeHome();
+  });
 
   buildHexGrid();
   window.addEventListener("load", fitHomeToViewport);
