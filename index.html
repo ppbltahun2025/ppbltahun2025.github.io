@@ -125,7 +125,7 @@
       margin:-36px auto 0;
       position:relative;
       z-index:2;
-      transition:margin-top .3s ease;
+      transition:margin-top .3s ease, opacity .26s ease;
     }
 
     .card{
@@ -184,49 +184,84 @@
       border-radius:50%;
       border:2px solid rgba(240,180,41,.6);
       animation:hubPulse 2.4s ease-out infinite;
+      transition:border-color .5s ease;
+    }
+    /* cincin gelombang sekali jalan saat menu dibuka */
+    .home-orb::after{
+      content:"";
+      position:absolute;
+      inset:-4px;
+      border-radius:50%;
+      border:2px solid rgba(240,180,41,.85);
+      opacity:0;
+      pointer-events:none;
     }
     .home-orb:hover{
       transform:scale(1.08);
       box-shadow:0 14px 34px rgba(0,0,0,.55), 0 0 0 5px rgba(240,180,41,.6);
     }
-    /* orb TETAP tampil di tengah layar saat menu terbuka */
-    body.home-open .home-orb::before{animation:none; opacity:0}
+    .home-orb:active{transform:scale(.94)}
+    /* orb TETAP tampil di tengah layar saat menu terbuka;
+       cincin denyut memudar halus (bukan hilang mendadak) */
+    body.home-open .home-orb::before{border-color:transparent}
+    body.home-open .home-orb::after{animation:orbBurst 1s cubic-bezier(.22,1,.36,1) both}
     body.home-open .home-orb{
       box-shadow:0 10px 30px rgba(0,0,0,.45), 0 0 0 5px rgba(240,180,41,.6);
     }
+    /* saat pindah halaman Home <-> Detail, orb ikut memudar */
+    body.leaving .home-orb{opacity:0; pointer-events:none}
+    @keyframes orbBurst{
+      0%{transform:scale(1); opacity:.9}
+      100%{transform:scale(3.4); opacity:0}
+    }
 
-    /* ===== Kartu Home: biru TRANSPARAN, mekar dari orb ===== */
+    /* ===== Kartu Home: biru TRANSPARAN, terbuka seperti LINGKARAN MELEBAR dari orb =====
+       Memakai clip-path (bukan scale) supaya halus: blur tidak ikut
+       mengecil/membesar dan bentuk sudut kartu tidak berubah-ubah.
+       --hy = titik pusat hub, --r = radius penuh (keduanya diisi JS). */
     #homeView{
+      --hy:50%;
+      --r:700px;
       background:rgba(7,27,58,.42);
       -webkit-backdrop-filter:blur(10px);
       backdrop-filter:blur(10px);
       border-color:rgba(255,255,255,.28);
       animation:none;
-      transform-origin:center center;
-      transition:transform .7s cubic-bezier(.22,1,.36,1), opacity .45s ease, border-radius .7s ease, visibility 0s linear 0s;
+      clip-path:circle(var(--r) at 50% var(--hy));
+      will-change:clip-path;
+      transition:clip-path .95s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s;
     }
     #homeView.closed{
-      transform:scale(.1);
-      opacity:0;
-      border-radius:50%;
+      clip-path:circle(46px at 50% var(--hy));
       visibility:hidden;
       pointer-events:none;
-      transition:transform .5s cubic-bezier(.55,0,.55,.2), opacity .35s ease .1s, border-radius .5s ease, visibility 0s linear .55s;
+      transition:clip-path .6s cubic-bezier(.65,0,.35,1), visibility 0s linear .6s;
     }
-    #homeView > *{transition:opacity .45s ease .3s}
-    #homeView.closed > *{opacity:0; transition:opacity .15s ease}
+
+    /* isi kartu muncul berurutan (naik pelan + memudar), keluar lebih cepat */
+    #homeView .logo-wrap,
+    #homeView h1,
+    #homeView .subtitle,
+    #homeView footer{
+      opacity:0;
+      transform:translateY(14px);
+      transition:opacity .2s ease, transform .25s ease;
+    }
+    #homeView.open .logo-wrap,
+    #homeView.open h1,
+    #homeView.open .subtitle,
+    #homeView.open footer{
+      opacity:1;
+      transform:none;
+      transition:opacity .6s ease var(--d,0s), transform .8s cubic-bezier(.22,1,.36,1) var(--d,0s);
+    }
+    #homeView .logo-wrap{--d:.30s}
+    #homeView h1{--d:.38s}
+    #homeView .subtitle{--d:.44s}
+    #homeView footer{--d:.70s}
     #homeView h1,
     #homeView .subtitle,
     #homeView footer{text-shadow:0 1px 6px rgba(0,0,0,.65)}
-
-    /* menu hexagon langsung terbuka saat kartu mekar */
-    #homeView.open .home-hub-item{
-      transform:translate(var(--tx), var(--ty)) scale(1);
-      opacity:1;
-      pointer-events:auto;
-      transition-delay:calc(.4s + var(--delay, 0s));
-    }
-    #homeView.open .home-hub::before{animation:none; opacity:0}
 
     /* ===== SLIDESHOW LATAR (foto JPEG, ganti tiap 5 detik) =====
        Dua lapis saling bertukar: crossfade + blur-ke-tajam + zoom pelan (Ken Burns).
@@ -477,14 +512,24 @@
       transform:translate(0,0) scale(.2);
       opacity:0;
       pointer-events:none;
-      transition:transform .5s cubic-bezier(.22,1,.36,1), opacity .3s ease;
+      /* menutup: cepat, tertarik kembali ke orb */
+      transition:transform .35s cubic-bezier(.55,0,.55,.2), opacity .25s ease;
     }
-    .home-hub-wrap:hover .home-hub-item,
-    .home-hub-wrap.pinned .home-hub-item{
+    /* membuka: hexagon "meletup" keluar dari bawah orb satu per satu (efek pegas) */
+    #homeView.open .home-hub-item{
       transform:translate(var(--tx), var(--ty)) scale(1);
       opacity:1;
       pointer-events:auto;
-      transition-delay:var(--delay, 0s);
+      transition:
+        transform .75s cubic-bezier(.34,1.56,.64,1) calc(.3s + var(--delay,0s)),
+        opacity .4s ease calc(.3s + var(--delay,0s));
+    }
+    @media (prefers-reduced-motion:reduce){
+      #homeView, #homeView *{
+        transition-duration:.01s !important;
+        transition-delay:0s !important;
+      }
+      .home-orb::after{display:none}
     }
     @keyframes hubPulse{
       0%{transform:scale(1); opacity:.55}
@@ -998,12 +1043,13 @@
     wrap.style.transform = "none";
     if (!document.body.classList.contains("home-mode")) return;
 
+    if (homeView.style.display === "none") return;
     const hub = document.getElementById("homeHub");
     if (!hub) return;
 
     // posisi pusat hub di dalam kartu (offset tidak terpengaruh transform)
     const hubY = hexGrid.offsetTop + hub.offsetTop + hub.offsetHeight / 2;
-    homeView.style.transformOrigin = `50% ${hubY}px`;
+    
 
     const pad = 20;
     const availW = window.innerWidth - pad * 2;
@@ -1018,6 +1064,11 @@
     );
 
     // geser supaya pusat hub = pusat layar (sama dengan orb)
+    // titik & radius lingkaran pembuka kartu (clip-path), dari pusat hub
+    const reveal = Math.hypot(w / 2, Math.max(hubY, h - hubY)) + 90;
+    homeView.style.setProperty("--hy", hubY + "px");
+    homeView.style.setProperty("--r", Math.ceil(reveal) + "px");
+
     const dy = hubY - h / 2;
     const ty = -scale * dy;
 
@@ -1053,44 +1104,65 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       if (currentSegment) buildLinkHexGrid(currentSegment);
-      else buildHexGrid();
-      fitHomeToViewport();
+      else fitHomeToViewport();   // hub Home tidak perlu dibangun ulang
     }, 150);
   });
+
+  // Pindah halaman dengan fade: memudar -> ganti tampilan -> muncul lagi
+  let swapping = false;
+  function swapView(change){
+    if (swapping) return;
+    swapping = true;
+    const wrap = document.querySelector(".view-wrap");
+    document.body.classList.add("leaving");
+    wrap.style.opacity = "0";
+    setTimeout(() => {
+      change();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.body.classList.remove("leaving");
+        wrap.style.opacity = "1";
+        swapping = false;
+      }));
+    }, 280);
+  }
 
   function openSegment(id){
     const seg = segments.find(s => s.id === id);
     if (!seg) return;
-    currentSegment = seg;
+    swapView(() => {
+      currentSegment = seg;
 
-    detailLogo.src = seg.logo;
-    detailLogo.alt = "Logo " + seg.hexLabel;
-    detailTitle.textContent = seg.title;
-    detailSubtitle.textContent = seg.subtitle;
-    detailFooter.textContent = seg.footer;
-    buildLinkHexGrid(seg);
+      detailLogo.src = seg.logo;
+      detailLogo.alt = "Logo " + seg.hexLabel;
+      detailTitle.textContent = seg.title;
+      detailSubtitle.textContent = seg.subtitle;
+      detailFooter.textContent = seg.footer;
+      buildLinkHexGrid(seg);
 
-    document.body.classList.remove("home-mode");
-    document.documentElement.classList.remove("home-mode");
-    document.querySelector(".view-wrap").style.transform = "none";
-    setHero(seg.hero);
-    switchAudio(seg.audio);
+      document.body.classList.remove("home-mode");
+      document.documentElement.classList.remove("home-mode");
+      document.querySelector(".view-wrap").style.transform = "none";
+      setHero(seg.hero);
+      switchAudio(seg.audio);
 
-    homeView.style.display = "none";
-    detailView.style.display = "block";
-    window.scrollTo({ top: 0, behavior: "smooth" });
+      homeView.style.display = "none";
+      detailView.style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   }
 
   function goHome(){
-    currentSegment = null;
-    homeView.style.display = "block";
-    detailView.style.display = "none";
-    document.body.classList.add("home-mode");
-    document.documentElement.classList.add("home-mode");
-    document.body.style.removeProperty("--hero-bg-url");
-    switchAudio(HOME.audio);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    fitHomeToViewport();
+    swapView(() => {
+      currentSegment = null;
+      homeView.style.display = "block";
+      detailView.style.display = "none";
+      document.body.classList.add("home-mode");
+      document.documentElement.classList.add("home-mode");
+      document.body.style.removeProperty("--hero-bg-url");
+      switchAudio(HOME.audio);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      fitHomeToViewport();
+    });
   }
 
   backBtn.addEventListener("click", goHome);
@@ -1111,7 +1183,9 @@
   homeOrb.addEventListener("click", () => {
     if (homeView.classList.contains("open")) closeHome(); else openHome();
   });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeHome(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && document.body.classList.contains("home-mode")) closeHome();
+  });
 
   buildHexGrid();
   window.addEventListener("load", fitHomeToViewport);
