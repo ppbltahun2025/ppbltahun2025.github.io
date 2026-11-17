@@ -173,7 +173,7 @@
         radial-gradient(26% 24% at 30% 82%, rgba(240,180,41,.16), transparent 70%),
         linear-gradient(rgba(127,178,255,.07) 1px, transparent 1px) 0 0/44px 44px,
         linear-gradient(90deg, rgba(127,178,255,.07) 1px, transparent 1px) 0 0/44px 44px,
-        linear-gradient(180deg, #050f22 0%, #071b3a 55%, #061631 100%);
+        linear-gradient(180deg, rgba(5,15,34,.62) 0%, rgba(7,27,58,.42) 55%, rgba(6,22,49,.70) 100%);
       animation:latarCahaya 28s ease-in-out infinite alternate;
     }
     body.home-mode::after{
@@ -195,6 +195,49 @@
     @media (prefers-reduced-motion:reduce){
       body.home-mode::before,
       body.home-mode::after{animation:none}
+    }
+
+    /* ===== SLIDESHOW LATAR (foto JPEG, ganti tiap 5 detik) =====
+       Dua lapis saling bertukar: crossfade + blur-ke-tajam + zoom pelan (Ken Burns).
+       Berada di bawah lapis ::before (cahaya & grid) dan ::after (gedung). */
+    #bgSlides{
+      position:fixed;
+      inset:0;
+      z-index:-2;
+      overflow:hidden;
+      pointer-events:none;
+      display:none;
+      background:#061631;
+    }
+    body.home-mode #bgSlides{display:block}
+    .bg-slide{
+      position:absolute;
+      inset:-4%;
+      background-position:center center;
+      background-size:cover;
+      background-repeat:no-repeat;
+      opacity:0;
+      transform:scale(1.02);
+      filter:blur(8px) brightness(.9);
+      transition:opacity 1.6s ease, filter 1.6s ease;
+      will-change:opacity, transform, filter;
+    }
+    .bg-slide.active{
+      opacity:1;
+      filter:blur(0) brightness(1);
+      animation:bgZoom 7s ease-out forwards;
+    }
+    .bg-slide.alt.active{animation-name:bgZoomAlt}
+    @keyframes bgZoom{
+      from{transform:scale(1.02) translate3d(0,0,0)}
+      to  {transform:scale(1.12) translate3d(-1.5%,-1%,0)}
+    }
+    @keyframes bgZoomAlt{
+      from{transform:scale(1.12) translate3d(1.5%,1%,0)}
+      to  {transform:scale(1.02) translate3d(0,0,0)}
+    }
+    @media (prefers-reduced-motion:reduce){
+      .bg-slide.active{animation:none; transform:scale(1.02)}
     }
 
     /* ===== Logo tunggal (lingkaran, halaman detail) ===== */
@@ -652,6 +695,13 @@
 <amp-auto-ads type="adsense"
         data-ad-client="ca-pub-2710424249080203">
 </amp-auto-ads>
+
+  <!-- Slideshow latar halaman Home (foto JPEG) -->
+  <div id="bgSlides" aria-hidden="true">
+    <div class="bg-slide" id="bgSlideA"></div>
+    <div class="bg-slide alt" id="bgSlideB"></div>
+  </div>
+
   <div class="hero-wrap">
     <div class="hero" id="hero" aria-label="Kolase dokumentasi kegiatan"></div>
   </div>
@@ -1224,6 +1274,99 @@
     }
 
     recordAndLoad();
+  })();
+</script>
+
+<script>
+  // ================== SLIDESHOW LATAR HOME (JPEG, tiap 5 detik) ==================
+  (function initBgSlideshow(){
+    const GITHUB_API = "https://api.github.com/repos/ppbltahun2025/ppbltahun2025.github.io/contents/assets/background?ref=main";
+    const BG_BASE    = "https://ppbltahun2025.github.io/assets/background/";
+    const INTERVAL   = 5000;   // ms antar pergantian foto
+
+    // CADANGAN: dipakai kalau daftar otomatis dari GitHub gagal dimuat.
+    // Isi dengan nama file JPEG di folder assets/background, mis. ["bg1.jpg","bg2.jpg"]
+    const FALLBACK_FILES = [];
+
+    const layers = [document.getElementById("bgSlideA"), document.getElementById("bgSlideB")];
+    if (!layers[0] || !layers[1]) return;
+
+    let urls = [];
+    let index = -1;
+    let front = 0;
+    let timer = null;
+
+    async function loadFileList(){
+      try {
+        const cached = sessionStorage.getItem("bgFiles");
+        if (cached) return JSON.parse(cached);
+      } catch(e){}
+      try {
+        const res = await fetch(GITHUB_API, { headers: { "Accept": "application/vnd.github+json" } });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const files = data
+          .filter(f => f.type === "file" && /\.jpe?g$/i.test(f.name))
+          .map(f => f.name)
+          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        try { sessionStorage.setItem("bgFiles", JSON.stringify(files)); } catch(e){}
+        return files;
+      } catch(err){
+        console.warn("Slideshow: gagal membaca daftar dari GitHub, memakai FALLBACK_FILES.", err);
+        return FALLBACK_FILES;
+      }
+    }
+
+    function preload(url){
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    }
+
+    async function showNext(){
+      if (!urls.length) return;
+      // cari foto berikutnya yang berhasil dimuat (lewati yang rusak)
+      for (let tries = 0; tries < urls.length; tries++){
+        index = (index + 1) % urls.length;
+        const url = urls[index];
+        if (await preload(url)){
+          const next = 1 - front;
+          layers[next].style.backgroundImage = `url("${url}")`;
+          layers[next].classList.remove("active");
+          void layers[next].offsetWidth;            // restart animasi zoom
+          layers[next].classList.add("active");
+          layers[front].classList.remove("active");
+          front = next;
+          return;
+        }
+      }
+    }
+
+    function start(){
+      stop();
+      timer = setInterval(showNext, INTERVAL);
+    }
+    function stop(){
+      if (timer){ clearInterval(timer); timer = null; }
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop(); else if (urls.length > 1) start();
+    });
+
+    (async function(){
+      const files = await loadFileList();
+      urls = files.map(name => BG_BASE + encodeURIComponent(name));
+      if (!urls.length){
+        console.warn("Slideshow: tidak ada file JPEG. Isi FALLBACK_FILES atau cek folder assets/background.");
+        return;
+      }
+      await showNext();                 // foto pertama langsung tampil
+      if (urls.length > 1) start();
+    })();
   })();
 </script>
 </body>
