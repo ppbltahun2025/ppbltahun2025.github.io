@@ -106,10 +106,16 @@
     body.home-mode .hero-wrap{
       display:none;
     }
+
+    /* ===== Kartu Home: lebar dibatasi selebar logo KENDATI
+       supaya latar animasi terlihat jelas di kiri & kanan ===== */
     body.home-mode .view-wrap{
       margin:0 auto;
-      max-width:100%;
+      max-width:380px;   /* selebar logo KENDATI; ubah angka ini untuk menyesuaikan */
       max-height:100%;
+    }
+    body.home-mode .logo-wrap.pill{
+      width:100%;        /* logo pil mengisi lebar kartu */
     }
 
     /* ===== Wrapper kartu (Home & Detail) ===== */
