@@ -52,7 +52,7 @@
     };
   }
 
-  if (window.top !== window) return;            // UI hanya di frame utama
+  if (window.top !== window) { keepLinksInApp(); return; }   // iframe: hanya urus link; UI di frame utama
   if (window.__kendatiOverlay) return;          // jangan dobel
   window.__kendatiOverlay = true;
 
@@ -90,7 +90,14 @@
   }
 
   // ---------- Link _blank & window.open tetap di dalam aplikasi (iOS) ----------
+  function goInApp(href) {
+    if (typeof showProgress === "function") showProgress();
+    try { window.top.location.href = href; } catch (e) { location.href = href; }
+  }
+
   function keepLinksInApp() {
+    if (window.__kendatiLinks) return;
+    window.__kendatiLinks = true;
     document.addEventListener("click", function (e) {
       var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
       if (!a || a.hasAttribute("download")) return;
@@ -99,14 +106,13 @@
       var href = a.href;
       if (!/^https?:/i.test(href)) return;
       e.preventDefault();
-      showProgress();
-      location.href = href;                    // aplikasi yang memutuskan: di dalam / browser luar
+      goInApp(href);                           // tetap di dalam aplikasi
     }, true);
 
     if (IS_IOS) {
       var nativeOpen = window.open;
       window.open = function (url, target, feat) {
-        if (url && /^https?:/i.test(String(url))) { showProgress(); location.href = String(url); return window; }
+        if (url && /^https?:/i.test(String(url))) { goInApp(new URL(String(url), location.href).href); return window; }
         return nativeOpen.call(window, url, target, feat);
       };
     }

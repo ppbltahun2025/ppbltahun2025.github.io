@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -12,6 +13,8 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.FileProvider;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -27,7 +30,10 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +49,13 @@ public class KendatiShellPlugin extends Plugin {
     private static final String PREFS = "kendati";
     private static final String KEY_MODE = "mode";
 
+    /** Halaman Google yang butuh login: dibuka di tab browser DI DALAM aplikasi
+     *  (Google memblokir login di WebView). Tombol X membawa kembali ke KENDATI. */
+    private static final Set<String> GOOGLE_HOSTS = new HashSet<>(Arrays.asList(
+        "accounts.google.com", "accounts.youtube.com", "myaccount.google.com",
+        "drive.google.com", "docs.google.com", "mail.google.com"
+    ));
+
     private String mobileUA;
     private boolean overlayViaDocStart = false;
 
@@ -56,6 +69,39 @@ public class KendatiShellPlugin extends Plugin {
         wv.setDownloadListener((url, ua, contentDisposition, mime, length) -> openUrl(url));
         injectOverlay(wv);
         applyMode(isDesktop(), false);
+    }
+
+    // ---------------- Semua link tetap di dalam aplikasi ----------------
+    @Override
+    public Boolean shouldOverrideLoad(Uri url) {
+        String scheme = url.getScheme() == null ? "" : url.getScheme().toLowerCase();
+        if (!scheme.equals("http") && !scheme.equals("https")) return null;   // tel:, mailto:, whatsapp: -> aplikasi terkait
+        String host = url.getHost() == null ? "" : url.getHost().toLowerCase();
+        if (GOOGLE_HOSTS.contains(host)) {
+            openInAppTab(url);
+            return true;
+        }
+        return false;   // situs lain dimuat di dalam aplikasi
+    }
+
+    private void openInAppTab(Uri url) {
+        getActivity().runOnUiThread(() -> {
+            try {
+                CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
+                    .setToolbarColor(Color.parseColor("#071b3a"))
+                    .build();
+                new CustomTabsIntent.Builder()
+                    .setDefaultColorSchemeParams(colors)
+                    .setShowTitle(true)
+                    .setShareState(CustomTabsIntent.SHARE_STATE_OFF)
+                    .build()
+                    .launchUrl(getActivity(), url);
+            } catch (Exception e) {
+                try {
+                    getActivity().startActivity(new Intent(Intent.ACTION_VIEW, url));
+                } catch (Exception ignored) {}
+            }
+        });
     }
 
     // ---------------- Overlay (menu mengambang) ----------------

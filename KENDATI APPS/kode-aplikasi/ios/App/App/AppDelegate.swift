@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 import WebKit
+import SafariServices
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -61,7 +62,66 @@ private final class KendatiWeakHandler: NSObject, WKScriptMessageHandler {
     }
 }
 
+/// Semua link tetap di dalam aplikasi. Halaman login Google dibuka di lembar Safari
+/// DI DALAM aplikasi (Google memblokir login di WebView); tombol Selesai kembali ke KENDATI.
+class KendatiNavPlugin: CAPPlugin, CAPBridgedPlugin {
+    let identifier = "KendatiNavPlugin"
+    let jsName = "KendatiNav"
+    let pluginMethods: [CAPPluginMethod] = []
+    static let googleHosts: Set<String> = [
+        "accounts.google.com", "accounts.youtube.com", "myaccount.google.com",
+        "drive.google.com", "docs.google.com", "mail.google.com"
+    ]
+
+    override func shouldOverrideLoad(_ navigationAction: WKNavigationAction) -> NSNumber? {
+        guard let url = navigationAction.request.url,
+              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+            return nil      // tel:, mailto:, whatsapp: -> aplikasi terkait
+        }
+        // iframe di dalam halaman biarkan apa adanya
+        if let frame = navigationAction.targetFrame, !frame.isMainFrame { return nil }
+        if KendatiNavPlugin.googleHosts.contains(url.host?.lowercased() ?? "") {
+            DispatchQueue.main.async { [weak self] in
+                guard let vc = self?.bridge?.viewController else { return }
+                let safari = SFSafariViewController(url: url)
+                safari.preferredBarTintColor = UIColor(red: 7/255, green: 27/255, blue: 58/255, alpha: 1)
+                safari.preferredControlTintColor = UIColor(red: 1, green: 216/255, blue: 115/255, alpha: 1)
+                safari.dismissButtonStyle = .done
+                vc.present(safari, animated: true)
+            }
+            return NSNumber(value: true)
+        }
+        return NSNumber(value: false)        // situs lain dimuat di dalam aplikasi
+    }
+}
+
+/// Jendela baru (target="_blank" / window.open) dimuat di WebView yang sama, bukan Safari.
+/// Metode lain (alert, confirm, dll.) diteruskan ke penangan bawaan Capacitor.
+private final class KendatiUIDelegate: NSObject, WKUIDelegate {
+    weak var inner: WKUIDelegate?
+    init(inner: WKUIDelegate?) { self.inner = inner }
+
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
+                 for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if navigationAction.targetFrame == nil, let url = navigationAction.request.url {
+            webView.load(URLRequest(url: url))
+        }
+        return nil
+    }
+
+    override func responds(to aSelector: Selector!) -> Bool {
+        return super.responds(to: aSelector) || (inner?.responds(to: aSelector) ?? false)
+    }
+
+    override func forwardingTarget(for aSelector: Selector!) -> Any? {
+        if let inner = inner, inner.responds(to: aSelector) { return inner }
+        return super.forwardingTarget(for: aSelector)
+    }
+}
+
 class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
+
+    private var uiDelegateProxy: KendatiUIDelegate?
 
     private let modeKey = "kendatiMode"
     private let desktopUA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15 KendatiApp KendatiDesktop"
@@ -83,6 +143,10 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
             ucc.addUserScript(WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         }
         ucc.add(KendatiWeakHandler(self), name: "kendati")
+        bridge?.registerPluginInstance(KendatiNavPlugin())
+        let proxy = KendatiUIDelegate(inner: wv.uiDelegate)
+        uiDelegateProxy = proxy
+        wv.uiDelegate = proxy
         applyMode(reload: false)
     }
 

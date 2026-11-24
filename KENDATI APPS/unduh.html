@@ -189,11 +189,6 @@
   if (inApp || standalone) {
     notice.textContent = "✓ Anda sudah memakai aplikasi KENDATI. Isinya otomatis mengikuti versi terbaru.";
     notice.classList.add("on");
-  } else if (!/Android|iPhone|iPad|iPod/.test(ua) && !isIOS) {
-    notice.innerHTML = "Buka halaman ini di HP: <b>ppbltahun2025.github.io/KENDATI%20APPS/unduh.html</b>";
-    notice.style.background = "rgba(240,180,41,.1)";
-    notice.style.borderColor = "rgba(240,180,41,.35)";
-    notice.classList.add("on");
   }
 
   // ---- info versi dari GitHub Release "aplikasi" ----
