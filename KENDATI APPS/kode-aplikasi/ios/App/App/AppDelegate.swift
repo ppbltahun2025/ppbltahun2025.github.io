@@ -1,7 +1,6 @@
 import UIKit
 import Capacitor
 import WebKit
-import SafariServices
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -62,16 +61,11 @@ private final class KendatiWeakHandler: NSObject, WKScriptMessageHandler {
     }
 }
 
-/// Semua link tetap di dalam aplikasi. Halaman login Google dibuka di lembar Safari
-/// DI DALAM aplikasi (Google memblokir login di WebView); tombol Selesai kembali ke KENDATI.
+/// Semua link http/https dimuat di dalam aplikasi (tidak dilempar ke Safari).
 class KendatiNavPlugin: CAPPlugin, CAPBridgedPlugin {
     let identifier = "KendatiNavPlugin"
     let jsName = "KendatiNav"
     let pluginMethods: [CAPPluginMethod] = []
-    static let googleHosts: Set<String> = [
-        "accounts.google.com", "accounts.youtube.com", "myaccount.google.com",
-        "drive.google.com", "docs.google.com", "mail.google.com"
-    ]
 
     override func shouldOverrideLoad(_ navigationAction: WKNavigationAction) -> NSNumber? {
         guard let url = navigationAction.request.url,
@@ -80,18 +74,7 @@ class KendatiNavPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         // iframe di dalam halaman biarkan apa adanya
         if let frame = navigationAction.targetFrame, !frame.isMainFrame { return nil }
-        if KendatiNavPlugin.googleHosts.contains(url.host?.lowercased() ?? "") {
-            DispatchQueue.main.async { [weak self] in
-                guard let vc = self?.bridge?.viewController else { return }
-                let safari = SFSafariViewController(url: url)
-                safari.preferredBarTintColor = UIColor(red: 7/255, green: 27/255, blue: 58/255, alpha: 1)
-                safari.preferredControlTintColor = UIColor(red: 1, green: 216/255, blue: 115/255, alpha: 1)
-                safari.dismissButtonStyle = .done
-                vc.present(safari, animated: true)
-            }
-            return NSNumber(value: true)
-        }
-        return NSNumber(value: false)        // situs lain dimuat di dalam aplikasi
+        return NSNumber(value: false)        // semua halaman web dimuat di dalam aplikasi
     }
 }
 

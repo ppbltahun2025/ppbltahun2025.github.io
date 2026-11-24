@@ -1,20 +1,20 @@
 package com.ciptakaryagresik.kendati;
 
 import android.annotation.SuppressLint;
+import android.app.DownloadManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.webkit.CookieManager;
 import android.webkit.MimeTypeMap;
+import android.webkit.URLUtil;
 import android.widget.Toast;
-import androidx.browser.customtabs.CustomTabColorSchemeParams;
-import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.FileProvider;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -30,10 +30,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,13 +46,6 @@ public class KendatiShellPlugin extends Plugin {
     private static final String PREFS = "kendati";
     private static final String KEY_MODE = "mode";
 
-    /** Halaman Google yang butuh login: dibuka di tab browser DI DALAM aplikasi
-     *  (Google memblokir login di WebView). Tombol X membawa kembali ke KENDATI. */
-    private static final Set<String> GOOGLE_HOSTS = new HashSet<>(Arrays.asList(
-        "accounts.google.com", "accounts.youtube.com", "myaccount.google.com",
-        "drive.google.com", "docs.google.com", "mail.google.com"
-    ));
-
     private String mobileUA;
     private boolean overlayViaDocStart = false;
 
@@ -65,8 +55,8 @@ public class KendatiShellPlugin extends Plugin {
         WebSettings s = wv.getSettings();
         mobileUA = s.getUserAgentString();            // sudah berisi "KendatiApp" (appendUserAgent)
         wv.addJavascriptInterface(new NativeBridge(), "KendatiNative");
-        // unduhan biasa (http/https) diteruskan ke browser / pengelola unduhan sistem
-        wv.setDownloadListener((url, ua, contentDisposition, mime, length) -> openUrl(url));
+        // unduhan biasa (http/https) diunduh langsung oleh aplikasi, tidak lewat Chrome
+        wv.setDownloadListener((url, ua, contentDisposition, mime, length) -> downloadInApp(url, ua, contentDisposition, mime));
         injectOverlay(wv);
         applyMode(isDesktop(), false);
     }
@@ -76,32 +66,7 @@ public class KendatiShellPlugin extends Plugin {
     public Boolean shouldOverrideLoad(Uri url) {
         String scheme = url.getScheme() == null ? "" : url.getScheme().toLowerCase();
         if (!scheme.equals("http") && !scheme.equals("https")) return null;   // tel:, mailto:, whatsapp: -> aplikasi terkait
-        String host = url.getHost() == null ? "" : url.getHost().toLowerCase();
-        if (GOOGLE_HOSTS.contains(host)) {
-            openInAppTab(url);
-            return true;
-        }
-        return false;   // situs lain dimuat di dalam aplikasi
-    }
-
-    private void openInAppTab(Uri url) {
-        getActivity().runOnUiThread(() -> {
-            try {
-                CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
-                    .setToolbarColor(Color.parseColor("#071b3a"))
-                    .build();
-                new CustomTabsIntent.Builder()
-                    .setDefaultColorSchemeParams(colors)
-                    .setShowTitle(true)
-                    .setShareState(CustomTabsIntent.SHARE_STATE_OFF)
-                    .build()
-                    .launchUrl(getActivity(), url);
-            } catch (Exception e) {
-                try {
-                    getActivity().startActivity(new Intent(Intent.ACTION_VIEW, url));
-                } catch (Exception ignored) {}
-            }
-        });
+        return false;   // SEMUA halaman web dimuat di dalam aplikasi (tidak dilempar ke Chrome)
     }
 
     // ---------------- Overlay (menu mengambang) ----------------
@@ -167,6 +132,26 @@ public class KendatiShellPlugin extends Plugin {
                 getActivity().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
             } catch (Exception ignored) {}
         });
+    }
+
+    /** Unduh file http/https dengan pengelola unduhan Android (notifikasi + folder Download/KENDATI). */
+    private void downloadInApp(String url, String ua, String contentDisposition, String mime) {
+        try {
+            String name = URLUtil.guessFileName(url, contentDisposition, mime);
+            DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
+            String cookies = CookieManager.getInstance().getCookie(url);
+            if (cookies != null) req.addRequestHeader("Cookie", cookies);
+            req.addRequestHeader("User-Agent", ua);
+            if (mime != null) req.setMimeType(mime);
+            req.setTitle(name);
+            req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "KENDATI/" + name);
+            DownloadManager dm = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
+            dm.enqueue(req);
+            getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Mengunduh " + name + " ke Download/KENDATI", Toast.LENGTH_SHORT).show());
+        } catch (Exception e) {
+            getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Gagal mengunduh file", Toast.LENGTH_SHORT).show());
+        }
     }
 
     /** Simpan file (dari blob/data URL halaman) ke folder Download, lalu buka. */

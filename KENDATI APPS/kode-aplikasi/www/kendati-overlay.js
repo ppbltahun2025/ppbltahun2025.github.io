@@ -4,7 +4,7 @@
  * jadi tidak perlu mengubah kode situs ppbltahun2025.github.io sama sekali.
  *
  *  - Tombol bulat kecil (bisa digeser) -> panel: Mode Mobile / Mode Web,
- *    Kembali, Beranda, Muat ulang, Buka di browser.
+ *    Kembali, Beranda, Muat ulang, Salin link.
  *  - Mode Web = tampilan desktop seperti "Situs desktop" di Chrome.
  *  - Garis progres tipis saat pindah halaman.
  *  - Link target="_blank" dibuka di dalam aplikasi (iOS).
@@ -140,7 +140,7 @@
     back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11L12 4l8.5 7"/><path d="M6 9.5V20h12V9.5"/></svg>',
     reload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>',
-    browser: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>'
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>'
   };
 
   var CSS = [
@@ -169,6 +169,8 @@
     ".grid button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 2px 9px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:rgba(255,255,255,.05);color:#eaf1ff;font-size:10.5px;font-weight:600;cursor:pointer;transition:background .2s ease,transform .15s ease}",
     ".grid button:active{transform:scale(.95);background:rgba(240,180,41,.18)}",
     ".grid button svg{width:20px;height:20px;color:#ffd873}",
+    ".toast{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translate(-50%,20px);padding:9px 16px;border-radius:999px;background:rgba(7,27,58,.92);border:1px solid rgba(240,180,41,.5);color:#ffd873;font-size:12.5px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:2147483647}",
+    ".toast.on{opacity:1;transform:translate(-50%,0)}",
     "@media (prefers-reduced-motion:reduce){.sheet,.fab,.seg i,.scrim{transition-duration:.01s!important}}"
   ].join("");
 
@@ -197,7 +199,7 @@
           '<button type="button" data-act="back">' + ICON.back + "Kembali</button>" +
           '<button type="button" data-act="home">' + ICON.home + "Beranda</button>" +
           '<button type="button" data-act="reload">' + ICON.reload + "Muat ulang</button>" +
-          '<button type="button" data-act="browser">' + ICON.browser + "Browser</button>" +
+          '<button type="button" data-act="copy">' + ICON.copy + "Salin link</button>" +
         "</div>" +
       "</div>";
     document.body.appendChild(host);
@@ -304,10 +306,31 @@
         showProgress(); location.href = HOME;
       } else if (act === "reload") {
         showProgress(); send("hardReload");
-      } else if (act === "browser") {
-        send("openExternal", location.href);
+      } else if (act === "copy") {
+        copyLink(location.href);
       }
     });
+
+    var toastEl = document.createElement("div");
+    toastEl.className = "toast";
+    root.appendChild(toastEl);
+    var toastT;
+    function toast(msg) {
+      toastEl.textContent = msg; toastEl.classList.add("on");
+      clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove("on"); }, 1800);
+    }
+    function copyLink(text) {
+      function fallback() {
+        var t = document.createElement("textarea");
+        t.value = text; t.style.cssText = "position:fixed;opacity:0";
+        document.body.appendChild(t); t.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        t.remove(); toast("Link disalin");
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { toast("Link disalin"); }, fallback);
+      } else { fallback(); }
+    }
 
     wake();
     hideProgress();

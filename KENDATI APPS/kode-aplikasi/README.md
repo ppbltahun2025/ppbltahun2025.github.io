@@ -39,10 +39,10 @@ Untuk APK rilis, tambahkan secret di repo (Settings → Secrets → Actions):
 `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
 
 ## Catatan
-- Semua link (termasuk ke situs lain) dibuka DI DALAM aplikasi. Halaman Google yang butuh
-  login (accounts/drive/docs/mail.google.com) dibuka di tab browser di dalam aplikasi, karena Google
-  memblokir login di WebView. Tombol X / Selesai membawa kembali ke KENDATI.
-  Hanya tautan khusus (tel:, mailto:, WhatsApp) yang membuka aplikasi terkait.
+- Semua link (termasuk Google Drive/Docs dan situs lain) dibuka DI DALAM aplikasi, tidak dilempar
+  ke Chrome/Safari. Catatan: Google kadang menolak LOGIN di dalam aplikasi ("browser tidak aman");
+  melihat file Drive/Docs yang dibagikan publik tetap bisa. Hanya tel:, mailto:, WhatsApp yang
+  membuka aplikasi terkait.
 - Iklan AdSense biasanya tidak tampil di dalam aplikasi (WebView).
 - Build ulang hanya perlu bila logo atau kode native di repo ini berubah.
 
