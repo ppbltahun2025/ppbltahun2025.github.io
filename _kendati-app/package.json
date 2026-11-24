@@ -1,0 +1,20 @@
+{
+  "name": "kendati-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KENDATI - aplikasi Android & iOS (memuat situs live ppbltahun2025.github.io)",
+  "scripts": {
+    "sync": "npx cap sync",
+    "icons": "npx @capacitor/assets generate --android --ios --iconBackgroundColor '#f6f3ea' --iconBackgroundColorDark '#f6f3ea' --splashBackgroundColor '#071b3a' --splashBackgroundColorDark '#071b3a'",
+    "logo": "cp ../assets/icon-menu.png www/logo.png && python3 scripts/make_resources.py www/logo.png"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0"
+  }
+}

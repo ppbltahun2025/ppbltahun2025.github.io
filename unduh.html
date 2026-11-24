@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#071b3a">
+  <meta name="description" content="Pasang aplikasi KENDATI di Android dan iPhone.">
+  <title>Pasang Aplikasi KENDATI</title>
+  <link rel="icon" type="image/png" href="assets/icon-menu.png">
+  <link rel="apple-touch-icon" href="assets/app/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="KENDATI">
+  <style>
+    :root{--navy:#071b3a;--blue:#0b4b91;--gold:#f0b429;--gold2:#ffd873;--cream:#f6f3ea;--ink:#08182e;--txt:#eaf1ff}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html{background:#040f20}
+    html,body{margin:0;min-height:100%}
+    body{
+      font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--txt);
+      background:radial-gradient(120% 70% at 50% -10%,#0b4b91 0%,#071b3a 55%,#040f20 100%) fixed;
+      display:flex;justify-content:center;padding:max(28px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom));
+    }
+    main{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;text-align:center}
+
+    .orb{position:relative;width:104px;height:104px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;
+      box-shadow:0 12px 34px rgba(0,0,0,.45),0 0 0 5px rgba(240,180,41,.45);margin:14px 0 22px}
+    .orb::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:2px solid rgba(240,180,41,.55);animation:pulse 2.4s ease-out infinite}
+    .orb img{width:76%;height:76%;object-fit:contain}
+    @keyframes pulse{0%{transform:scale(1);opacity:.6}75%{transform:scale(1.35);opacity:0}100%{opacity:0}}
+
+    h1{margin:0;font-size:22px;color:var(--gold2);letter-spacing:.02em}
+    .lead{margin:8px 0 22px;font-size:13.5px;line-height:1.55;opacity:.82;max-width:320px}
+
+    .notice{display:none;width:100%;margin:0 0 16px;padding:12px 14px;border-radius:16px;font-size:13px;line-height:1.5;
+      background:rgba(46,160,90,.16);border:1px solid rgba(94,214,140,.35)}
+    .notice.on{display:block}
+
+    .seg{position:relative;display:grid;grid-template-columns:1fr 1fr;width:100%;padding:4px;border-radius:999px;background:rgba(255,255,255,.08);margin-bottom:14px}
+    .seg i{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:999px;background:linear-gradient(160deg,var(--gold2),var(--gold));transition:transform .35s cubic-bezier(.22,1,.36,1)}
+    .seg.ios i{transform:translateX(100%)}
+    .seg button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:8px;height:40px;border:0;background:none;
+      color:rgba(234,241,255,.8);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;transition:color .3s ease}
+    .seg button.act{color:var(--ink)}
+    .seg svg{width:17px;height:17px}
+
+    .card{width:100%;padding:20px 18px 18px;border-radius:24px;text-align:left;
+      background:rgba(7,27,58,.62);border:1px solid rgba(255,255,255,.14);
+      -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 18px 45px rgba(0,0,0,.35)}
+    .panel{display:none}
+    .panel.on{display:block;animation:in .35s ease}
+    @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+    .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;border-radius:16px;border:0;
+      font:inherit;font-size:15px;font-weight:800;text-decoration:none;cursor:pointer;color:var(--ink);
+      background:linear-gradient(160deg,var(--gold2),var(--gold));box-shadow:0 10px 24px rgba(240,180,41,.25);transition:transform .15s ease,opacity .2s ease}
+    .btn:active{transform:scale(.97)}
+    .btn svg{width:20px;height:20px}
+    .btn.ghost{height:44px;margin-top:10px;font-size:13.5px;font-weight:700;color:var(--txt);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);box-shadow:none}
+    .btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+    .meta{margin:10px 2px 18px;font-size:11.5px;opacity:.62;text-align:center;min-height:1.2em}
+
+    ol{margin:0;padding:0;list-style:none;counter-reset:s}
+    ol li{position:relative;counter-increment:s;padding:0 0 14px 38px;font-size:13.5px;line-height:1.5}
+    ol li:last-child{padding-bottom:0}
+    ol li::before{content:counter(s);position:absolute;left:0;top:-1px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:800;color:var(--gold2);background:rgba(240,180,41,.12);border:1px solid rgba(240,180,41,.4)}
+    ol li b{color:#fff}
+    .ico{display:inline-flex;vertical-align:-4px;width:20px;height:20px;padding:2px;border-radius:6px;background:rgba(255,255,255,.12)}
+    .ico svg{width:100%;height:100%}
+    .sub{margin:0 0 12px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2)}
+    hr{border:0;border-top:1px solid rgba(255,255,255,.12);margin:18px 0}
+
+    details{font-size:12.5px;line-height:1.55;opacity:.85}
+    summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;gap:6px}
+    summary::-webkit-details-marker{display:none}
+    summary::after{content:"▾";opacity:.6;transition:transform .2s ease}
+    details[open] summary::after{transform:rotate(180deg)}
+    details p{margin:8px 0 0}
+    a.link{color:var(--gold2)}
+
+    .feats{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:14px}
+    .feats div{padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:11.5px;line-height:1.4;text-align:left}
+    .feats b{display:block;font-size:12.5px;color:var(--gold2);margin-bottom:2px}
+
+    .back{margin-top:22px;font-size:12.5px;color:rgba(234,241,255,.7);text-decoration:none}
+    .back:hover{color:var(--gold2)}
+    footer{margin-top:10px;font-size:11px;opacity:.45}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="orb"><img src="assets/icon-menu.png" alt="Logo KENDATI"></div>
+  <h1>Pasang Aplikasi KENDATI</h1>
+  <p class="lead">Layar penuh tanpa bar, dan selalu versi terbaru. Setiap perubahan di KENDATI langsung ikut tanpa perlu update aplikasi.</p>
+
+  <div class="notice" id="notice"></div>
+
+  <div class="seg" id="seg">
+    <i></i>
+    <button type="button" data-os="android" class="act">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22A11.4 11.4 0 0 0 12 8.1c-1.77 0-3.43.38-4.92 1.04L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48C3.3 11.15 1.2 14.3 1 18h22c-.2-3.7-2.3-6.85-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>
+      Android
+    </button>
+    <button type="button" data-os="ios">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.77-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.75 2.27-1.6 2.78-.41 6.89 1.15 9.14.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.39-.92-2.4-3.66zM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.09 1.75-.96 2.79 1.02.08 2.05-.52 2.68-1.27z"/></svg>
+      iPhone / iPad
+    </button>
+  </div>
+
+  <section class="card">
+    <!-- ===== ANDROID ===== -->
+    <div class="panel on" id="p-android">
+      <a class="btn" id="apkBtn" href="https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/KENDATI.apk" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>
+        Unduh APK
+      </a>
+      <div class="meta" id="apkMeta">Memeriksa versi…</div>
+
+      <p class="sub">Cara pasang</p>
+      <ol>
+        <li>Ketuk <b>Unduh APK</b>, lalu buka file <b>KENDATI.apk</b> dari notifikasi atau folder Download.</li>
+        <li>Jika muncul peringatan, pilih <b>Setelan → Izinkan dari sumber ini</b>, lalu kembali dan ketuk <b>Instal</b>.</li>
+        <li>Buka <b>KENDATI</b> dari layar utama. Versi baru cukup diunduh dan dipasang di atas versi lama.</li>
+      </ol>
+
+      <button type="button" class="btn ghost" id="pwaBtn" hidden>Atau pasang versi web (tanpa APK)</button>
+    </div>
+
+    <!-- ===== iOS ===== -->
+    <div class="panel" id="p-ios">
+      <p class="sub">Pasang dari Safari</p>
+      <ol>
+        <li>Buka halaman ini di <b>Safari</b> (bukan Chrome atau aplikasi lain).</li>
+        <li>Ketuk tombol <b>Bagikan</b>
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd873" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></span>
+          di bawah layar.</li>
+        <li>Pilih <b>Tambah ke Layar Utama</b>
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd873" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span>,
+          lalu ketuk <b>Tambah</b>.</li>
+        <li>Buka <b>KENDATI</b> dari layar utama. Tampil penuh tanpa bar Safari.</li>
+      </ol>
+      <hr>
+      <details>
+        <summary>Versi aplikasi iOS (IPA)</summary>
+        <p>Untuk pengguna lanjutan: file <a class="link" id="ipaLink" href="https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/KENDATI-unsigned.ipa">KENDATI-unsigned.ipa</a>
+          bisa dipasang lewat <b>Sideloadly</b> atau <b>AltStore</b> dari komputer memakai Apple ID. Pemasangan perlu diulang setiap 7 hari karena Apple membatasi aplikasi di luar App Store.</p>
+      </details>
+    </div>
+  </section>
+
+  <div class="feats">
+    <div><b>Selalu terbaru</b>Isi langsung dari situs KENDATI</div>
+    <div><b>Layar penuh</b>Tanpa status bar &amp; address bar</div>
+    <div><b>Mode Mobile / Web</b>Seperti "Situs desktop" Chrome</div>
+    <div><b>Semua fitur</b>SIMBG, PPBL, Dan Lain Lain</div>
+  </div>
+
+  <a class="back" href="./">← Kembali ke KENDATI</a>
+  <footer>© 2026 CIPTA KARYA GRESIK</footer>
+</main>
+
+<script>
+(function () {
+  var REPO = "ppbltahun2025/ppbltahun2025.github.io";
+  var ua = navigator.userAgent || "";
+  var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var inApp = /KendatiApp/.test(ua);
+  var standalone = (window.matchMedia && (matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches)) || navigator.standalone;
+
+  // ---- pilih tab sesuai perangkat ----
+  var seg = document.getElementById("seg");
+  function show(os) {
+    seg.className = "seg " + os;
+    seg.querySelectorAll("button").forEach(function (b) { b.classList.toggle("act", b.dataset.os === os); });
+    document.getElementById("p-android").classList.toggle("on", os === "android");
+    document.getElementById("p-ios").classList.toggle("on", os === "ios");
+  }
+  seg.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-os]");
+    if (b) show(b.dataset.os);
+  });
+  show(isIOS ? "ios" : "android");
+
+  var notice = document.getElementById("notice");
+  if (inApp || standalone) {
+    notice.textContent = "✓ Anda sudah memakai aplikasi KENDATI. Isinya otomatis mengikuti versi terbaru.";
+    notice.classList.add("on");
+  } else if (!/Android|iPhone|iPad|iPod/.test(ua) && !isIOS) {
+    notice.innerHTML = "Buka halaman ini di HP: <b>ppbltahun2025.github.io/unduh.html</b>";
+    notice.style.background = "rgba(240,180,41,.1)";
+    notice.style.borderColor = "rgba(240,180,41,.35)";
+    notice.classList.add("on");
+  }
+
+  // ---- info versi dari GitHub Release "aplikasi" ----
+  var meta = document.getElementById("apkMeta");
+  var apkBtn = document.getElementById("apkBtn");
+  function mb(n) { return (n / 1048576).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + " MB"; }
+  fetch("https://api.github.com/repos/" + REPO + "/releases/tags/aplikasi", { headers: { Accept: "application/vnd.github+json" } })
+    .then(function (r) {
+      if (r.status === 404) throw new Error("belum ada");
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function (rel) {
+      var apk = (rel.assets || []).filter(function (a) { return a.name === "KENDATI.apk"; })[0];
+      if (!apk) throw new Error("belum ada");
+      var ver = (rel.body || "").match(/Versi\s+([\d.]+)/);
+      var tgl = new Date(apk.updated_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+      meta.textContent = (ver ? "Versi " + ver[1] + " · " : "") + mb(apk.size) + " · diperbarui " + tgl;
+      var ipa = (rel.assets || []).filter(function (a) { return a.name === "KENDATI-unsigned.ipa"; })[0];
+      if (!ipa) document.getElementById("ipaLink").removeAttribute("href");
+    })
+    .catch(function (err) {
+      if (String(err.message) === "belum ada") {
+        meta.textContent = "Aplikasi sedang disiapkan. Coba lagi beberapa menit lagi.";
+        apkBtn.setAttribute("aria-disabled", "true");
+      } else {
+        meta.textContent = "Android 6.0 ke atas";   // API GitHub dibatasi: tombol tetap bisa dipakai
+      }
+    });
+
+  // ---- Android: pasang versi web (PWA) bila browser menawarkan ----
+  var deferred = null, pwaBtn = document.getElementById("pwaBtn");
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault(); deferred = e;
+    if (!inApp) pwaBtn.hidden = false;
+  });
+  pwaBtn.addEventListener("click", function () {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.finally(function () { deferred = null; pwaBtn.hidden = true; });
+  });
+})();
+</script>
+</body>
+</html>

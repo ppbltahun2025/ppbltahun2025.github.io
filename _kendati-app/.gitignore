@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+*.keystore
+!android/app/kendati-debug.keystore
+*.jks
+build/
+android/app/build/
+android/.gradle/
+ios/App/build/
+ios/DerivedData/

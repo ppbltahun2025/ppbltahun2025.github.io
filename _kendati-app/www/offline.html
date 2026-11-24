@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>KENDATI · Offline</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:#eaf1ff;text-align:center;
+    background:radial-gradient(120% 80% at 50% 0%,#0b4b91 0%,#071b3a 55%,#040f20 100%)}
+  .orb{width:112px;height:112px;border-radius:50%;background:#f6f3ea;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 12px 34px rgba(0,0,0,.45),0 0 0 5px rgba(240,180,41,.45);position:relative}
+  .orb::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:2px solid rgba(240,180,41,.55);animation:p 2.4s ease-out infinite}
+  .orb img{width:76%;height:76%;object-fit:contain}
+  h1{margin:6px 0 0;font-size:19px;color:#ffd873;letter-spacing:.04em}
+  p{margin:0;max-width:300px;font-size:13.5px;line-height:1.55;opacity:.82}
+  button{margin-top:6px;border:0;border-radius:999px;padding:12px 26px;font:inherit;font-size:14px;font-weight:700;color:#08182e;
+    background:linear-gradient(160deg,#ffd873,#f0b429);box-shadow:0 8px 22px rgba(240,180,41,.25);cursor:pointer}
+  button:active{transform:scale(.96)}
+  small{position:fixed;bottom:max(18px,env(safe-area-inset-bottom));font-size:11px;opacity:.5}
+  @keyframes p{0%{transform:scale(1);opacity:.6}75%{transform:scale(1.35);opacity:0}100%{opacity:0}}
+</style>
+</head>
+<body>
+  <div class="orb"><img src="logo.png" alt="KENDATI"></div>
+  <h1>Tidak ada koneksi</h1>
+  <p>KENDATI memuat data langsung dari server agar selalu versi terbaru. Periksa internet Anda, lalu coba lagi.</p>
+  <button type="button" id="retry">Coba lagi</button>
+  <small>© 2026 CIPTA KARYA GRESIK</small>
+<script>
+  var HOME = "https://ppbltahun2025.github.io/";
+  function go(){ location.href = HOME; }
+  document.getElementById("retry").addEventListener("click", go);
+  window.addEventListener("online", go);
+</script>
+</body>
+</html>

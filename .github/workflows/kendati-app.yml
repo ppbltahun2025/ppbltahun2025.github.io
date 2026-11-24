@@ -1,0 +1,170 @@
+name: Aplikasi KENDATI (Android & iOS)
+
+# Aplikasi memuat situs live ini, jadi perubahan script KENDATI langsung
+# tampil di aplikasi TANPA build ulang. Workflow ini hanya jalan bila
+# kode aplikasi (_kendati-app) atau logo (assets/icon-menu.png) berubah,
+# atau dijalankan manual dari tab Actions.
+# Hasil: Release "aplikasi" -> dipakai halaman https://ppbltahun2025.github.io/unduh.html
+on:
+  push:
+    branches: [main]
+    paths:
+      - "_kendati-app/**"
+      - "assets/icon-menu.png"
+      - ".github/workflows/kendati-app.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kendati-app
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: _kendati-app
+
+jobs:
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 1.0.${{ github.run_number }}
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            _kendati-app
+            assets/icon-menu.png
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: _kendati-app/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install
+        run: |
+          npm ci
+          pip install --quiet pillow
+
+      - name: Ikon & splash dari assets/icon-menu.png
+        run: |
+          npm run logo
+          npm run icons
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Keystore rilis (opsional)
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KS" | base64 -d > "$RUNNER_TEMP/kendati.jks"
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/kendati.jks" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        working-directory: _kendati-app/android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          if [ -n "$KEYSTORE_FILE" ]; then
+            ./gradlew --no-daemon assembleRelease
+            cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/KENDATI.apk"
+          else
+            ./gradlew --no-daemon assembleDebug
+            cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/KENDATI.apk"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: KENDATI.apk
+
+  ios:
+    name: iOS IPA (unsigned)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            _kendati-app
+            assets/icon-menu.png
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: _kendati-app/package-lock.json
+
+      - name: Install
+        run: |
+          npm ci
+          python3 -m pip install --quiet --break-system-packages pillow
+
+      - name: Ikon & splash dari assets/icon-menu.png
+        run: |
+          npm run logo
+          npm run icons
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Build (tanpa tanda tangan)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} MARKETING_VERSION=1.0.${{ github.run_number }} \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive
+          mkdir -p Payload
+          cp -R "$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app" Payload/
+          zip -qry "$GITHUB_WORKSPACE/KENDATI-unsigned.ipa" Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: KENDATI-unsigned.ipa
+
+  rilis:
+    name: Terbitkan ke halaman unduh
+    needs: [android, ios]
+    if: ${{ !cancelled() && needs.android.result == 'success' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Release "aplikasi"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: aplikasi
+          name: Aplikasi KENDATI
+          make_latest: true
+          fail_on_unmatched_files: false
+          body: |
+            Versi 1.0.${{ github.run_number }}
+            Pasang dari https://ppbltahun2025.github.io/unduh.html
+            Isi aplikasi selalu mengikuti situs live, jadi tidak perlu update untuk perubahan script.
+          files: |
+            dist/KENDATI.apk
+            dist/KENDATI-unsigned.ipa
