@@ -89,6 +89,18 @@ jobs:
           name: android
           path: KENDATI.apk
 
+      - name: Terbitkan ke Release "aplikasi"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: aplikasi
+          name: Aplikasi KENDATI
+          make_latest: true
+          body: |
+            Versi 1.0.${{ github.run_number }}
+            Pasang dari https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html
+            Isi aplikasi selalu mengikuti situs live, jadi tidak perlu update untuk perubahan script.
+          files: KENDATI.apk
+
   ios:
     name: iOS IPA (unsigned)
     runs-on: macos-15
@@ -130,31 +142,14 @@ jobs:
           name: ios
           path: KENDATI-unsigned.ipa
 
-  rilis:
-    name: Terbitkan ke halaman unduh
-    needs: [android, ios]
-    if: ${{ !cancelled() && needs.android.result == 'success' }}
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-          merge-multiple: true
-
-      - name: Release "aplikasi"
+      - name: Terbitkan ke Release "aplikasi"
         uses: softprops/action-gh-release@v2
         with:
           tag_name: aplikasi
           name: Aplikasi KENDATI
           make_latest: true
-          fail_on_unmatched_files: false
           body: |
             Versi 1.0.${{ github.run_number }}
             Pasang dari https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html
             Isi aplikasi selalu mengikuti situs live, jadi tidak perlu update untuk perubahan script.
-          files: |
-            dist/KENDATI.apk
-            dist/KENDATI-unsigned.ipa
+          files: KENDATI-unsigned.ipa
