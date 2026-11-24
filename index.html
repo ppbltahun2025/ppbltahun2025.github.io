@@ -1272,7 +1272,22 @@
       wrap.style.transformOrigin = "center center";
       wrap.style.transform = `translateY(${ty}px) scale(${scale})`;
     }
+
+    // Orb ditempel tepat di titik pusat hub yang sebenarnya (bukan "tengah layar"),
+    // karena di HP tinggi layar berubah-ubah saat bar alamat browser muncul/hilang.
+    placeOrbOnHub();
   }
+
+  function placeOrbOnHub(){
+    const orbEl = document.getElementById("homeOrb");
+    const hub = document.getElementById("homeHub");
+    if (!orbEl || !hub || !document.body.classList.contains("home-mode")) return;
+    const r = hub.getBoundingClientRect();
+    if (!r.width) return;
+    orbEl.style.top  = (r.top  + r.height / 2) + "px";
+    orbEl.style.left = (r.left + r.width  / 2) + "px";
+  }
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", () => placeOrbOnHub());
 
   // Icon bisa emoji ATAU path gambar
   function renderIcon(icon){
