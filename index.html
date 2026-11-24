@@ -161,8 +161,9 @@
     .home-orb{
       position:fixed;
       top:50%; left:50%;
-      width:112px; height:112px;
-      margin:-56px 0 0 -56px;
+      /* ukuran orb = lebar hexagon (diisi JS lewat --orb) */
+      width:var(--orb,96px); height:var(--orb,96px);
+      margin:calc(var(--orb,96px) / -2) 0 0 calc(var(--orb,96px) / -2);
       padding:0;
       border:none;
       border-radius:50%;
@@ -644,7 +645,8 @@
       position:fixed;
       top:64px;
       left:16px;
-      width:min(560px, calc(100vw - 32px));
+      /* tidak boleh menutupi orb di tengah layar: maks. setengah layar - jari-jari orb */
+      width:min(560px, max(300px, calc(50vw - 94px)), calc(100vw - 32px));
       padding:14px 14px 12px;
       background:rgba(7,27,58,.66);
       -webkit-backdrop-filter:blur(16px) saturate(120%);
@@ -906,7 +908,7 @@
 
   <!-- Badge total pengunjung (Supabase) -->
   <div class="visitor-counter" id="visitorCounter" title="Klik untuk lihat rincian">
-    <span class="v-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span class="v-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
     <span class="v-label">Pengunjung</span>
     <span class="v-count" id="visitorCount">…</span>
     <span class="v-caret">▾</span>
@@ -1172,15 +1174,17 @@
   // ---- Jarak hexagon dari orb, supaya TIDAK PERNAH bertabrakan ----
   // Orb di layar selalu 112px (+ cincin denyut 10px), sedangkan kartu bisa
   // menyusut (scale). Maka jarak hexagon dihitung ulang mengikuti scale.
-  const ORB_R   = 56;   // jari-jari orb (px layar)
-  const ORB_RING = 10;  // cincin denyut di luar orb
-  const ORB_GAP  = 14;  // celah kosong antara cincin dan hexagon
+  // Orb dibuat SAMA BESAR dengan hexagon (diameter = lebar hexagon) dan
+  // hexagon diletakkan mepet ke orb. Ukuran orb ikut scale kartu.
+  const ORB_RING = 5;   // cincin tipis (box-shadow) di sekeliling orb
+  const ORB_GAP  = 6;   // celah antara cincin orb dan ujung hexagon
 
   function layoutHub(radius){
     const items = hexGrid.querySelectorAll(".home-hub-item");
     if (!items.length) return;
     const hexH = items[0].offsetHeight;   // ukuran asli, tidak terpengaruh transform
-    let up = ORB_R + ORB_RING, down = ORB_R + ORB_RING;
+    const orbR = items[0].offsetWidth / 2 + ORB_RING;
+    let up = orbR, down = orbR;
     items.forEach(el => {
       const rad = Number(el.dataset.angle) * Math.PI / 180;
       const tx = Math.round(Math.cos(rad) * radius);
@@ -1205,8 +1209,11 @@
     if (!hub) return;
 
     const firstItem = hexGrid.querySelector(".home-hub-item");
-    const hexHalf = firstItem ? firstItem.offsetHeight / 2 : 55;
-    const clear = ORB_R + ORB_RING + ORB_GAP;   // jarak aman di layar
+    const hexHalf = firstItem ? firstItem.offsetHeight / 2 : 55;   // ujung hexagon mengarah ke orb
+    const hexW    = firstItem ? firstItem.offsetWidth : 96;
+    const orbEl   = document.getElementById("homeOrb");
+    // jarak pusat orb -> ujung hexagon (dalam ukuran kartu), sesuai scale
+    const radiusFor = (sc) => hexW / 2 + (ORB_RING + ORB_GAP) / sc + hexHalf;
 
     const pad = 20;
     const availW = window.innerWidth - pad * 2;
@@ -1216,7 +1223,7 @@
     // radius bergantung pada scale, scale bergantung pada tinggi kartu:
     // diulang beberapa kali sampai stabil
     for (let k = 0; k < 4; k++){
-      layoutHub(clear / scale + hexHalf);
+      layoutHub(radiusFor(scale));
       hubY = hexGrid.offsetTop + hub.offsetTop + hub.offsetHeight / 2;
       w = wrap.offsetWidth;
       h = wrap.offsetHeight;
@@ -1228,9 +1235,10 @@
       if (Math.abs(next - scale) < 0.005){ scale = next; break; }
       scale = next;
     }
-    layoutHub(clear / scale + hexHalf);
+    layoutHub(radiusFor(scale));
     hubY = hexGrid.offsetTop + hub.offsetTop + hub.offsetHeight / 2;
     h = wrap.offsetHeight;
+    if (orbEl) orbEl.style.setProperty("--orb", (hexW * scale).toFixed(1) + "px");   // orb = lebar hexagon di layar
 
     // geser supaya pusat hub = pusat layar (sama dengan orb)
     // titik & radius lingkaran pembuka kartu (clip-path), dari pusat hub
@@ -1481,8 +1489,11 @@
     };
 
     counterBtn.addEventListener("click", () => {
-      counterBtn.classList.toggle("open");
-      panel.classList.toggle("open");
+      const willOpen = !panel.classList.contains("open");
+      counterBtn.classList.toggle("open", willOpen);
+      panel.classList.toggle("open", willOpen);
+      // statistik dibuka saat menu KENDATI sedang terbuka -> tutup menunya
+      if (willOpen && homeView.classList.contains("open")) closeHome();
     });
     // klik di luar panel atau tekan Escape = tutup
     function closePanel(){
