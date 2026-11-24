@@ -47,3 +47,27 @@ begin
 end;
 $$;
 grant execute on function submit_feedback(text, text, int, text) to anon;
+
+-- =====================================================================
+-- JUMLAH UNDUHAN (tidak hilang walau APK/IPA dibangun ulang)
+-- =====================================================================
+create table if not exists app_downloads (
+  platform text primary key check (platform in ('android', 'ios')),
+  count    bigint not null default 0
+);
+insert into app_downloads (platform) values ('android'), ('ios') on conflict do nothing;
+alter table app_downloads enable row level security;
+drop policy if exists "publik boleh baca unduhan" on app_downloads;
+create policy "publik boleh baca unduhan" on app_downloads for select using (true);
+
+create or replace function record_download(p_platform text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update app_downloads set count = count + 1 where platform = p_platform;
+end;
+$$;
+grant execute on function record_download(text) to anon;

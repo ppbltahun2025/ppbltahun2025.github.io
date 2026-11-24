@@ -300,22 +300,32 @@
     }
     function num(n) { return Number(n).toLocaleString("id-ID"); }
 
-    // --- jumlah unduhan dari GitHub Release "aplikasi" ---
-    fetch("https://api.github.com/repos/ppbltahun2025/ppbltahun2025.github.io/releases/tags/aplikasi")
-      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-      .then(function (rel) {
-        var cnt = { android: 0, ios: 0 };
-        (rel.assets || []).forEach(function (a) {
-          if (/\.apk$/i.test(a.name)) cnt.android += a.download_count || 0;
-          if (/\.ipa$/i.test(a.name)) cnt.ios += a.download_count || 0;
+    // --- jumlah unduhan (Supabase; tidak hilang walau aplikasi dibangun ulang) ---
+    function showDownloads() {
+      fetch(SB_URL + "/rest/v1/app_downloads?select=platform,count", { headers: { apikey: SB_KEY } })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (data) {
+          var cnt = { android: 0, ios: 0 };
+          (data || []).forEach(function (d) { cnt[d.platform] = Number(d.count) || 0; });
+          CARD.android.querySelector("[data-dl]").textContent = num(cnt.android);
+          CARD.ios.querySelector("[data-dl]").textContent = num(cnt.ios);
+        })
+        .catch(function () {
+          CARD.android.querySelector("[data-dl]").textContent = "–";
+          CARD.ios.querySelector("[data-dl]").textContent = "–";
         });
-        CARD.android.querySelector("[data-dl]").textContent = num(cnt.android);
-        CARD.ios.querySelector("[data-dl]").textContent = num(cnt.ios);
-      })
-      .catch(function () {
-        CARD.android.querySelector("[data-dl]").textContent = "–";
-        CARD.ios.querySelector("[data-dl]").textContent = "–";
-      });
+    }
+    showDownloads();
+    function recordDownload(pf) {
+      fetch(SB_URL + "/rest/v1/rpc/record_download", {
+        method: "POST", keepalive: true,
+        headers: { apikey: SB_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_platform: pf })
+      }).then(function () { setTimeout(showDownloads, 500); }).catch(function () {});
+    }
+    document.getElementById("apkBtn").addEventListener("click", function () { recordDownload("android"); });
+    var ipaLink = document.getElementById("ipaLink");
+    if (ipaLink) ipaLink.addEventListener("click", function () { if (ipaLink.getAttribute("href")) recordDownload("ios"); });
 
     // --- rating & saran ---
     var rows = [], filter = "all", list = document.getElementById("clist");
