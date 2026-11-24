@@ -1435,11 +1435,12 @@
     begin
       update visit_total set count = count + 1 where id = 1;
 
-      insert into visit_daily (day, count) values (current_date, 1)
+      -- pakai tanggal WIB (server Supabase memakai UTC)
+      insert into visit_daily (day, count) values ((now() at time zone 'Asia/Jakarta')::date, 1)
         on conflict (day) do update set count = visit_daily.count + 1;
 
       insert into visit_monthly (month, count)
-        values (date_trunc('month', current_date)::date, 1)
+        values (date_trunc('month', (now() at time zone 'Asia/Jakarta'))::date, 1)
         on conflict (month) do update set count = visit_monthly.count + 1;
     end;
     $$;
