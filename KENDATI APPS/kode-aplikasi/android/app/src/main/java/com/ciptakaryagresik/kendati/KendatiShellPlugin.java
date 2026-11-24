@@ -1,11 +1,16 @@
 package com.ciptakaryagresik.kendati;
 
 import android.annotation.SuppressLint;
+import android.Manifest;
 import android.app.DownloadManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -17,6 +22,9 @@ import android.webkit.CookieManager;
 import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.widget.Toast;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -33,6 +41,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -42,6 +52,7 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,6 +83,85 @@ public class KendatiShellPlugin extends Plugin {
         injectOverlay(wv);
         setupLoginMemory(wv);
         applyMode(isDesktop(), false);
+        checkUpdate();
+    }
+
+    // ---------------- Wajib update bila ada versi baru ----------------
+    // file kecil berisi nomor versi APK terbaru, diterbitkan bersama KENDATI.apk
+    private static final String VERSION_URL = "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/versi-android.txt";
+    private static final String HISTORY_URL = "https://ppbltahun2025.github.io/KENDATI%20APPS/riwayat-versi.json";
+    private volatile String updateJson = "";
+    private long lastCheck = 0;
+
+    @Override
+    protected void handleOnResume() {
+        super.handleOnResume();
+        if (System.currentTimeMillis() - lastCheck > 15 * 60 * 1000) checkUpdate();
+    }
+
+    private String currentVersion() {
+        try {
+            return getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            return "0";
+        }
+    }
+
+    /** 1.0.12 > 1.0.9 (dibandingkan per angka) */
+    static int compareVersion(String a, String b) {
+        String[] x = a.split("\\."), y = b.split("\\.");
+        for (int i = 0; i < Math.max(x.length, y.length); i++) {
+            int p = i < x.length ? parseIntSafe(x[i]) : 0, q = i < y.length ? parseIntSafe(y[i]) : 0;
+            if (p != q) return p < q ? -1 : 1;
+        }
+        return 0;
+    }
+
+    private static int parseIntSafe(String s) {
+        try { return Integer.parseInt(s.replaceAll("[^0-9]", "")); } catch (Exception e) { return 0; }
+    }
+
+    private static String httpGet(String url) throws Exception {
+        HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+        c.setConnectTimeout(15000);
+        c.setReadTimeout(15000);
+        c.setRequestProperty("Accept", "application/json");
+        c.setUseCaches(false);
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = r.readLine()) != null) sb.append(line).append('\n');
+            return sb.toString();
+        } finally {
+            c.disconnect();
+        }
+    }
+
+    private void checkUpdate() {
+        lastCheck = System.currentTimeMillis();
+        new Thread(() -> {
+            try {
+                String latest = httpGet(VERSION_URL).trim();
+                if (!latest.matches("[0-9]+(\\.[0-9]+)*")) return;
+                String current = currentVersion();
+                if (compareVersion(latest, current) <= 0) { updateJson = ""; return; }
+                JSONArray notes = new JSONArray();
+                try {
+                    JSONArray hist = new JSONObject(httpGet(HISTORY_URL)).optJSONArray("versi");
+                    for (int i = 0; hist != null && i < hist.length(); i++) {
+                        JSONObject v = hist.getJSONObject(i);
+                        if (latest.equals(v.optString("versi"))) { notes = v.optJSONArray("catatan"); break; }
+                    }
+                } catch (Exception ignored) {}
+                JSONObject info = new JSONObject();
+                info.put("latest", latest);
+                info.put("current", current);
+                info.put("notes", notes == null ? new JSONArray() : notes);
+                updateJson = info.toString();
+                final String js = "window.__kendatiOnUpdate && window.__kendatiOnUpdate(" + updateJson + ")";
+                getActivity().runOnUiThread(() -> getBridge().getWebView().evaluateJavascript(js, null));
+            } catch (Exception ignored) {}
+        }).start();
     }
 
     // ---------------- Ingat login (nama & sandi, terenkripsi Keystore) ----------------
@@ -224,6 +314,7 @@ public class KendatiShellPlugin extends Plugin {
             String cookies = CookieManager.getInstance().getCookie(url);
             if (cookies != null) req.addRequestHeader("Cookie", cookies);
             req.addRequestHeader("User-Agent", ua);
+            if (name.toLowerCase().endsWith(".apk")) mime = "application/vnd.android.package-archive";   // ketuk notifikasi = pasang
             if (mime != null) req.setMimeType(mime);
             req.setTitle(name);
             req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
@@ -234,6 +325,39 @@ public class KendatiShellPlugin extends Plugin {
         } catch (Exception e) {
             getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Gagal mengunduh file", Toast.LENGTH_SHORT).show());
         }
+    }
+
+    /** Notifikasi "Unduhan selesai" yang muncul di atas layar (seperti Chrome); ketuk untuk membuka file. */
+    @SuppressLint("MissingPermission")
+    private void notifyDownloaded(String name, Uri uri, String mime) {
+        try {
+            Context ctx = getActivity();
+            if (Build.VERSION.SDK_INT >= 26) {
+                NotificationChannel ch = new NotificationChannel("unduhan", "Unduhan", NotificationManager.IMPORTANCE_HIGH);
+                ch.setDescription("File yang diunduh dari KENDATI");
+                ctx.getSystemService(NotificationManager.class).createNotificationChannel(ch);
+            }
+            if (Build.VERSION.SDK_INT >= 33
+                && ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                getActivity().requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, 8);
+                return;
+            }
+            Intent open = new Intent(Intent.ACTION_VIEW);
+            open.setDataAndType(uri, mime);
+            open.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            int id = (int) (System.currentTimeMillis() & 0x7fffffff);
+            PendingIntent pi = PendingIntent.getActivity(ctx, id, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+            NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, "unduhan")
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentTitle("Unduhan selesai")
+                .setContentText(name)
+                .setSubText("Download/KENDATI")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setAutoCancel(true)
+                .setContentIntent(pi);
+            NotificationManagerCompat.from(ctx).notify(id, b.build());
+        } catch (Exception ignored) {}
     }
 
     /** Simpan file (dari blob/data URL halaman) ke folder Download, lalu buka. */
@@ -265,9 +389,10 @@ public class KendatiShellPlugin extends Plugin {
                 uri = FileProvider.getUriForFile(getActivity(), getActivity().getPackageName() + ".fileprovider", f);
             }
             final String shown = safe;
+            final Uri savedUri = uri;
             getActivity().runOnUiThread(() -> {
-                // tetap di aplikasi: cukup beri tahu lokasi file
                 Toast.makeText(getActivity(), "Tersimpan di Download/KENDATI: " + shown, Toast.LENGTH_LONG).show();
+                notifyDownloaded(shown, savedUri, mime);
             });
         } catch (Exception e) {
             getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Gagal menyimpan file", Toast.LENGTH_SHORT).show());
@@ -323,6 +448,17 @@ public class KendatiShellPlugin extends Plugin {
                 final String js = "window.__kendatiRatingDone && window.__kendatiRatingDone(" + status + ")";
                 getActivity().runOnUiThread(() -> getBridge().getWebView().evaluateJavascript(js, null));
             }).start();
+        }
+
+        /** Info versi baru (JSON) atau "" bila aplikasi sudah terbaru. */
+        @JavascriptInterface
+        public String getUpdate() {
+            return updateJson;
+        }
+
+        @JavascriptInterface
+        public String getVersion() {
+            return currentVersion();
         }
 
         @JavascriptInterface

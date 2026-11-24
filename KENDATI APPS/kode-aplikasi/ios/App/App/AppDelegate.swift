@@ -150,10 +150,67 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
         }
         ucc.add(KendatiWeakHandler(self), name: "kendati")
         bridge?.registerPluginInstance(KendatiNavPlugin())
+        checkUpdate()
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification,
+                                               object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            if Date().timeIntervalSince(self.lastUpdateCheck) > 15 * 60 { self.checkUpdate() }
+        }
         let proxy = KendatiUIDelegate(inner: wv.uiDelegate)
         uiDelegateProxy = proxy
         wv.uiDelegate = proxy
         applyMode(reload: false)
+    }
+
+    // MARK: Wajib update bila ada versi baru
+    private var lastUpdateCheck = Date.distantPast
+    private var updateScriptAdded = false
+    private let versionURL = URL(string: "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/versi-ios.txt")!
+    private let historyURL = URL(string: "https://ppbltahun2025.github.io/KENDATI%20APPS/riwayat-versi.json")!
+
+    private func isNewer(_ a: String, than b: String) -> Bool {
+        let x = a.split(separator: ".").map { Int($0) ?? 0 }, y = b.split(separator: ".").map { Int($0) ?? 0 }
+        for i in 0..<max(x.count, y.count) {
+            let p = i < x.count ? x[i] : 0, q = i < y.count ? y[i] : 0
+            if p != q { return p > q }
+        }
+        return false
+    }
+
+    private func checkUpdate() {
+        lastUpdateCheck = Date()
+        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+        var req = URLRequest(url: versionURL)
+        req.cachePolicy = .reloadIgnoringLocalCacheData
+        URLSession.shared.dataTask(with: req) { [weak self] data, _, _ in
+            guard let self = self, let data = data,
+                  let latest = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  latest.range(of: "^[0-9]+(\\.[0-9]+)*$", options: .regularExpression) != nil,
+                  self.isNewer(latest, than: current) else { return }
+            var hreq = URLRequest(url: self.historyURL)
+            hreq.cachePolicy = .reloadIgnoringLocalCacheData
+            URLSession.shared.dataTask(with: hreq) { hdata, _, _ in
+                var notes: [String] = []
+                if let hdata = hdata,
+                   let obj = try? JSONSerialization.jsonObject(with: hdata) as? [String: Any],
+                   let list = obj["versi"] as? [[String: Any]],
+                   let entry = list.first(where: { ($0["versi"] as? String) == latest }) {
+                    notes = entry["catatan"] as? [String] ?? []
+                }
+                let info: [String: Any] = ["latest": latest, "current": current, "notes": notes]
+                guard let json = try? JSONSerialization.data(withJSONObject: info),
+                      let str = String(data: json, encoding: .utf8) else { return }
+                DispatchQueue.main.async {
+                    guard let wv = self.webView else { return }
+                    if !self.updateScriptAdded {
+                        self.updateScriptAdded = true
+                        wv.configuration.userContentController.addUserScript(
+                            WKUserScript(source: "window.__kendatiUpdateInfo = \(str);", injectionTime: .atDocumentStart, forMainFrameOnly: true))
+                    }
+                    wv.evaluateJavaScript("window.__kendatiUpdateInfo = \(str); window.__kendatiOnUpdate && window.__kendatiOnUpdate(\(str))", completionHandler: nil)
+                }
+            }.resume()
+        }.resume()
     }
 
     // MARK: Izin lokasi, kamera & galeri (ditanya sekali saat pertama dibuka)

@@ -47,19 +47,20 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
-    // ---------------- Izin: lokasi, kamera, galeri & file ----------------
+    // ---------------- Izin: lokasi, kamera, galeri, file & notifikasi ----------------
     // Ditanyakan sekali saat aplikasi pertama dibuka. Bisa diubah lagi di
     // Setelan HP -> Aplikasi -> KENDATI -> Izin.
     private void askPermissionsOnce() {
         SharedPreferences prefs = getSharedPreferences("kendati", MODE_PRIVATE);
-        if (prefs.getBoolean("permsAsked", false)) return;
-        prefs.edit().putBoolean("permsAsked", true).apply();
+        if (prefs.getBoolean("permsAsked2", false)) return;
+        prefs.edit().putBoolean("permsAsked2", true).apply();
 
         List<String> want = new ArrayList<>();
         want.add(Manifest.permission.ACCESS_FINE_LOCATION);
         want.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         want.add(Manifest.permission.CAMERA);
         if (Build.VERSION.SDK_INT >= 33) {
+            want.add(Manifest.permission.POST_NOTIFICATIONS);   // notifikasi unduhan
             want.add(Manifest.permission.READ_MEDIA_IMAGES);
             want.add(Manifest.permission.READ_MEDIA_VIDEO);
         } else {

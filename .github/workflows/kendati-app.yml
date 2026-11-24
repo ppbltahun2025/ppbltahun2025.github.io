@@ -83,6 +83,7 @@ jobs:
             ./gradlew --no-daemon assembleDebug
             cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/KENDATI.apk"
           fi
+          echo "$VERSION_NAME" > "$GITHUB_WORKSPACE/versi-android.txt"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -99,7 +100,9 @@ jobs:
             Versi 1.0.${{ github.run_number }}
             Pasang dari https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html
             Isi aplikasi selalu mengikuti situs live, jadi tidak perlu update untuk perubahan script.
-          files: KENDATI.apk
+          files: |
+            KENDATI.apk
+            versi-android.txt
 
   ios:
     name: iOS IPA (unsigned)
@@ -136,6 +139,7 @@ jobs:
           mkdir -p Payload
           cp -R "$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app" Payload/
           zip -qry "$GITHUB_WORKSPACE/KENDATI-unsigned.ipa" Payload
+          echo "1.0.${{ github.run_number }}" > "$GITHUB_WORKSPACE/versi-ios.txt"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -152,4 +156,6 @@ jobs:
             Versi 1.0.${{ github.run_number }}
             Pasang dari https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html
             Isi aplikasi selalu mengikuti situs live, jadi tidak perlu update untuk perubahan script.
-          files: KENDATI-unsigned.ipa
+          files: |
+            KENDATI-unsigned.ipa
+            versi-ios.txt

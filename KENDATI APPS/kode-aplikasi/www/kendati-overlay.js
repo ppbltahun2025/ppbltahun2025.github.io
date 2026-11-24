@@ -225,7 +225,7 @@
     };
   }
 
-  if (window.top !== window) { keepLinksInApp(); initPull(); return; }   // iframe: link + tarik-refresh; UI di frame utama
+  if (window.top !== window) { keepLinksInApp(); return; }   // tarik-refresh dimatikan (sering tidak sengaja)   // iframe: link + tarik-refresh; UI di frame utama
   if (window.__kendatiOverlay) return;          // jangan dobel
   window.__kendatiOverlay = true;
 
@@ -414,6 +414,18 @@
     ".rbtns button{height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#eaf1ff;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}",
     ".rbtns .send{border:0;color:#08182e;background:linear-gradient(160deg,#ffd873,#f0b429)}",
     ".rbtns .send[disabled]{opacity:.45}",
+    ".upd{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(3,11,24,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}",
+    ".upd.on{display:flex}",
+    ".upd-card{width:min(360px,100%);padding:26px 22px 20px;border-radius:26px;background:linear-gradient(180deg,#0b2a55,#071b3a);border:1px solid rgba(240,180,41,.4);box-shadow:0 24px 60px rgba(0,0,0,.55);color:#eaf1ff;text-align:center}",
+    ".upd-ic{width:64px;height:64px;margin:0 auto 14px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#ffd873,#f0b429);color:#08182e}",
+    ".upd-ic svg{width:32px;height:32px}",
+    ".upd h3{margin:0;font-size:19px;color:#ffd873}",
+    ".upd .vv{margin:6px 0 14px;font-size:12px;opacity:.7}",
+    ".upd ul{margin:0 0 16px;padding:12px 14px 12px 30px;text-align:left;border-radius:16px;background:rgba(255,255,255,.06);max-height:34vh;overflow:auto}",
+    ".upd li{font-size:12.8px;line-height:1.5;margin:3px 0}",
+    ".upd .go{display:block;width:100%;height:50px;border:0;border-radius:16px;font:inherit;font-size:15px;font-weight:800;color:#08182e;background:linear-gradient(160deg,#ffd873,#f0b429);cursor:pointer}",
+    ".upd .alt{display:block;width:100%;margin-top:8px;height:42px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:none;font:inherit;font-size:13px;font-weight:700;color:#eaf1ff;cursor:pointer}",
+    ".upd .hint{margin:12px 0 0;font-size:11.5px;line-height:1.5;opacity:.65}",
     ".toast{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translate(-50%,20px);padding:9px 16px;border-radius:999px;background:rgba(7,27,58,.92);border:1px solid rgba(240,180,41,.5);color:#ffd873;font-size:12.5px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:2147483647}",
     ".toast.on{opacity:1;transform:translate(-50%,0)}",
     ".ptr{position:fixed;top:0;left:50%;width:42px;height:42px;margin-left:-21px;border-radius:50%;background:rgba(7,27,58,.92);border:1px solid rgba(240,180,41,.55);box-shadow:0 8px 22px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;transform:translateY(-60px);opacity:0;z-index:2147483647;pointer-events:none}",
@@ -439,6 +451,13 @@
       '<div class="bar"></div>' +
       '<div class="ptr">' + ICON.reload + '</div>' +
       '<div class="scrim"></div>' +
+      '<div class="upd" role="alertdialog" aria-modal="true"><div class="upd-card">' +
+        '<div class="upd-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg></div>' +
+        '<h3>Versi baru tersedia</h3><div class="vv"></div><ul></ul>' +
+        '<button type="button" class="go">Perbarui sekarang</button>' +
+        '<button type="button" class="alt">Buka halaman unduh</button>' +
+        '<p class="hint">Aplikasi perlu diperbarui sebelum bisa digunakan lagi.</p>' +
+      "</div></div>" +
       '<button class="fab" type="button" aria-label="Menu aplikasi KENDATI">' + ICON.menu + "</button>" +
       '<div class="sheet" role="dialog" aria-label="Menu aplikasi">' +
         '<div class="grip"></div>' +
@@ -665,6 +684,39 @@
       }
     });
 
+    // ----- wajib update: layar dikunci bila ada versi baru -----
+    var UNDUH = "https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html";
+    var APK = "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/KENDATI.apk";
+    var upd = $(".upd");
+    function showUpdate(info) {
+      if (!info || !info.latest) return;
+      if (/unduh\.html$/i.test(decodeURIComponent(location.pathname))) return;   // halaman unduh tetap bisa dibuka
+      upd.querySelector(".vv").textContent = "Versi " + info.latest + " · versi Anda " + (info.current || "-");
+      var ul = upd.querySelector("ul"), notes = info.notes || [];
+      ul.innerHTML = "";
+      notes.forEach(function (n) { var li = document.createElement("li"); li.textContent = n; ul.appendChild(li); });
+      ul.style.display = notes.length ? "" : "none";
+      upd.querySelector(".go").textContent = IS_ANDROID ? "Unduh & pasang" : "Perbarui sekarang";
+      upd.classList.add("on");
+      toggle(false);
+      fab.style.display = "none";
+    }
+    upd.querySelector(".go").addEventListener("click", function () {
+      if (IS_ANDROID && window.KendatiNative.download) {
+        window.KendatiNative.download(APK, "KENDATI.apk");
+        upd.querySelector(".hint").textContent = "Mengunduh… Setelah selesai, ketuk notifikasi \"Unduhan selesai\" lalu pilih Instal.";
+      } else {
+        location.href = UNDUH;
+      }
+    });
+    upd.querySelector(".alt").addEventListener("click", function () { location.href = UNDUH; });
+    window.__kendatiOnUpdate = showUpdate;
+    try {
+      var pending = IS_ANDROID && window.KendatiNative.getUpdate ? window.KendatiNative.getUpdate() : "";
+      if (pending) showUpdate(JSON.parse(pending));
+      else if (window.__kendatiUpdateInfo) showUpdate(window.__kendatiUpdateInfo);
+    } catch (e) {}
+
     var toastEl = document.createElement("div");
     toastEl.className = "toast";
     root.appendChild(toastEl);
@@ -686,7 +738,6 @@
 
   function boot() {
     build();
-    initPull();
     if (MODE === "desktop" && document.head && window.MutationObserver) {
       new MutationObserver(applyViewport).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ["content"] });
     }
