@@ -246,7 +246,12 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
         switch action {
         case "setMode":
             UserDefaults.standard.set(value == "desktop" ? "desktop" : "mobile", forKey: modeKey)
-            applyMode(reload: true)
+            applyMode(reload: false)
+            // tetap di halaman yang sama: tampilan diganti lewat overlay, tanpa memuat ulang
+            let m = value == "desktop" ? "desktop" : "mobile"
+            webView?.evaluateJavaScript("(window.__kendatiApplyMode ? (window.__kendatiApplyMode('\(m)'), true) : false)") { [weak self] result, _ in
+                if (result as? Bool) != true { self?.webView?.reload() }
+            }
         case "hardReload":
             let types: Set<String> = [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache]
             WKWebsiteDataStore.default().removeData(ofTypes: types, modifiedSince: .distantPast) { [weak self] in

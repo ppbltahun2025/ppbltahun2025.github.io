@@ -312,11 +312,21 @@
   }
 
   // ---------- Mode Web: paksa viewport selebar desktop ----------
+  // Mode Web: lebar 1280. Kembali ke Mobile: pulihkan viewport asli halaman.
+  var VP_DESKTOP = "width=1280";
   function applyViewport() {
-    if (MODE !== "desktop" || !document.head) return;
+    if (!document.head) return;
     var m = document.querySelector('meta[name="viewport"]');
-    if (!m) { m = document.createElement("meta"); m.name = "viewport"; document.head.appendChild(m); }
-    if (m.content !== "width=1280") m.content = "width=1280";
+    if (MODE === "desktop") {
+      if (!m) { m = document.createElement("meta"); m.name = "viewport"; m.setAttribute("data-kendati-added", "1"); document.head.appendChild(m); }
+      if (!m.hasAttribute("data-kendati-orig") && m.content !== VP_DESKTOP) m.setAttribute("data-kendati-orig", m.content || "");
+      if (m.content !== VP_DESKTOP) m.content = VP_DESKTOP;
+    } else if (m && m.content === VP_DESKTOP) {
+      var orig = m.getAttribute("data-kendati-orig") || "width=device-width, initial-scale=1";
+      // paksa skala kembali 1 dulu, lalu kembalikan aturan asli halaman
+      m.content = "width=device-width, initial-scale=1, maximum-scale=1";
+      setTimeout(function () { if (MODE !== "desktop") m.content = orig; }, 400);
+    }
   }
 
   // ---------- Link _blank & window.open tetap di dalam aplikasi (iOS) ----------
@@ -549,6 +559,18 @@
     restore();
     window.addEventListener("resize", restore);
 
+    // dipanggil aplikasi saat mode diganti: TANPA memuat ulang, tetap di halaman yang sama
+    window.__kendatiApplyMode = function (m) {
+      MODE = m === "desktop" ? "desktop" : "mobile";
+      document.documentElement.classList.toggle("kendati-desktop", MODE === "desktop");
+      document.documentElement.classList.toggle("kendati-mobile", MODE === "mobile");
+      applyViewport();
+      seg.className = "seg " + MODE;
+      seg.querySelectorAll("button").forEach(function (x) { x.classList.toggle("act", x.dataset.mode === MODE); });
+      setTimeout(restore, 450);       // ukuran tombol menu menyesuaikan skala baru
+      toast(MODE === "desktop" ? "Mode Web" : "Mode Mobile");
+    };
+
     var sleepT;
     function wake() { fab.classList.add("awake"); clearTimeout(sleepT); sleepT = setTimeout(function () { fab.classList.remove("awake"); }, 2600); }
 
@@ -613,7 +635,7 @@
       if (!b || b.dataset.mode === MODE) return;
       seg.className = "seg " + b.dataset.mode;
       seg.querySelectorAll("button").forEach(function (x) { x.classList.toggle("act", x === b); });
-      setTimeout(function () { showProgress(); send("setMode", b.dataset.mode); }, 260);
+      setTimeout(function () { send("setMode", b.dataset.mode); }, 260);
     });
 
     root.querySelector(".grid").addEventListener("click", function (e) {
@@ -738,7 +760,7 @@
 
   function boot() {
     build();
-    if (MODE === "desktop" && document.head && window.MutationObserver) {
+    if (document.head && window.MutationObserver) {
       new MutationObserver(applyViewport).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ["content"] });
     }
   }

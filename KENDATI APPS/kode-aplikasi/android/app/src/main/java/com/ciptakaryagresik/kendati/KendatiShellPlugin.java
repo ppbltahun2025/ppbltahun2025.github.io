@@ -405,7 +405,14 @@ public class KendatiShellPlugin extends Plugin {
             final boolean desktop = "desktop".equals(mode);
             SharedPreferences p = getActivity().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
             p.edit().putString(KEY_MODE, desktop ? "desktop" : "mobile").apply();
-            getActivity().runOnUiThread(() -> applyMode(desktop, true));
+            getActivity().runOnUiThread(() -> {
+                applyMode(desktop, false);
+                // tetap di halaman yang sama: tampilan diganti lewat overlay, tanpa memuat ulang
+                String js = "(window.__kendatiApplyMode ? (window.__kendatiApplyMode('" + (desktop ? "desktop" : "mobile") + "'), true) : false)";
+                getBridge().getWebView().evaluateJavascript(js, res -> {
+                    if (!"true".equals(res)) getBridge().getWebView().reload();
+                });
+            });
         }
 
         @JavascriptInterface

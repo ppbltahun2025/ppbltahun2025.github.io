@@ -2,6 +2,18 @@
   "_catatan": "Riwayat versi aplikasi KENDATI. Tambahkan entri baru PALING ATAS setiap ada perubahan aplikasi. platform: android / ios.",
   "versi": [
     {
+      "versi": "1.0.12",
+      "tanggal": "2026-11-25",
+      "platform": [
+        "android",
+        "ios"
+      ],
+      "catatan": [
+        "Ganti Mode Mobile ↔ Web langsung di halaman yang sama, tanpa memuat ulang",
+        "Menu KENDATI terakhir diingat, tidak kembali ke dashboard setelah dimuat ulang"
+      ]
+    },
+    {
       "versi": "1.0.11",
       "tanggal": "2026-11-25",
       "platform": [

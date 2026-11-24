@@ -1381,6 +1381,7 @@
       document.querySelector(".view-wrap").style.transform = "none";
       setHero(seg.hero);
       switchAudio(seg.audio);
+      rememberPage(seg.id);
 
       homeView.style.display = "none";
       detailView.style.display = "block";
@@ -1397,12 +1398,23 @@
       document.documentElement.classList.add("home-mode");
       document.body.style.removeProperty("--hero-bg-url");
       switchAudio(HOME.audio);
+      rememberPage(null);
       window.scrollTo({ top: 0, behavior: "smooth" });
       fitHomeToViewport();
     });
   }
 
   backBtn.addEventListener("click", goHome);
+
+  // Ingat menu terakhir di alamat (#simbg / #ppbl / #dll), supaya setelah dimuat ulang
+  // (mis. ganti mode Web/Mobile di aplikasi) tetap di menu yang sama, tidak kembali ke dashboard.
+  function rememberPage(id){
+    try { history.replaceState(null, "", location.pathname + location.search + (id ? "#" + id : "")); } catch(e){}
+  }
+  (function restoreLastPage(){
+    const id = decodeURIComponent((location.hash || "").slice(1));
+    if (id && segments.some(s => s.id === id)) setTimeout(() => openSegment(id), 0);
+  })();
 
   // ---- Orb <-> kartu menu: SATU klik buka, SATU klik tutup ----
   const homeOrb = document.getElementById("homeOrb");
