@@ -490,8 +490,8 @@
       --hub-cy:114px;
       position:relative;
       width:100%;
-      max-width:300px;
-      height:290px;
+      max-width:340px;
+      height:290px;          /* diisi ulang oleh JS (layoutHub) */
       margin:4px auto 4px;
     }
     .home-hub{
@@ -576,7 +576,6 @@
       color:#08182e;
     }
     @media (max-width:600px){
-      .home-hub-wrap{--hub-cy:108px; height:275px}
       .home-hub-item{width:86px;height:98px;margin:-49px 0 0 -43px}
     }
 
@@ -645,7 +644,7 @@
       position:fixed;
       top:64px;
       left:16px;
-      width:252px;
+      width:min(560px, calc(100vw - 32px));
       padding:14px 14px 12px;
       background:rgba(7,27,58,.66);
       -webkit-backdrop-filter:blur(16px) saturate(120%);
@@ -714,57 +713,125 @@
       color:#08182e;
     }
 
-    .visitor-table{width:100%; border-collapse:collapse; font-size:12px}
-    .visitor-table th{
-      text-align:left;
-      font-size:10px;
-      font-weight:700;
-      text-transform:uppercase;
-      letter-spacing:.1em;
-      opacity:.5;
-      padding:0 0 6px;
+    /* ===== Grafik kolom MENDATAR (gaya seperti grafik tren) ===== */
+    .v-range{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:8px;
+      font-size:11px;
+      margin:0 2px 8px;
     }
-    .visitor-table th:last-child{text-align:right}
-    .visitor-table td{padding:6px 0; vertical-align:middle}
-    .visitor-table tbody tr + tr td{border-top:1px solid rgba(255,255,255,.07)}
-    .visitor-table td:last-child{
-      text-align:right;
-      font-weight:700;
-      color:#ffd873;
+    .v-range span{opacity:.78}
+    .v-range b{color:#ffd873; font-variant-numeric:tabular-nums}
+
+    .vchart{
+      background:transparent;            /* menyatu dengan panel kaca */
+      padding:14px 2px 2px 0;
+      color:#eaf1ff;
+    }
+    .vchart-empty{padding:28px 0; text-align:center; font-size:12px; color:rgba(255,255,255,.6)}
+    .vchart-plot{
+      position:relative;
+      height:150px;
+      margin-left:30px;
+      border-left:1px solid rgba(255,255,255,.14);
+    }
+    .vchart-grid{
+      position:absolute;
+      left:0; right:0;
+      height:0;
+      border-top:1px dashed rgba(255,255,255,.08);
+    }
+    .vchart-grid.base{border-top:1px solid rgba(255,255,255,.22)}
+    .vchart-grid span{
+      position:absolute;
+      right:calc(100% + 6px);
+      top:-7px;
+      font-size:9.5px;
+      color:rgba(255,255,255,.5);
       font-variant-numeric:tabular-nums;
-      padding-left:10px;
+      white-space:nowrap;
     }
-    .visitor-table td[colspan]{text-align:left; font-weight:400; color:inherit; padding-left:0; opacity:.75}
-    .v-rowlabel{display:block; opacity:.92}
-    .v-rowlabel em{
-      font-style:normal;
+    .vchart-cols{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:flex-end;
+    }
+    .vcol{
+      flex:1;
+      height:100%;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      cursor:default;
+    }
+    .vcol-bar{
+      position:relative;
+      width:62%;
+      max-width:30px;
+      background:linear-gradient(180deg,#ffd873,var(--gold) 45%,#ef7d3c);
+      border-radius:4px 4px 0 0;
+      box-shadow:0 0 12px rgba(240,180,41,.18);
+      transform-origin:bottom;
+      animation:colGrow .7s cubic-bezier(.22,1,.36,1) both;
+      animation-delay:calc(var(--i,0) * 45ms);
+      transition:filter .2s ease;
+    }
+    .vcol:hover .vcol-bar{filter:brightness(1.12)}
+    .vcol.today .vcol-bar{background:linear-gradient(180deg,#fff2c4,#ffd873 40%,var(--gold)); box-shadow:0 0 16px rgba(255,216,115,.45)}
+    .vcol-val{
+      position:absolute;
+      bottom:calc(100% + 3px);
+      left:50%;
+      transform:translateX(-50%);
       font-size:9.5px;
       font-weight:700;
-      color:#08182e;
+      color:#ffd873;
+      white-space:nowrap;
+      font-variant-numeric:tabular-nums;
+    }
+    .vchart-x{
+      display:flex;
+      margin-left:30px;
+      padding-top:6px;
+    }
+    .vx{
+      flex:1;
+      min-width:0;
+      text-align:center;
+      font-size:10px;
+      font-weight:700;
+      line-height:1.3;
+      color:#eaf1ff;          /* hari biasa = PUTIH (versi "hitam" di latar gelap) */
+    }
+    .vx small{display:block; font-size:9.5px; font-weight:700; color:inherit; opacity:.75}
+    .vx.red{color:#ff6b6b}   /* Sabtu & Minggu = MERAH */
+    .vx.muted{color:rgba(255,255,255,.32)}  /* bulan yang belum dilewati */
+    .vx.today b{
       background:#ffd873;
-      padding:1px 6px;
-      border-radius:999px;
-      margin-left:4px;
-      vertical-align:1px;
+      color:#08182e;
+      border-radius:6px;
+      padding:0 4px;
     }
-    tr.today .v-rowlabel{opacity:1; font-weight:700}
-    .v-bar{
-      display:block;
-      height:3px;
-      margin-top:5px;
-      background:rgba(255,255,255,.1);
-      border-radius:3px;
-      overflow:hidden;
+    /* banyak kolom (harian 28–31 hari): angka muncul saat disorot saja */
+    .vchart-plot.dense .vcol-bar{width:70%; animation-delay:calc(var(--i,0) * 15ms)}
+    .vchart-plot.dense .vcol-val{opacity:0; transition:opacity .15s ease; z-index:2;
+      background:rgba(7,27,58,.92); padding:1px 5px; border-radius:6px}
+    .vchart-plot.dense .vcol:hover .vcol-val,
+    .vchart-plot.dense .vcol.today .vcol-val{opacity:1}
+    .vchart-x.dense .vx{font-size:9px; letter-spacing:-.02em}
+    .vchart-x.dense .vx small{font-size:8.5px}
+    .vchart-x.dense .vx.today b{padding:0 2px}
+    @keyframes colGrow{from{transform:scaleY(0)}}
+    @media (max-width:600px){
+      .vchart-plot, .vchart-x{margin-left:24px}
+      .vchart-x.dense .vx{font-size:7.5px; letter-spacing:-.04em}
+      .vchart-x.dense .vx small{font-size:7.5px}
+      .vchart-x.dense .vx.today b{padding:0 1px; border-radius:4px}
     }
-    .v-bar b{
-      display:block;
-      height:100%;
-      border-radius:3px;
-      background:linear-gradient(90deg,var(--blue),var(--gold));
-      transform-origin:left;
-      animation:barGrow .7s cubic-bezier(.22,1,.36,1) both;
-    }
-    @keyframes barGrow{from{transform:scaleX(0)}}
+    @media (prefers-reduced-motion:reduce){ .vcol-bar{animation:none} }
 
     @media (max-width:600px){
       body{
@@ -803,7 +870,7 @@
       .music-btn{top:12px;right:12px}
       .visitor-counter{top:12px;left:12px;font-size:11.5px;padding:7px 12px 7px 10px}
       .music-btn{width:38px;height:38px}
-      .visitor-panel{top:56px;left:12px;width:min(252px,calc(100vw - 24px))}
+      .visitor-panel{top:56px;left:12px;width:calc(100vw - 24px)}
 
       .hex-icon{font-size:20px}
       .hex-label{font-size:9.5px}
@@ -852,14 +919,11 @@
     <div class="visitor-tabs">
       <button class="v-tab active" id="tabDaily" data-tab="daily" type="button">Harian</button>
       <button class="v-tab" id="tabMonthly" data-tab="monthly" type="button">Bulanan</button>
+      <button class="v-tab" id="tabYearly" data-tab="yearly" type="button">Tahunan</button>
     </div>
 
-    <table class="visitor-table">
-      <thead><tr><th id="visitorColHead">Tanggal</th><th>Pengunjung</th></tr></thead>
-      <tbody id="visitorTableBody">
-        <tr><td colspan="2">Memuat…</td></tr>
-      </tbody>
-    </table>
+    <div class="v-range" id="visitorRange"><span>Memuat…</span><b></b></div>
+    <div class="vchart" id="visitorChart"><div class="vchart-empty">Memuat…</div></div>
   </div>
 
   <!-- Orb: tetap di tengah layar (posisi & ukuran tidak berubah).
@@ -1068,20 +1132,16 @@
   function buildHexGrid(){
     const HUB_ICON = "assets/icon-menu.png";
     const n = segments.length;
-    const radius = 118;
     const startAngle = (n === 2) ? 180 : -90; // cadangan kalau ada layanan baru
 
     const items = segments.map((seg, i) => {
       const angleDeg = (ANGLE_BY_ID[seg.id] !== undefined)
         ? ANGLE_BY_ID[seg.id]
         : startAngle + (360 / n) * i;
-      const rad = angleDeg * Math.PI / 180;
-      const tx = Math.round(Math.cos(rad) * radius);
-      const ty = Math.round(Math.sin(rad) * radius);
       return `
-        <button class="home-hub-item" type="button" data-id="${seg.id}"
+        <button class="home-hub-item" type="button" data-id="${seg.id}" data-angle="${angleDeg}"
                 aria-label="Buka ${seg.hexLabel}"
-                style="--tx:${tx}px; --ty:${ty}px; --delay:${(i * 0.07).toFixed(2)}s">
+                style="--delay:${(i * 0.07).toFixed(2)}s">
           <span class="home-hub-shape">
             <img class="home-hub-item-img" src="${seg.logo}" alt="Logo ${seg.hexLabel}">
             <span class="home-hub-item-label">${seg.hexLabel}</span>
@@ -1109,6 +1169,32 @@
   // ================== HOME: muat 1 layar, TANPA SCROLL ==================
   // Kartu digeser supaya titik tengah hub tepat berada di tengah layar,
   // sama persis dengan posisi orb. Kartu juga mekar dari titik itu.
+  // ---- Jarak hexagon dari orb, supaya TIDAK PERNAH bertabrakan ----
+  // Orb di layar selalu 112px (+ cincin denyut 10px), sedangkan kartu bisa
+  // menyusut (scale). Maka jarak hexagon dihitung ulang mengikuti scale.
+  const ORB_R   = 56;   // jari-jari orb (px layar)
+  const ORB_RING = 10;  // cincin denyut di luar orb
+  const ORB_GAP  = 14;  // celah kosong antara cincin dan hexagon
+
+  function layoutHub(radius){
+    const items = hexGrid.querySelectorAll(".home-hub-item");
+    if (!items.length) return;
+    const hexH = items[0].offsetHeight;   // ukuran asli, tidak terpengaruh transform
+    let up = ORB_R + ORB_RING, down = ORB_R + ORB_RING;
+    items.forEach(el => {
+      const rad = Number(el.dataset.angle) * Math.PI / 180;
+      const tx = Math.round(Math.cos(rad) * radius);
+      const ty = Math.round(Math.sin(rad) * radius);
+      el.style.setProperty("--tx", tx + "px");
+      el.style.setProperty("--ty", ty + "px");
+      up   = Math.max(up,   -ty + hexH / 2);
+      down = Math.max(down,  ty + hexH / 2);
+    });
+    // tinggi area hub & posisi pusatnya menyesuaikan jarak hexagon
+    hexGrid.style.setProperty("--hub-cy", Math.ceil(up + 6) + "px");
+    hexGrid.style.height = Math.ceil(up + down + 12) + "px";
+  }
+
   function fitHomeToViewport(){
     const wrap = document.querySelector(".view-wrap");
     wrap.style.transform = "none";
@@ -1118,21 +1204,33 @@
     const hub = document.getElementById("homeHub");
     if (!hub) return;
 
-    // posisi pusat hub di dalam kartu (offset tidak terpengaruh transform)
-    const hubY = hexGrid.offsetTop + hub.offsetTop + hub.offsetHeight / 2;
-    
+    const firstItem = hexGrid.querySelector(".home-hub-item");
+    const hexHalf = firstItem ? firstItem.offsetHeight / 2 : 55;
+    const clear = ORB_R + ORB_RING + ORB_GAP;   // jarak aman di layar
 
     const pad = 20;
     const availW = window.innerWidth - pad * 2;
     const availH = window.innerHeight - pad * 2;
-    const w = wrap.offsetWidth;
-    const h = wrap.offsetHeight;
+    let scale = 1, hubY = 0, w = 0, h = 0;
 
-    const scale = Math.min(
-      1,
-      availW / w,
-      availH / (2 * Math.max(hubY, h - hubY))
-    );
+    // radius bergantung pada scale, scale bergantung pada tinggi kartu:
+    // diulang beberapa kali sampai stabil
+    for (let k = 0; k < 4; k++){
+      layoutHub(clear / scale + hexHalf);
+      hubY = hexGrid.offsetTop + hub.offsetTop + hub.offsetHeight / 2;
+      w = wrap.offsetWidth;
+      h = wrap.offsetHeight;
+      const next = Math.min(
+        1,
+        availW / w,
+        availH / (2 * Math.max(hubY, h - hubY))
+      );
+      if (Math.abs(next - scale) < 0.005){ scale = next; break; }
+      scale = next;
+    }
+    layoutHub(clear / scale + hexHalf);
+    hubY = hexGrid.offsetTop + hub.offsetTop + hub.offsetHeight / 2;
+    h = wrap.offsetHeight;
 
     // geser supaya pusat hub = pusat layar (sama dengan orb)
     // titik & radius lingkaran pembuka kartu (clip-path), dari pusat hub
@@ -1335,28 +1433,52 @@
   const SUPABASE_URL = "https://kvcnbyasnvpmnrbvkjjg.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_J9EFLRjCWE9gaLgsQLKeLQ_x-Wwu3wF";
 
-  const HARI_DITAMPILKAN = 7;
-  const BULAN_DITAMPILKAN = 6;
+  // tab Harian: semua tanggal di bulan berjalan (1 s/d 28/29/30/31)
+
+  // Kode hari Indonesia, index = Date.getDay() (0 = Minggu)
+  const KODE_HARI  = ["M", "S", "S", "R", "K", "J", "S"];
+  const NAMA_HARI  = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const NAMA_BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  const NAMA_BULAN_PANJANG = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+  // YYYY-MM-DD menurut jam lokal (bukan UTC)
+  const keyTanggal = (d) => d.toLocaleDateString("sv-SE");
+  const pad2 = (n) => String(n).padStart(2, "0");
 
   function formatTanggalID(isoDate){
     const [y, m, d] = isoDate.split("-").map(Number);
     return new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   }
 
-  function formatBulanID(isoMonth){
-    const [y, m] = isoMonth.split("-").map(Number);
-    return new Date(y, m - 1, 1).toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  // angka ringkas untuk label di atas batang: 12.500 -> 12,5rb
+  function angkaRingkas(n){
+    if (n >= 1e6) return (n / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + "jt";
+    if (n >= 1e4) return (n / 1e3).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + "rb";
+    return n.toLocaleString("id-ID");
+  }
+
+  // batas atas sumbu Y yang "bulat" (4 garis bantu): 1-2-5 x 10^n
+  function skalaAtas(max){
+    if (max <= 4) return 4;
+    const raw = max / 4;
+    const p = Math.pow(10, Math.floor(Math.log10(raw)));
+    const f = raw / p;
+    const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+    return step * 4;
   }
 
   (function initVisitorBadge(){
     const countEl = document.getElementById("visitorCount");
     const totalDetailEl = document.getElementById("visitorTotalDetail");
-    const tableBody = document.getElementById("visitorTableBody");
-    const colHead = document.getElementById("visitorColHead");
+    const chartEl = document.getElementById("visitorChart");
+    const rangeEl = document.getElementById("visitorRange");
     const counterBtn = document.getElementById("visitorCounter");
     const panel = document.getElementById("visitorPanel");
-    const tabDaily = document.getElementById("tabDaily");
-    const tabMonthly = document.getElementById("tabMonthly");
+    const tabs = {
+      daily:   document.getElementById("tabDaily"),
+      monthly: document.getElementById("tabMonthly"),
+      yearly:  document.getElementById("tabYearly")
+    };
 
     counterBtn.addEventListener("click", () => {
       counterBtn.classList.toggle("open");
@@ -1373,52 +1495,132 @@
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePanel(); });
 
     let activeTab = "daily";
-    let dailyRows = [];
-    let monthlyRows = [];
-    const todayKey = new Date().toLocaleDateString("sv-SE");
+    let dailyMap = new Map();     // "YYYY-MM-DD" -> jumlah
+    let monthlyMap = new Map();   // "YYYY-MM-01" -> jumlah
+    let loaded = false;
 
-    function rowsHtml(rows, labelFn, isToday){
-      if (!rows.length) return '<tr><td colspan="2">Belum ada data</td></tr>';
-      const max = Math.max(1, ...rows.map(r => Number(r.count) || 0));
-      return rows.map(row => {
-        const n = Number(row.count) || 0;
-        const pct = Math.max(4, Math.round(n / max * 100));
-        const today = isToday(row);
-        return `<tr${today ? ' class="today"' : ""}>
-          <td>
-            <span class="v-rowlabel">${labelFn(row)}${today ? " <em>hari ini</em>" : ""}</span>
-            <span class="v-bar"><b style="width:${pct}%"></b></span>
-          </td>
-          <td>${n.toLocaleString("id-ID")}</td>
-        </tr>`;
+    // ---- gambar grafik kolom mendatar ----
+    // items: [{ label, sub, value, red, today, muted, title }]
+    function chartHtml(items){
+      const max = Math.max(0, ...items.map(i => i.value));
+      const top = skalaAtas(max);
+
+      let grid = "";
+      for (let k = 0; k <= 4; k++){
+        const val = top * k / 4;
+        grid += `<div class="vchart-grid${k === 0 ? " base" : ""}" style="bottom:${k * 25}%">
+                   <span>${angkaRingkas(val)}</span></div>`;
+      }
+
+      const cols = items.map((it, i) => {
+        const h = it.value > 0 ? Math.max(1.5, it.value / top * 100) : 0;
+        return `<div class="vcol${it.today ? " today" : ""}" title="${it.title}">
+                  <div class="vcol-bar" style="height:${h}%; --i:${i}">
+                    ${it.value > 0 ? `<span class="vcol-val">${angkaRingkas(it.value)}</span>` : ""}
+                  </div>
+                </div>`;
       }).join("");
+
+      const xs = items.map(it => {
+        const cls = ["vx", it.red ? "red" : "", it.muted ? "muted" : "", it.today ? "today" : ""].join(" ").trim();
+        return `<div class="${cls}"><b>${it.label}</b>${it.sub ? `<small>${it.sub}</small>` : ""}</div>`;
+      }).join("");
+
+      const dense = items.length > 14 ? " dense" : "";
+      return `<div class="vchart-plot${dense}">${grid}<div class="vchart-cols">${cols}</div></div>
+              <div class="vchart-x${dense}">${xs}</div>`;
     }
 
-    function renderTable(){
-      if (activeTab === "daily"){
-        colHead.textContent = "Tanggal";
-        tableBody.innerHTML = rowsHtml(dailyRows, r => formatTanggalID(r.day), r => r.day === todayKey);
-      } else {
-        colHead.textContent = "Bulan";
-        tableBody.innerHTML = rowsHtml(monthlyRows, r => formatBulanID(r.month), () => false);
+    function setRange(text, total){
+      rangeEl.innerHTML = `<span>${text}</span><b>${total.toLocaleString("id-ID")} pengunjung</b>`;
+    }
+
+    function renderDaily(){
+      const now = new Date();
+      const y = now.getFullYear(), m = now.getMonth();
+      const jumlahHari = new Date(y, m + 1, 0).getDate();   // 28 / 29 / 30 / 31
+      const items = [];
+      for (let tgl = 1; tgl <= jumlahHari; tgl++){
+        const d = new Date(y, m, tgl);
+        const key = keyTanggal(d);
+        const dow = d.getDay();
+        const v = dailyMap.get(key) || 0;
+        const isToday = tgl === now.getDate();
+        items.push({
+          label: tgl,
+          sub: KODE_HARI[dow],
+          value: v,
+          red: dow === 0 || dow === 6,          // Minggu & Sabtu merah
+          today: isToday,
+          title: `${NAMA_HARI[dow]}, ${formatTanggalID(key)}${isToday ? " (hari ini)" : ""}: ${v.toLocaleString("id-ID")} pengunjung`
+        });
       }
+      const total = items.reduce((a, b) => a + b.value, 0);
+      setRange(`${NAMA_BULAN_PANJANG[m]} ${y}`, total);
+      chartEl.innerHTML = chartHtml(items);
+    }
+
+    function renderMonthly(){
+      const now = new Date();
+      const year = now.getFullYear();
+      const items = NAMA_BULAN.map((nama, m) => {
+        const v = monthlyMap.get(`${year}-${pad2(m + 1)}-01`) || 0;
+        return {
+          label: nama,
+          value: v,
+          today: m === now.getMonth(),
+          muted: m > now.getMonth(),
+          title: `${NAMA_BULAN_PANJANG[m]} ${year}: ${v.toLocaleString("id-ID")} pengunjung`
+        };
+      });
+      setRange(`Tahun ${year}`, items.reduce((a, b) => a + b.value, 0));
+      chartEl.innerHTML = chartHtml(items);
+    }
+
+    function renderYearly(){
+      // dijumlah dari tabel visit_monthly, jadi tidak perlu tabel baru
+      const perYear = new Map();
+      monthlyMap.forEach((v, key) => {
+        const y = Number(key.slice(0, 4));
+        perYear.set(y, (perYear.get(y) || 0) + v);
+      });
+      const thisYear = new Date().getFullYear();
+      const firstYear = perYear.size ? Math.min(...perYear.keys(), thisYear) : thisYear;
+      const items = [];
+      for (let y = firstYear; y <= thisYear; y++){
+        const v = perYear.get(y) || 0;
+        items.push({
+          label: y,
+          value: v,
+          today: y === thisYear,
+          title: `Tahun ${y}: ${v.toLocaleString("id-ID")} pengunjung`
+        });
+      }
+      setRange(items.length > 1 ? `${firstYear} – ${thisYear}` : `Tahun ${thisYear}`,
+               items.reduce((a, b) => a + b.value, 0));
+      chartEl.innerHTML = chartHtml(items);
+    }
+
+    function render(){
+      if (!loaded) return;
+      if (activeTab === "daily") renderDaily();
+      else if (activeTab === "monthly") renderMonthly();
+      else renderYearly();
     }
 
     function setActiveTab(tab){
       activeTab = tab;
-      tabDaily.classList.toggle("active", tab === "daily");
-      tabMonthly.classList.toggle("active", tab === "monthly");
-      renderTable();
+      Object.entries(tabs).forEach(([k, el]) => el.classList.toggle("active", k === tab));
+      render();
     }
-
-    tabDaily.addEventListener("click", () => setActiveTab("daily"));
-    tabMonthly.addEventListener("click", () => setActiveTab("monthly"));
+    Object.entries(tabs).forEach(([k, el]) => el.addEventListener("click", () => setActiveTab(k)));
 
     const isConfigured = !SUPABASE_URL.startsWith("GANTI_") && !SUPABASE_ANON_KEY.startsWith("GANTI_");
     if (!isConfigured){
       countEl.textContent = "-";
       if (totalDetailEl) totalDetailEl.textContent = "-";
-      tableBody.innerHTML = '<tr><td colspan="2">SUPABASE_URL / KEY belum diisi</td></tr>';
+      rangeEl.innerHTML = "<span>SUPABASE_URL / KEY belum diisi</span><b></b>";
+      chartEl.innerHTML = '<div class="vchart-empty">Belum ada data</div>';
       console.error("Isi dulu SUPABASE_URL dan SUPABASE_ANON_KEY di kode sebelum badge pengunjung bisa jalan.");
       return;
     }
@@ -1428,41 +1630,40 @@
     async function fetchTotal(){
       const { data, error } = await sb.from("visit_total").select("count").eq("id", 1).single();
       if (error) console.error("Supabase (visit_total):", error.message);
-      const total = (!error && data) ? data.count : "-";
+      const total = (!error && data) ? Number(data.count) : "-";
       countEl.textContent = (typeof total === "number") ? total.toLocaleString("id-ID") : total;
       if (totalDetailEl) totalDetailEl.textContent = countEl.textContent;
     }
 
-    async function fetchDailyRecap(){
+    async function fetchDaily(){
+      const now = new Date();
+      const since = keyTanggal(new Date(now.getFullYear(), now.getMonth(), 1));   // tanggal 1 bulan ini
       const { data, error } = await sb
         .from("visit_daily")
         .select("day, count")
-        .order("day", { ascending: false })
-        .limit(HARI_DITAMPILKAN);
-
+        .gte("day", since)
+        .order("day", { ascending: true });
       if (error) console.error("Supabase (visit_daily):", error.message);
-      dailyRows = (!error && data) ? data : [];
-      renderTable();
+      dailyMap = new Map((!error && data ? data : []).map(r => [r.day, Number(r.count) || 0]));
     }
 
-    async function fetchMonthlyRecap(){
+    async function fetchMonthly(){
+      // semua bulan (tabel kecil: 12 baris per tahun) -> dipakai tab Bulanan & Tahunan
       const { data, error } = await sb
         .from("visit_monthly")
         .select("month, count")
-        .order("month", { ascending: false })
-        .limit(BULAN_DITAMPILKAN);
-
+        .order("month", { ascending: true })
+        .limit(1200);
       if (error) console.error("Supabase (visit_monthly):", error.message, "— pastikan sudah menjalankan SQL setup tabel visit_monthly.");
-      monthlyRows = (!error && data) ? data : [];
-      renderTable();
+      monthlyMap = new Map((!error && data ? data : []).map(r => [String(r.month).slice(0, 10), Number(r.count) || 0]));
     }
 
     async function recordAndLoad(){
       const { error } = await sb.rpc("record_visit");
       if (error) console.error("Supabase (record_visit):", error.message, "— pastikan sudah menjalankan SQL setup di SQL Editor.");
-      await fetchTotal();
-      await fetchDailyRecap();
-      await fetchMonthlyRecap();
+      await Promise.all([fetchTotal(), fetchDaily(), fetchMonthly()]);
+      loaded = true;
+      render();
     }
 
     recordAndLoad();
