@@ -4,7 +4,7 @@
  * jadi tidak perlu mengubah kode situs ppbltahun2025.github.io sama sekali.
  *
  *  - Tombol bulat kecil (bisa digeser) -> panel: Mode Mobile / Mode Web,
- *    Kembali, Beranda, Muat ulang, Salin link.
+ *    Kembali, Beranda, Muat ulang.
  *  - Mode Web = tampilan desktop seperti "Situs desktop" di Chrome.
  *  - Garis progres tipis saat pindah halaman.
  *  - Link target="_blank" dibuka di dalam aplikasi (iOS).
@@ -14,12 +14,15 @@
   var IS_IOS = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.kendati);
   var IS_ANDROID = !!window.KendatiNative;
 
-  // =========== UNDUHAN (semua frame, termasuk iframe Apps Script) ===========
-  // WebView tidak bisa mengunduh file blob:/data: sendiri (mis. ekspor PDF/Excel),
-  // jadi file dikirim ke aplikasi untuk disimpan (Android: folder Download,
-  // iOS: lembar Bagikan -> Simpan ke File).
+  // =========== UNDUHAN & EKSPOR (semua frame, termasuk iframe Apps Script) ===========
+  // WebView tidak bisa mengunduh file blob:/data: sendiri (ekspor PDF/Excel, tombol Unduh),
+  // jadi file diambil di sini lalu dikirim ke aplikasi untuk disimpan
+  // (Android: folder Download/KENDATI, iOS: lembar Bagikan -> Simpan ke File).
   if (!window.__kendatiDl && (IS_IOS || IS_ANDROID)) {
     window.__kendatiDl = true;
+    var BLOBS = new Map();                 // url blob: -> Blob, dicatat saat dibuat
+    var isFileUrl = function (u) { return /^(blob|data):/i.test(String(u || "")); };
+
     var saveBlob = function (blob, name) {
       var r = new FileReader();
       r.onload = function () {
@@ -30,25 +33,77 @@
       };
       r.readAsDataURL(blob);
     };
+    var grab = function (url, name) {
+      url = String(url);
+      var p = BLOBS.has(url) ? Promise.resolve(BLOBS.get(url)) : fetch(url).then(function (res) { return res.blob(); });
+      p.then(function (b) { saveBlob(b, name || "unduhan"); })
+       .catch(function (err) { console.warn("[KENDATI] unduh gagal", err); });
+    };
+    window.__kendatiGrab = grab;
+
+    // 1) catat setiap file yang dibuat halaman (URL.createObjectURL)
+    var origCreate = URL.createObjectURL, origRevoke = URL.revokeObjectURL;
+    URL.createObjectURL = function (obj) {
+      var u = origCreate.apply(URL, arguments);
+      try { if (obj instanceof Blob) BLOBS.set(u, obj); } catch (e) {}
+      return u;
+    };
+    URL.revokeObjectURL = function (u) {
+      setTimeout(function () { BLOBS.delete(u); }, 120000);   // simpan sebentar, file mungkin masih diunduh
+      return origRevoke.apply(URL, arguments);
+    };
+
+    var nameOf = function (a) { return a.getAttribute("download") || "unduhan"; };
+
+    // 2) klik biasa pada link file
     document.addEventListener("click", function (e) {
       var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
-      if (!a) return;
-      var href = a.href || "";
-      if (!/^(blob|data):/i.test(href)) return;
+      if (!a || !isFileUrl(a.href)) return;
       e.preventDefault(); e.stopPropagation();
-      var name = a.getAttribute("download") || "unduhan";
-      fetch(href).then(function (res) { return res.blob(); }).then(function (b) { saveBlob(b, name); })
-        .catch(function (err) { console.warn("[KENDATI] unduh gagal", err); });
+      grab(a.href, nameOf(a));
     }, true);
-    // banyak skrip membuat <a download> lalu memanggil a.click() tanpa menempelkannya ke halaman
+
+    // 3) a.click() pada link yang tidak ditempel ke halaman (SheetJS, dll.)
     var origClick = HTMLAnchorElement.prototype.click;
     HTMLAnchorElement.prototype.click = function () {
-      if (!this.isConnected && /^(blob|data):/i.test(this.href || "")) {
-        var name = this.getAttribute("download") || "unduhan";
-        fetch(this.href).then(function (res) { return res.blob(); }).then(function (b) { saveBlob(b, name); });
-        return;
-      }
+      if (!this.isConnected && isFileUrl(this.href)) { grab(this.href, nameOf(this)); return; }
       return origClick.apply(this, arguments);
+    };
+
+    // 4) a.dispatchEvent(new MouseEvent("click")) (FileSaver.js, jsPDF doc.save(), dll.)
+    var origDispatch = EventTarget.prototype.dispatchEvent;
+    EventTarget.prototype.dispatchEvent = function (ev) {
+      if (ev && ev.type === "click" && this instanceof HTMLAnchorElement && !this.isConnected && isFileUrl(this.href)) {
+        grab(this.href, nameOf(this));
+        return true;
+      }
+      return origDispatch.apply(this, arguments);
+    };
+
+    // 5) window.open(fileUrl)
+    var origOpen = window.open;
+    window.open = function (url) {
+      if (isFileUrl(url)) { grab(url, "unduhan"); return null; }
+      return origOpen.apply(window, arguments);
+    };
+
+    // 6) halaman pindah langsung ke blob: -> aplikasi bertanya ke semua frame siapa pemilik filenya
+    var forward = function (msg) {
+      for (var i = 0; i < window.frames.length; i++) { try { window.frames[i].postMessage(msg, "*"); } catch (e) {} }
+    };
+    window.addEventListener("message", function (e) {
+      var d = e.data;
+      if (!d || !d.kendatiGrab) return;
+      if (BLOBS.has(d.kendatiGrab)) grab(d.kendatiGrab, d.name);
+      else forward(d);
+    });
+    window.__kendatiGrabBlob = function (url, name) {
+      url = String(url);
+      if (BLOBS.has(url) || /^data:/i.test(url)) { grab(url, name); return; }
+      // coba ambil di frame ini dulu; kalau bukan miliknya, tanya iframe-iframe di dalamnya
+      fetch(url).then(function (r) { return r.blob(); })
+        .then(function (b) { saveBlob(b, name || "unduhan"); })
+        .catch(function () { forward({ kendatiGrab: url, name: name || "unduhan" }); });
     };
   }
 
@@ -194,7 +249,6 @@
     back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11L12 4l8.5 7"/><path d="M6 9.5V20h12V9.5"/></svg>',
     reload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>',
-    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>'
   };
 
   var CSS = [
@@ -219,7 +273,7 @@
     ".seg button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;height:38px;border:0;background:none;color:rgba(234,241,255,.8);font-size:13px;font-weight:700;cursor:pointer;transition:color .3s ease}",
     ".seg button svg{width:17px;height:17px}",
     ".seg button.act{color:#08182e}",
-    ".grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}",
+    ".grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}",
     ".grid button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 2px 9px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:rgba(255,255,255,.05);color:#eaf1ff;font-size:10.5px;font-weight:600;cursor:pointer;transition:background .2s ease,transform .15s ease}",
     ".grid button:active{transform:scale(.95);background:rgba(240,180,41,.18)}",
     ".grid button svg{width:20px;height:20px;color:#ffd873}",
@@ -260,7 +314,6 @@
           '<button type="button" data-act="back">' + ICON.back + "Kembali</button>" +
           '<button type="button" data-act="home">' + ICON.home + "Beranda</button>" +
           '<button type="button" data-act="reload">' + ICON.reload + "Muat ulang</button>" +
-          '<button type="button" data-act="copy">' + ICON.copy + "Salin link</button>" +
         "</div>" +
       "</div>";
     document.body.appendChild(host);
@@ -407,8 +460,6 @@
         showProgress(); location.href = HOME;
       } else if (act === "reload") {
         showProgress(); send("hardReload");
-      } else if (act === "copy") {
-        copyLink(location.href);
       }
     });
 
@@ -419,18 +470,6 @@
     function toast(msg) {
       toastEl.textContent = msg; toastEl.classList.add("on");
       clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove("on"); }, 1800);
-    }
-    function copyLink(text) {
-      function fallback() {
-        var t = document.createElement("textarea");
-        t.value = text; t.style.cssText = "position:fixed;opacity:0";
-        document.body.appendChild(t); t.select();
-        try { document.execCommand("copy"); } catch (e) {}
-        t.remove(); toast("Link disalin");
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () { toast("Link disalin"); }, fallback);
-      } else { fallback(); }
     }
 
     wake();

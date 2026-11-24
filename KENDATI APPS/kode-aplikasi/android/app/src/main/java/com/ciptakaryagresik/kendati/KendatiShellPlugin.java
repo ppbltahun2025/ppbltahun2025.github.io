@@ -65,6 +65,10 @@ public class KendatiShellPlugin extends Plugin {
     @Override
     public Boolean shouldOverrideLoad(Uri url) {
         String scheme = url.getScheme() == null ? "" : url.getScheme().toLowerCase();
+        if (scheme.equals("blob") || scheme.equals("data")) {
+            downloadInApp(url.toString(), null, null, null);
+            return true;
+        }
         if (!scheme.equals("http") && !scheme.equals("https")) return null;   // tel:, mailto:, whatsapp: -> aplikasi terkait
         return false;   // SEMUA halaman web dimuat di dalam aplikasi (tidak dilempar ke Chrome)
     }
@@ -136,6 +140,17 @@ public class KendatiShellPlugin extends Plugin {
 
     /** Unduh file http/https dengan pengelola unduhan Android (notifikasi + folder Download/KENDATI). */
     private void downloadInApp(String url, String ua, String contentDisposition, String mime) {
+        // file buatan halaman (blob:/data:) tidak bisa diunduh Android -> minta halaman mengirim isinya
+        if (url != null && (url.startsWith("blob:") || url.startsWith("data:"))) {
+            String name = "unduhan";
+            if (contentDisposition != null && contentDisposition.contains("filename")) {
+                name = URLUtil.guessFileName(url, contentDisposition, mime);
+            }
+            final String js = "window.__kendatiGrabBlob && window.__kendatiGrabBlob("
+                + org.json.JSONObject.quote(url) + "," + org.json.JSONObject.quote(name) + ")";
+            getActivity().runOnUiThread(() -> getBridge().getWebView().evaluateJavascript(js, null));
+            return;
+        }
         try {
             String name = URLUtil.guessFileName(url, contentDisposition, mime);
             DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
@@ -182,16 +197,10 @@ public class KendatiShellPlugin extends Plugin {
                 }
                 uri = FileProvider.getUriForFile(getActivity(), getActivity().getPackageName() + ".fileprovider", f);
             }
-            final Uri openUri = uri;
             final String shown = safe;
             getActivity().runOnUiThread(() -> {
+                // tetap di aplikasi: cukup beri tahu lokasi file
                 Toast.makeText(getActivity(), "Tersimpan di Download/KENDATI: " + shown, Toast.LENGTH_LONG).show();
-                try {
-                    Intent i = new Intent(Intent.ACTION_VIEW);
-                    i.setDataAndType(openUri, mime);
-                    i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    getActivity().startActivity(i);
-                } catch (Exception ignored) {}
             });
         } catch (Exception e) {
             getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Gagal menyimpan file", Toast.LENGTH_SHORT).show());

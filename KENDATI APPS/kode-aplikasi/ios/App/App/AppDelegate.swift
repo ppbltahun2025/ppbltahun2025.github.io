@@ -71,8 +71,19 @@ class KendatiNavPlugin: CAPPlugin, CAPBridgedPlugin {
     let pluginMethods: [CAPPluginMethod] = []
 
     override func shouldOverrideLoad(_ navigationAction: WKNavigationAction) -> NSNumber? {
-        guard let url = navigationAction.request.url,
-              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+        guard let url = navigationAction.request.url, let scheme = url.scheme?.lowercased() else { return nil }
+        // file buatan halaman (blob:/data:) -> minta halaman mengirim isinya untuk disimpan
+        if scheme == "blob" || scheme == "data" {
+            if let data = try? JSONSerialization.data(withJSONObject: [url.absoluteString]),
+               let arr = String(data: data, encoding: .utf8) {
+                let js = "window.__kendatiGrabBlob && window.__kendatiGrabBlob(\(arr)[0], 'unduhan')"
+                DispatchQueue.main.async { [weak self] in
+                    self?.bridge?.webView?.evaluateJavaScript(js, completionHandler: nil)
+                }
+            }
+            return NSNumber(value: true)
+        }
+        guard scheme == "http" || scheme == "https" else {
             return nil      // tel:, mailto:, whatsapp: -> aplikasi terkait
         }
         // iframe di dalam halaman biarkan apa adanya
