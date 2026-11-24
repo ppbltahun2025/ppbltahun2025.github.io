@@ -201,6 +201,9 @@
   window.__kendatiOverlay = true;
 
   var HOME = "https://ppbltahun2025.github.io/";
+  // Supabase yang sama dengan penghitung pengunjung KENDATI (kunci publik)
+  var SB_URL = "https://kvcnbyasnvpmnrbvkjjg.supabase.co";
+  var SB_KEY = "sb_publishable_J9EFLRjCWE9gaLgsQLKeLQ_x-Wwu3wF";
   var UA = navigator.userAgent || "";
   var MODE = /KendatiDesktop/.test(UA) ? "desktop" : "mobile";
 
@@ -337,6 +340,7 @@
     desktop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></svg>',
     back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11L12 4l8.5 7"/><path d="M6 9.5V20h12V9.5"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
     reload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>',
   };
 
@@ -362,10 +366,25 @@
     ".seg button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;height:38px;border:0;background:none;color:rgba(234,241,255,.8);font-size:13px;font-weight:700;cursor:pointer;transition:color .3s ease}",
     ".seg button svg{width:17px;height:17px}",
     ".seg button.act{color:#08182e}",
-    ".grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}",
+    ".grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}",
     ".grid button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 2px 9px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:rgba(255,255,255,.05);color:#eaf1ff;font-size:10.5px;font-weight:600;cursor:pointer;transition:background .2s ease,transform .15s ease}",
     ".grid button:active{transform:scale(.95);background:rgba(240,180,41,.18)}",
     ".grid button svg{width:20px;height:20px;color:#ffd873}",
+    ".rate{display:none}",
+    ".sheet.rating .menu{display:none}",
+    ".sheet.rating .rate{display:block}",
+    ".rate p{margin:0 4px 10px;font-size:12.5px;opacity:.8;line-height:1.45}",
+    ".stars{display:flex;justify-content:center;gap:6px;margin:4px 0 12px}",
+    ".stars button{width:46px;height:46px;border:0;background:none;padding:4px;cursor:pointer;color:rgba(255,255,255,.25);transition:transform .15s ease,color .15s ease}",
+    ".stars button.on{color:#ffd873}",
+    ".stars button:active{transform:scale(.88)}",
+    ".stars svg{width:100%;height:100%;fill:currentColor;stroke:none}",
+    ".rate textarea{width:100%;min-height:84px;resize:vertical;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#eaf1ff;font:inherit;font-size:13px;padding:10px 12px;outline:none}",
+    ".rate textarea:focus{border-color:rgba(240,180,41,.6)}",
+    ".rbtns{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:10px}",
+    ".rbtns button{height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#eaf1ff;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}",
+    ".rbtns .send{border:0;color:#08182e;background:linear-gradient(160deg,#ffd873,#f0b429)}",
+    ".rbtns .send[disabled]{opacity:.45}",
     ".toast{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translate(-50%,20px);padding:9px 16px;border-radius:999px;background:rgba(7,27,58,.92);border:1px solid rgba(240,180,41,.5);color:#ffd873;font-size:12.5px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:2147483647}",
     ".toast.on{opacity:1;transform:translate(-50%,0)}",
     ".ptr{position:fixed;top:0;left:50%;width:42px;height:42px;margin-left:-21px;border-radius:50%;background:rgba(7,27,58,.92);border:1px solid rgba(240,180,41,.55);box-shadow:0 8px 22px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;transform:translateY(-60px);opacity:0;z-index:2147483647;pointer-events:none}",
@@ -395,6 +414,7 @@
       '<div class="sheet" role="dialog" aria-label="Menu aplikasi">' +
         '<div class="grip"></div>' +
         '<div class="head"><b>KENDATI</b></div>' +
+        '<div class="menu">' +
         '<div class="seg ' + MODE + '"><i></i>' +
           '<button type="button" data-mode="mobile" class="' + (MODE === "mobile" ? "act" : "") + '">' + ICON.phone + "Mobile</button>" +
           '<button type="button" data-mode="desktop" class="' + (MODE === "desktop" ? "act" : "") + '">' + ICON.desktop + "Web</button>" +
@@ -403,6 +423,14 @@
           '<button type="button" data-act="back">' + ICON.back + "Kembali</button>" +
           '<button type="button" data-act="home">' + ICON.home + "Beranda</button>" +
           '<button type="button" data-act="reload">' + ICON.reload + "Muat ulang</button>" +
+          '<button type="button" data-act="rate">' + ICON.star + "Rating</button>" +
+        "</div>" +
+        "</div>" +
+        '<div class="rate">' +
+          "<p>Seberapa membantu aplikasi KENDATI? Rating &amp; saran tampil di halaman unduh.</p>" +
+          '<div class="stars">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-star="' + n + '" aria-label="' + n + ' bintang">' + ICON.star + "</button>"; }).join("") + "</div>" +
+          '<textarea maxlength="1000" placeholder="Saran atau komentar (opsional)"></textarea>' +
+          '<div class="rbtns"><button type="button" class="cancel">Batal</button><button type="button" class="send" disabled>Kirim</button></div>' +
         "</div>" +
       "</div>";
     document.body.appendChild(host);
@@ -515,6 +543,7 @@
     function toggle(on) {
       if (on) openedAt = Date.now();
       window.__kendatiSheetOpen = !!on;
+      if (!on) sheet.classList.remove("rating");
       sheet.classList.toggle("on", on);
       scrim.classList.toggle("on", on);
       fab.style.opacity = on ? "0" : "";
@@ -543,14 +572,56 @@
       var b = e.target.closest("button[data-act]");
       if (!b) return;
       var act = b.dataset.act;
-      toggle(false);
+      if (act !== "rate") toggle(false);
       if (act === "back") {
         if (history.length > 1) history.back(); else location.href = HOME;
       } else if (act === "home") {
         showProgress(); location.href = HOME;
       } else if (act === "reload") {
         showProgress(); send("hardReload");
+      } else if (act === "rate") {
+        openRating();
       }
+    });
+
+    // ----- rating & saran -----
+    var rateEl = $(".rate"), stars = rateEl.querySelectorAll("[data-star]"), note = rateEl.querySelector("textarea"),
+        sendBtn = rateEl.querySelector(".send"), chosen = 0;
+    var PLATFORM = IS_IOS ? "ios" : "android";
+    function paint(n) { stars.forEach(function (b, i) { b.classList.toggle("on", i < n); }); }
+    function deviceId() {
+      var id = store.get("kendatiDevice");
+      if (!id) {
+        id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+        store.set("kendatiDevice", id);
+      }
+      return id;
+    }
+    function openRating() {
+      try { var last = JSON.parse(store.get("kendatiRating") || "null"); } catch (e) { last = null; }
+      chosen = last ? last.r : 0; note.value = last ? (last.c || "") : "";
+      paint(chosen); sendBtn.disabled = !chosen;
+      sheet.classList.add("rating");
+    }
+    function closeRating() { sheet.classList.remove("rating"); }
+    stars.forEach(function (b) {
+      b.addEventListener("click", function () { chosen = Number(b.dataset.star); paint(chosen); sendBtn.disabled = false; });
+    });
+    rateEl.querySelector(".cancel").addEventListener("click", function () { closeRating(); });
+    sendBtn.addEventListener("click", function () {
+      if (!chosen) return;
+      sendBtn.disabled = true; sendBtn.textContent = "Mengirim…";
+      fetch(SB_URL + "/rest/v1/rpc/submit_feedback", {
+        method: "POST",
+        headers: { "apikey": SB_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_device: deviceId(), p_platform: PLATFORM, p_rating: chosen, p_comment: note.value.trim() })
+      }).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        store.set("kendatiRating", JSON.stringify({ r: chosen, c: note.value.trim() }));
+        closeRating(); toggle(false); toast("Terima kasih atas rating Anda!");
+      }).catch(function () {
+        toast("Rating belum terkirim, coba lagi");
+      }).then(function () { sendBtn.disabled = !chosen; sendBtn.textContent = "Kirim"; });
     });
 
     var toastEl = document.createElement("div");
