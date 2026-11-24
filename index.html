@@ -1287,7 +1287,18 @@
     orbEl.style.top  = (r.top  + r.height / 2) + "px";
     orbEl.style.left = (r.left + r.width  / 2) + "px";
   }
-  if (window.visualViewport) window.visualViewport.addEventListener("resize", () => placeOrbOnHub());
+  // Hitung ulang posisi saat ukuran layar berubah (bar alamat HP muncul/hilang),
+  // dan beberapa kali setelah halaman selesai dimuat (gambar & font datang belakangan).
+  let refitTimer;
+  function refitHome(){
+    clearTimeout(refitTimer);
+    refitTimer = setTimeout(() => { if (!currentSegment) fitHomeToViewport(); }, 120);
+  }
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", refitHome);
+  window.addEventListener("orientationchange", refitHome);
+  window.addEventListener("pageshow", refitHome);
+  window.addEventListener("load", () => { [300, 1000, 2500].forEach(ms => setTimeout(refitHome, ms)); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refitHome);
 
   // Icon bisa emoji ATAU path gambar
   function renderIcon(icon){
