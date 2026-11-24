@@ -484,6 +484,12 @@
       transition:color .2s ease;
       flex:0 0 auto;
     }
+    /* hexagon "COMING SOON": tidak bisa diklik */
+    .hex-item.soon{cursor:default}
+    .hex-item.soon:hover{transform:none}
+    .hex-item.soon .hex-shape{background:linear-gradient(160deg,#f6f3ea,#e3dcc8);opacity:.75}
+    .hex-item.soon .hex-label{color:#8a7a52;letter-spacing:.06em}
+    .hex-item.soon:hover .hex-label{color:#8a7a52}
     .hex-item:hover .hex-label{
       color:var(--gold);
     }
@@ -1043,6 +1049,7 @@
       footer: "© 2026 KENDATI Store",
       links: [
         { icon: "assets/gas-cerdas/ikon-gas.png", label: "SCRAPE GAS (GOOGLE APP SCRIPT)", href: "assets/gas-cerdas/index.html" },
+        { icon: "🚀", label: "COMING SOON", soon: true },
         { icon: "assets/agen-hataf/favicon.png", label: "AGEN HATAF (LPSE)", href: "assets/agen-hataf/index.html" },
         { icon: "assets/download.png", label: "Heisenberg", href: "assets/ttr.html" },
         { icon: "KENDATI%20APPS/icons/icon-192.png", label: "PASANG APLIKASI KENDATI", href: "KENDATI%20APPS/unduh.html" }
@@ -1313,12 +1320,19 @@
   function buildLinkHexGrid(seg){
     const perRow = seg.links.length <= 4 ? 2 : 3;
     layoutHoneycomb(detailLinks, seg.links, (l, x, y, w, h) => `
+      ${l.soon ? `
+      <div class="hex-item soon" aria-label="${l.label}" aria-disabled="true"
+         style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
+        <span class="hex-shape"></span>
+        <span class="hex-icon">${renderIcon(l.icon)}</span>
+        <span class="hex-label">${l.label}</span>
+      </div>` : `
       <a class="hex-item" href="${l.href}" target="_blank" rel="noopener" aria-label="${l.label}"
          style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
         <span class="hex-shape"></span>
         <span class="hex-icon">${renderIcon(l.icon)}</span>
         <span class="hex-label">${l.label}</span>
-      </a>
+      </a>`}
     `, perRow);
   }
 
