@@ -18,11 +18,11 @@ tetap sama persis, karena yang tampil adalah situs aslinya.
 | **Tombol Back / swipe** | Android: tombol Back = halaman sebelumnya. iOS: geser dari tepi kiri. |
 
 ## Letak di repo `ppbltahun2025.github.io`
-- `_kendati-app/` adalah kode aplikasi ini. Awalan `_` membuatnya tidak ikut tampil di situs.
-- `.github/workflows/kendati-app.yml` membangun APK & IPA otomatis setiap kali folder ini
+- Semua file aplikasi ada di folder `KENDATI APPS/`: `kode-aplikasi/` (kode Android & iOS), `unduh.html` (halaman pasang), `manifest.webmanifest` dan `icons/`.
+- `.github/workflows/kendati-app.yml` (wajib di root repo) membangun APK & IPA otomatis setiap kali folder ini
   atau `assets/icon-menu.png` berubah. Bisa juga dijalankan manual dari tab **Actions** → **Run workflow**.
 - Hasil build diterbitkan ke Release **aplikasi**. Halaman pemasangannya:
-  **https://ppbltahun2025.github.io/unduh.html**
+  **https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html**
   (juga ada di menu *Dan Lain Lain → PASANG APLIKASI KENDATI*).
 - APK selalu ditandatangani dengan kunci yang sama (`android/app/kendati-debug.keystore`),
   jadi versi baru bisa dipasang di atas versi lama tanpa uninstall.

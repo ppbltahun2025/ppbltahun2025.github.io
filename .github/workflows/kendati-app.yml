@@ -2,14 +2,14 @@ name: Aplikasi KENDATI (Android & iOS)
 
 # Aplikasi memuat situs live ini, jadi perubahan script KENDATI langsung
 # tampil di aplikasi TANPA build ulang. Workflow ini hanya jalan bila
-# kode aplikasi (_kendati-app) atau logo (assets/icon-menu.png) berubah,
+# kode aplikasi (KENDATI APPS/kode-aplikasi) atau logo (assets/icon-menu.png) berubah,
 # atau dijalankan manual dari tab Actions.
-# Hasil: Release "aplikasi" -> dipakai halaman https://ppbltahun2025.github.io/unduh.html
+# Hasil: Release "aplikasi" -> dipakai halaman https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html
 on:
   push:
     branches: [main]
     paths:
-      - "_kendati-app/**"
+      - "KENDATI APPS/kode-aplikasi/**"
       - "assets/icon-menu.png"
       - ".github/workflows/kendati-app.yml"
   workflow_dispatch:
@@ -23,7 +23,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: _kendati-app
+    working-directory: "KENDATI APPS/kode-aplikasi"
 
 jobs:
   android:
@@ -35,17 +35,12 @@ jobs:
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            _kendati-app
-            assets/icon-menu.png
-          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: _kendati-app/package-lock.json
+          cache-dependency-path: "KENDATI APPS/kode-aplikasi/package-lock.json"
 
       - uses: actions/setup-java@v4
         with:
@@ -74,7 +69,7 @@ jobs:
           echo "KEYSTORE_FILE=$RUNNER_TEMP/kendati.jks" >> "$GITHUB_ENV"
 
       - name: Build APK
-        working-directory: _kendati-app/android
+        working-directory: "KENDATI APPS/kode-aplikasi/android"
         env:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -99,17 +94,12 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            _kendati-app
-            assets/icon-menu.png
-          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: _kendati-app/package-lock.json
+          cache-dependency-path: "KENDATI APPS/kode-aplikasi/package-lock.json"
 
       - name: Install
         run: |
@@ -163,7 +153,7 @@ jobs:
           fail_on_unmatched_files: false
           body: |
             Versi 1.0.${{ github.run_number }}
-            Pasang dari https://ppbltahun2025.github.io/unduh.html
+            Pasang dari https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html
             Isi aplikasi selalu mengikuti situs live, jadi tidak perlu update untuk perubahan script.
           files: |
             dist/KENDATI.apk
