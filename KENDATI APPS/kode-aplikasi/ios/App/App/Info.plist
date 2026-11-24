@@ -36,6 +36,16 @@
 	<true/>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>KENDATI memakai lokasi untuk fitur peta dan titik bangunan.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>KENDATI memakai kamera untuk memotret dokumen dan foto lapangan.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>KENDATI memakai mikrofon saat merekam video dari kamera.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>KENDATI membuka galeri untuk mengunggah foto dan dokumen.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>KENDATI menyimpan foto dan file unduhan ke galeri.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>

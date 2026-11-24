@@ -52,7 +52,7 @@
     };
   }
 
-  if (window.top !== window) { keepLinksInApp(); return; }   // iframe: hanya urus link; UI di frame utama
+  if (window.top !== window) { keepLinksInApp(); initPull(); return; }   // iframe: link + tarik-refresh; UI di frame utama
   if (window.__kendatiOverlay) return;          // jangan dobel
   window.__kendatiOverlay = true;
 
@@ -80,6 +80,60 @@
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
+
+  // =========== TARIK KE BAWAH UNTUK REFRESH (semua frame) ===========
+  // Tarik dari atas saat halaman/elemen sudah di posisi paling atas -> lepas -> muat ulang.
+  // Di dalam iframe, gerakan dikirim ke frame utama (indikator & reload ada di sana).
+  function pullSignal(v) {
+    if (window.top === window) { if (window.__kendatiPullUI) window.__kendatiPullUI(v); }
+    else { try { window.top.postMessage({ kendatiPull: v }, "*"); } catch (e) {} }
+  }
+  function blocksPull(el) {
+    for (var n = el; n && n.nodeType === 1; n = n.parentElement) {
+      var tag = n.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "CANVAS" || tag === "VIDEO" || n.isContentEditable) return true;
+      if (n.id === "kendati-app-overlay" || n.hasAttribute("data-no-pull")) return true;
+      var cls = typeof n.className === "string" ? n.className : "";
+      if (/leaflet|mapboxgl|ol-viewport|gm-style|swiper|slick|carousel/i.test(cls)) return true;   // peta & slider
+      if (n.scrollTop > 0) return true;                                // elemen yang sedang di-scroll
+      var cs = getComputedStyle(n);
+      if (cs.touchAction === "none" || cs.touchAction === "pan-x") return true;
+    }
+    var se = document.scrollingElement || document.documentElement;
+    return se.scrollTop > 0 || window.scrollY > 0;
+  }
+  function initPull() {
+    if (window.__kendatiPullInit) return;
+    window.__kendatiPullInit = true;
+    var y0 = null, x0 = 0, active = false, dist = 0;
+    document.addEventListener("touchstart", function (e) {
+      active = false; dist = 0; y0 = null;
+      if (e.touches.length !== 1) return;
+      if (window.visualViewport && window.visualViewport.scale > 1.05) return;   // sedang di-zoom
+      if (window.__kendatiSheetOpen) return;
+      if (blocksPull(e.target)) return;
+      y0 = e.touches[0].clientY; x0 = e.touches[0].clientX;
+    }, { passive: true, capture: true });
+    document.addEventListener("touchmove", function (e) {
+      if (y0 === null) return;
+      var dy = e.touches[0].clientY - y0, dx = Math.abs(e.touches[0].clientX - x0);
+      if (!active) {
+        if (dy < 0 || dx > Math.abs(dy)) { y0 = null; return; }   // gerak ke atas / ke samping
+        if (dy < 12) return;
+        active = true;
+      }
+      // ubah ke piksel layar (di Mode Web halaman diperkecil)
+      var kz = Math.max(1, window.innerWidth / ((window.screen && screen.width) || window.innerWidth));
+      dist = Math.max(0, dy) / kz;
+      pullSignal(dist);
+    }, { passive: true, capture: true });
+    function end() {
+      if (active) pullSignal(dist >= 150 ? "release" : "cancel");
+      y0 = null; active = false; dist = 0;
+    }
+    document.addEventListener("touchend", end, { passive: true, capture: true });
+    document.addEventListener("touchcancel", end, { passive: true, capture: true });
+  }
 
   // ---------- Mode Web: paksa viewport selebar desktop ----------
   function applyViewport() {
@@ -171,6 +225,12 @@
     ".grid button svg{width:20px;height:20px;color:#ffd873}",
     ".toast{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translate(-50%,20px);padding:9px 16px;border-radius:999px;background:rgba(7,27,58,.92);border:1px solid rgba(240,180,41,.5);color:#ffd873;font-size:12.5px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:2147483647}",
     ".toast.on{opacity:1;transform:translate(-50%,0)}",
+    ".ptr{position:fixed;top:0;left:50%;width:42px;height:42px;margin-left:-21px;border-radius:50%;background:rgba(7,27,58,.92);border:1px solid rgba(240,180,41,.55);box-shadow:0 8px 22px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;transform:translateY(-60px);opacity:0;z-index:2147483647;pointer-events:none}",
+    ".ptr svg{width:20px;height:20px;color:#ffd873}",
+    ".ptr.ready{border-color:#ffd873;background:rgba(240,180,41,.25)}",
+    ".ptr.back{transition:transform .3s cubic-bezier(.22,1,.36,1),opacity .3s ease}",
+    ".ptr.spin svg{animation:kspin .8s linear infinite}",
+    "@keyframes kspin{to{transform:rotate(360deg)}}",
     "@media (prefers-reduced-motion:reduce){.sheet,.fab,.seg i,.scrim{transition-duration:.01s!important}}"
   ].join("");
 
@@ -186,6 +246,7 @@
     root.innerHTML =
       "<style>" + CSS + "</style>" +
       '<div class="bar"></div>' +
+      '<div class="ptr">' + ICON.reload + '</div>' +
       '<div class="scrim"></div>' +
       '<button class="fab" type="button" aria-label="Menu aplikasi KENDATI">' + ICON.menu + "</button>" +
       '<div class="sheet" role="dialog" aria-label="Menu aplikasi">' +
@@ -218,6 +279,34 @@
     var fab = $(".fab"), sheet = $(".sheet"), scrim = $(".scrim"), seg = $(".seg");
     bar = $(".bar");
 
+    // ----- indikator tarik-refresh -----
+    var ptr = $(".ptr"), ptrIcon = ptr.querySelector("svg"), reloading = false;
+    window.__kendatiPullUI = function (v) {
+      if (reloading) return;
+      if (v === "release") {
+        reloading = true;
+        ptr.className = "ptr back spin ready";
+        ptr.style.transform = "translateY(" + 70 + "px)"; ptr.style.opacity = "1";
+        ptrIcon.style.transform = "";
+        showProgress();
+        setTimeout(function () { location.reload(); }, 250);
+        return;
+      }
+      if (v === "cancel") {
+        ptr.className = "ptr back";
+        ptr.style.transform = "translateY(-60px)"; ptr.style.opacity = "0";
+        return;
+      }
+      var d = Number(v), pullY = Math.min(d * 0.55, 110);
+      ptr.className = "ptr" + (d >= 150 ? " ready" : "");
+      ptr.style.transform = "translateY(" + (pullY - 50) + "px)";
+      ptr.style.opacity = String(Math.min(1, d / 90));
+      ptrIcon.style.transform = "rotate(" + (d * 1.6) + "deg)";
+    };
+    window.addEventListener("message", function (e) {
+      if (e.data && e.data.kendatiPull !== undefined) window.__kendatiPullUI(e.data.kendatiPull);
+    });
+
     // ----- posisi tombol: bisa digeser, menempel ke tepi kiri/kanan -----
     var SIZE = 44, EDGE = 10;
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -244,7 +333,7 @@
     var sleepT;
     function wake() { fab.classList.add("awake"); clearTimeout(sleepT); sleepT = setTimeout(function () { fab.classList.remove("awake"); }, 2600); }
 
-    var start = null, moved = false;
+    var start = null, moved = false, openedAt = 0, suppressClick = false;
     fab.addEventListener("pointerdown", function (e) {
       start = { px: e.clientX, py: e.clientY, x: parseFloat(fab.style.left) || 0, y: parseFloat(fab.style.top) || 0 };
       moved = false; wake();
@@ -265,21 +354,33 @@
         side = p.x < window.innerWidth / K / 2 ? "left" : "right";
         ratio = p.y / (window.innerHeight / K);
         store.set("kendatiFab", JSON.stringify({ side: side, ratio: ratio }));
-      } else {
-        toggle(true);
+        suppressClick = true;           // habis digeser: jangan dianggap tap
       }
       wake();
     }
+    // buka menu lewat "click" (bukan pointerup): di HP, tap diubah jadi click setelah
+    // jari diangkat. Kalau menu dibuka di pointerup, click itu jatuh ke lapisan gelap
+    // dan langsung menutup menu lagi.
+    fab.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (suppressClick) { suppressClick = false; return; }
+      toggle(true);
+    });
     fab.addEventListener("pointerup", end);
     fab.addEventListener("pointercancel", end);
 
     function toggle(on) {
+      if (on) openedAt = Date.now();
+      window.__kendatiSheetOpen = !!on;
       sheet.classList.toggle("on", on);
       scrim.classList.toggle("on", on);
       fab.style.opacity = on ? "0" : "";
       fab.style.pointerEvents = on ? "none" : "";
     }
-    scrim.addEventListener("click", function () { toggle(false); });
+    scrim.addEventListener("click", function () {
+      if (Date.now() - openedAt < 450) return;   // abaikan sisa tap yang membuka menu
+      toggle(false);
+    });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") toggle(false); });
 
     // swipe ke bawah untuk menutup panel
@@ -343,6 +444,7 @@
 
   function boot() {
     build();
+    initPull();
     if (MODE === "desktop" && document.head && window.MutationObserver) {
       new MutationObserver(applyViewport).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ["content"] });
     }

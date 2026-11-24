@@ -1,6 +1,9 @@
 import UIKit
 import Capacitor
 import WebKit
+import AVFoundation
+import Photos
+import CoreLocation
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -92,6 +95,14 @@ private final class KendatiUIDelegate: NSObject, WKUIDelegate {
         return nil
     }
 
+    // Kamera/mikrofon untuk halaman: izin sistem sudah diminta aplikasi, jadi tidak ditanya ulang tiap halaman
+    @available(iOS 15.0, *)
+    func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                 initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType,
+                 decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        decisionHandler(.grant)
+    }
+
     override func responds(to aSelector: Selector!) -> Bool {
         return super.responds(to: aSelector) || (inner?.responds(to: aSelector) ?? false)
     }
@@ -131,6 +142,24 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
         uiDelegateProxy = proxy
         wv.uiDelegate = proxy
         applyMode(reload: false)
+    }
+
+    // MARK: Izin lokasi, kamera & galeri (ditanya sekali saat pertama dibuka)
+    private let locationManager = CLLocationManager()
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        let key = "kendatiPermsAsked"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        // berurutan supaya dialog izin tidak bertumpuk
+        AVCaptureDevice.requestAccess(for: .video) { _ in
+            PHPhotoLibrary.requestAuthorization(for: .readWrite) { _ in
+                DispatchQueue.main.async { [weak self] in
+                    self?.locationManager.requestWhenInUseAuthorization()
+                }
+            }
+        }
     }
 
     private var isDesktop: Bool { UserDefaults.standard.string(forKey: modeKey) == "desktop" }
