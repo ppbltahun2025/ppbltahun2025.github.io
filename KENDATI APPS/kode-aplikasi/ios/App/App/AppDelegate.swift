@@ -4,6 +4,7 @@ import WebKit
 import AVFoundation
 import Photos
 import CoreLocation
+import Security
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -200,8 +201,70 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
             }
         case "saveFile":
             saveFile(base64: value, name: body["name"] as? String ?? "unduhan")
+        case "download":
+            downloadURL(value, name: body["name"] as? String ?? "")
+        case "login":
+            handleLogin(message: message, json: value)
         default:
             break
+        }
+    }
+
+    // MARK: Ingat login (nama & sandi di Keychain, per situs)
+    private let loginService = "com.ciptakaryagresik.kendati.login"
+
+    private func handleLogin(message: WKScriptMessage, json: String) {
+        let origin = message.frameInfo.securityOrigin
+        guard origin.protocol == "https", !origin.host.isEmpty,
+              let data = json.data(using: .utf8),
+              let msg = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let type = msg["type"] as? String else { return }
+        let account = origin.host
+        if type == "save" {
+            let acc: [String: String] = ["u": msg["u"] as? String ?? "", "p": msg["p"] as? String ?? ""]
+            guard let blob = try? JSONSerialization.data(withJSONObject: acc) else { return }
+            let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                        kSecAttrService as String: loginService,
+                                        kSecAttrAccount as String: account]
+            SecItemDelete(query as CFDictionary)
+            var add = query
+            add[kSecValueData as String] = blob
+            add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            SecItemAdd(add as CFDictionary, nil)
+        } else if type == "get" {
+            let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                        kSecAttrService as String: loginService,
+                                        kSecAttrAccount as String: account,
+                                        kSecReturnData as String: true,
+                                        kSecMatchLimit as String: kSecMatchLimitOne]
+            var out: CFTypeRef?
+            var reply = ""
+            if SecItemCopyMatching(query as CFDictionary, &out) == errSecSuccess,
+               let d = out as? Data, let str = String(data: d, encoding: .utf8) {
+                reply = str
+            }
+            guard let lit = try? JSONSerialization.data(withJSONObject: [reply]),
+                  let arr = String(data: lit, encoding: .utf8) else { return }
+            webView?.evaluateJavaScript("window.__kendatiLoginReply && window.__kendatiLoginReply(\(arr)[0])",
+                                        in: message.frameInfo, in: .page, completionHandler: nil)
+        }
+    }
+
+    // MARK: Unduh alamat http(s) memakai cookie halaman, lalu simpan seperti file lain
+    private func downloadURL(_ string: String, name: String) {
+        guard let url = URL(string: string) else { return }
+        WKWebsiteDataStore.default().httpCookieStore.getAllCookies { [weak self] cookies in
+            var req = URLRequest(url: url)
+            let matching = cookies.filter { url.host?.hasSuffix($0.domain.trimmingCharacters(in: CharacterSet(charactersIn: "."))) ?? false }
+            for (k, v) in HTTPCookie.requestHeaderFields(with: matching) { req.setValue(v, forHTTPHeaderField: k) }
+            URLSession.shared.dataTask(with: req) { data, response, _ in
+                guard let data = data else { return }
+                var file = name
+                if file.isEmpty { file = response?.suggestedFilename ?? url.lastPathComponent }
+                DispatchQueue.main.async {
+                    self?.saveFile(base64: data.base64EncodedString(), name: file.isEmpty ? "unduhan" : file)
+                }
+            }.resume()
         }
     }
 

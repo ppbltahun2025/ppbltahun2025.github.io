@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.webkit.CookieManager;
@@ -19,6 +21,8 @@ import androidx.core.content.FileProvider;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import androidx.webkit.JavaScriptReplyProxy;
+import androidx.webkit.WebMessageCompat;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
 import com.getcapacitor.Plugin;
@@ -30,7 +34,13 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 import java.util.Collections;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import org.json.JSONObject;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,7 +68,62 @@ public class KendatiShellPlugin extends Plugin {
         // unduhan biasa (http/https) diunduh langsung oleh aplikasi, tidak lewat Chrome
         wv.setDownloadListener((url, ua, contentDisposition, mime, length) -> downloadInApp(url, ua, contentDisposition, mime));
         injectOverlay(wv);
+        setupLoginMemory(wv);
         applyMode(isDesktop(), false);
+    }
+
+    // ---------------- Ingat login (nama & sandi, terenkripsi Keystore) ----------------
+    // Jalur aman: WebMessageListener memberi tahu asal (origin) halaman yang bertanya,
+    // jadi akun sebuah situs hanya bisa dibaca oleh situs itu sendiri.
+    private void setupLoginMemory(WebView wv) {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return;
+        WebViewCompat.addWebMessageListener(wv, "KendatiLogin", Collections.singleton("*"),
+            (view, message, sourceOrigin, isMainFrame, replyProxy) -> {
+                try {
+                    if (!"https".equals(sourceOrigin.getScheme()) || sourceOrigin.getHost() == null) return;
+                    String key = "login_" + sourceOrigin.getHost();
+                    JSONObject msg = new JSONObject(message.getData());
+                    SharedPreferences prefs = getActivity().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+                    if ("save".equals(msg.optString("type"))) {
+                        JSONObject acc = new JSONObject();
+                        acc.put("u", msg.optString("u"));
+                        acc.put("p", msg.optString("p"));
+                        prefs.edit().putString(key, encrypt(acc.toString())).apply();
+                    } else if ("get".equals(msg.optString("type"))) {
+                        String enc = prefs.getString(key, null);
+                        replyProxy.postMessage(enc == null ? "" : decrypt(enc));
+                    }
+                } catch (Exception ignored) {}
+            });
+    }
+
+    private SecretKey loginKey() throws Exception {
+        KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
+        ks.load(null);
+        if (!ks.containsAlias("kendati_login")) {
+            KeyGenerator kg = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+            kg.init(new KeyGenParameterSpec.Builder("kendati_login",
+                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .build());
+            return kg.generateKey();
+        }
+        return ((KeyStore.SecretKeyEntry) ks.getEntry("kendati_login", null)).getSecretKey();
+    }
+
+    private String encrypt(String plain) throws Exception {
+        Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+        c.init(Cipher.ENCRYPT_MODE, loginKey());
+        byte[] ct = c.doFinal(plain.getBytes(StandardCharsets.UTF_8));
+        return Base64.encodeToString(c.getIV(), Base64.NO_WRAP) + ":" + Base64.encodeToString(ct, Base64.NO_WRAP);
+    }
+
+    private String decrypt(String stored) throws Exception {
+        String[] parts = stored.split(":");
+        Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+        c.init(Cipher.DECRYPT_MODE, loginKey(), new GCMParameterSpec(128, Base64.decode(parts[0], Base64.NO_WRAP)));
+        return new String(c.doFinal(Base64.decode(parts[1], Base64.NO_WRAP)), StandardCharsets.UTF_8);
     }
 
     // ---------------- Semua link tetap di dalam aplikasi ----------------
@@ -224,6 +289,12 @@ public class KendatiShellPlugin extends Plugin {
                 wv.clearCache(true);       // ambil versi terbaru dari server
                 wv.reload();
             });
+        }
+
+        @JavascriptInterface
+        public void download(String url, String name) {
+            String cd = (name == null || name.isEmpty()) ? null : "attachment; filename=\"" + name + "\"";
+            downloadInApp(url, getBridge().getWebView() == null ? null : mobileUA, cd, null);
         }
 
         @JavascriptInterface

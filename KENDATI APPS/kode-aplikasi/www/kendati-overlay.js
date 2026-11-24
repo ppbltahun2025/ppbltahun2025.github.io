@@ -14,6 +14,78 @@
   var IS_IOS = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.kendati);
   var IS_ANDROID = !!window.KendatiNative;
 
+  // pesan singkat di layar (dari frame mana pun -> ditampilkan frame utama)
+  function notify(msg) {
+    if (window.top === window) { if (window.__kendatiToast) window.__kendatiToast(msg); }
+    else { try { window.top.postMessage({ kendatiToast: String(msg) }, "*"); } catch (e) {} }
+  }
+
+  // =========== INGAT LOGIN (semua frame) ===========
+  // Saat user login, nama & sandi disimpan terenkripsi oleh aplikasi (Android Keystore /
+  // iOS Keychain), per situs. Saat halaman login muncul lagi, kolom diisi otomatis.
+  function initLogin() {
+    if (window.__kendatiLoginInit || !(IS_IOS || window.KendatiLogin)) return;
+    if (location.protocol !== "https:") return;
+    window.__kendatiLoginInit = true;
+    var saved = null, filled = false, asked = false;
+    function ask(msg) {
+      if (window.KendatiLogin) window.KendatiLogin.postMessage(JSON.stringify(msg));
+      else window.webkit.messageHandlers.kendati.postMessage({ action: "login", value: JSON.stringify(msg) });
+    }
+    window.__kendatiLoginReply = function (json) {
+      try { saved = json ? JSON.parse(json) : null; } catch (e) { saved = null; }
+      tryFill();
+    };
+    if (window.KendatiLogin) window.KendatiLogin.onmessage = function (e) { window.__kendatiLoginReply(e.data); };
+    function visible(el) { return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length); }
+    function fields() {
+      var pws = Array.prototype.filter.call(document.querySelectorAll('input[type="password"]'), visible);
+      if (!pws.length) return null;
+      var pw = pws[0], user = null;
+      var all = Array.prototype.filter.call(document.querySelectorAll("input"), visible);
+      for (var i = all.indexOf(pw) - 1; i >= 0; i--) {
+        var t = (all[i].type || "text").toLowerCase();
+        if (t === "text" || t === "email" || t === "tel" || t === "number" || t === "search") { user = all[i]; break; }
+      }
+      return { pw: pw, user: user };
+    }
+    function setVal(el, v) {
+      var set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      set.call(el, v);
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    function tryFill() {
+      if (!saved || filled) return;
+      var f = fields();
+      if (!f || f.pw.value) return;
+      if (f.user && !f.user.value && saved.u) setVal(f.user, saved.u);
+      setVal(f.pw, saved.p || "");
+      filled = true;
+      notify("Akun tersimpan diisi otomatis");
+    }
+    function capture() {
+      var f = fields();
+      if (!f || !f.pw.value) return;
+      var u = f.user ? f.user.value : "";
+      if (saved && saved.u === u && saved.p === f.pw.value) return;
+      saved = { u: u, p: f.pw.value };
+      ask({ type: "save", u: u, p: f.pw.value });
+    }
+    document.addEventListener("submit", capture, true);
+    document.addEventListener("click", function (e) {
+      if (e.target && e.target.closest && e.target.closest('button,input[type="submit"],input[type="button"],[role="button"],a')) capture();
+    }, true);
+    document.addEventListener("keydown", function (e) { if (e.key === "Enter") capture(); }, true);
+    function watch() {
+      if (!asked) { asked = true; ask({ type: "get" }); }
+      new MutationObserver(function () { if (!filled) tryFill(); })
+        .observe(document.documentElement, { childList: true, subtree: true });
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch); else watch();
+  }
+  initLogin();
+
   // =========== UNDUHAN & EKSPOR (semua frame, termasuk iframe Apps Script) ===========
   // WebView tidak bisa mengunduh file blob:/data: sendiri (ekspor PDF/Excel, tombol Unduh),
   // jadi file diambil di sini lalu dikirim ke aplikasi untuk disimpan
@@ -35,10 +107,18 @@
     };
     var grab = function (url, name) {
       url = String(url);
+      notify("Menyiapkan file…");
       var p = BLOBS.has(url) ? Promise.resolve(BLOBS.get(url)) : fetch(url).then(function (res) { return res.blob(); });
       p.then(function (b) { saveBlob(b, name || "unduhan"); })
-       .catch(function (err) { console.warn("[KENDATI] unduh gagal", err); });
+       .catch(function (err) { console.warn("[KENDATI] unduh gagal", err); notify("File tidak bisa diambil"); });
     };
+    // unduh alamat http(s) lewat aplikasi (membawa cookie halaman)
+    var nativeDownload = function (url, name) {
+      notify("Mengunduh…");
+      if (IS_ANDROID) window.KendatiNative.download(String(url), name || "");
+      else window.webkit.messageHandlers.kendati.postMessage({ action: "download", value: String(url), name: name || "" });
+    };
+    var DL_URL = /drive\.google\.com\/uc\?|[?&]export=download|drive\.usercontent\.google\.com\/download|docs\.google\.com\/.+\/export|\/download\?|googleusercontent\.com\/.*download/i;
     window.__kendatiGrab = grab;
 
     // 1) catat setiap file yang dibuat halaman (URL.createObjectURL)
@@ -55,18 +135,26 @@
 
     var nameOf = function (a) { return a.getAttribute("download") || "unduhan"; };
 
-    // 2) klik biasa pada link file
+    // 2) klik biasa pada link file / link unduhan
     document.addEventListener("click", function (e) {
       var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
-      if (!a || !isFileUrl(a.href)) return;
-      e.preventDefault(); e.stopPropagation();
-      grab(a.href, nameOf(a));
+      if (!a) return;
+      if (isFileUrl(a.href)) {
+        e.preventDefault(); e.stopPropagation();
+        grab(a.href, nameOf(a));
+      } else if (/^https?:/i.test(a.href) && (a.hasAttribute("download") || DL_URL.test(a.href))) {
+        e.preventDefault(); e.stopPropagation();
+        nativeDownload(a.href, a.getAttribute("download") || "");
+      }
     }, true);
 
     // 3) a.click() pada link yang tidak ditempel ke halaman (SheetJS, dll.)
     var origClick = HTMLAnchorElement.prototype.click;
     HTMLAnchorElement.prototype.click = function () {
       if (!this.isConnected && isFileUrl(this.href)) { grab(this.href, nameOf(this)); return; }
+      if (!this.isConnected && /^https?:/i.test(this.href) && (this.hasAttribute("download") || DL_URL.test(this.href))) {
+        nativeDownload(this.href, this.getAttribute("download") || ""); return;
+      }
       return origClick.apply(this, arguments);
     };
 
@@ -84,6 +172,7 @@
     var origOpen = window.open;
     window.open = function (url) {
       if (isFileUrl(url)) { grab(url, "unduhan"); return null; }
+      if (url && DL_URL.test(String(url))) { nativeDownload(new URL(String(url), location.href).href, ""); return null; }
       return origOpen.apply(window, arguments);
     };
 
@@ -305,7 +394,7 @@
       '<button class="fab" type="button" aria-label="Menu aplikasi KENDATI">' + ICON.menu + "</button>" +
       '<div class="sheet" role="dialog" aria-label="Menu aplikasi">' +
         '<div class="grip"></div>' +
-        '<div class="head"><b>KENDATI</b><span>Live · otomatis update</span></div>' +
+        '<div class="head"><b>KENDATI</b></div>' +
         '<div class="seg ' + MODE + '"><i></i>' +
           '<button type="button" data-mode="mobile" class="' + (MODE === "mobile" ? "act" : "") + '">' + ICON.phone + "Mobile</button>" +
           '<button type="button" data-mode="desktop" class="' + (MODE === "desktop" ? "act" : "") + '">' + ICON.desktop + "Web</button>" +
@@ -358,6 +447,7 @@
     };
     window.addEventListener("message", function (e) {
       if (e.data && e.data.kendatiPull !== undefined) window.__kendatiPullUI(e.data.kendatiPull);
+      if (e.data && e.data.kendatiToast && window.__kendatiToast) window.__kendatiToast(e.data.kendatiToast);
     });
 
     // ----- posisi tombol: bisa digeser, menempel ke tepi kiri/kanan -----
@@ -469,8 +559,9 @@
     var toastT;
     function toast(msg) {
       toastEl.textContent = msg; toastEl.classList.add("on");
-      clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove("on"); }, 1800);
+      clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove("on"); }, 2200);
     }
+    window.__kendatiToast = toast;
 
     wake();
     hideProgress();
