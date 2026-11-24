@@ -33,6 +33,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.Collections;
@@ -295,6 +297,32 @@ public class KendatiShellPlugin extends Plugin {
         public void download(String url, String name) {
             String cd = (name == null || name.isEmpty()) ? null : "attachment; filename=\"" + name + "\"";
             downloadInApp(url, getBridge().getWebView() == null ? null : mobileUA, cd, null);
+        }
+
+        /** Kirim rating ke Supabase dari aplikasi (tidak terhalang CSP halaman). */
+        @JavascriptInterface
+        public void postJson(String url, String key, String body) {
+            new Thread(() -> {
+                int status = 0;
+                try {
+                    Uri u = Uri.parse(url);
+                    if (!"https".equals(u.getScheme()) || u.getHost() == null || !u.getHost().endsWith(".supabase.co")) return;
+                    HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+                    c.setRequestMethod("POST");
+                    c.setConnectTimeout(15000);
+                    c.setReadTimeout(15000);
+                    c.setDoOutput(true);
+                    c.setRequestProperty("apikey", key);
+                    c.setRequestProperty("Content-Type", "application/json");
+                    try (OutputStream os = c.getOutputStream()) {
+                        os.write(body.getBytes(StandardCharsets.UTF_8));
+                    }
+                    status = c.getResponseCode();
+                    c.disconnect();
+                } catch (Exception ignored) {}
+                final String js = "window.__kendatiRatingDone && window.__kendatiRatingDone(" + status + ")";
+                getActivity().runOnUiThread(() -> getBridge().getWebView().evaluateJavascript(js, null));
+            }).start();
         }
 
         @JavascriptInterface

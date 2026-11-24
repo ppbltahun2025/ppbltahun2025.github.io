@@ -13,6 +13,31 @@
   "use strict";
   var IS_IOS = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.kendati);
   var IS_ANDROID = !!window.KendatiNative;
+  var kBinds = [], kHooks = [];
+  setInterval(function () { rebind(); }, 400);
+  document.addEventListener("readystatechange", function () { rebind(); });
+
+  // =========== PASANG ULANG PENANGKAP ===========
+  // Apps Script menulis ulang isi frame-nya (document.open/write) dan itu
+  // menghapus semua event listener. Penangkap dipasang di <html> dan dicek
+  // ulang terus, jadi otomatis terpasang lagi setiap kali halaman ditulis ulang.
+  function bind(type, fn, opts) { kBinds.push({ t: type, f: fn, o: opts, w: false, on: null }); rebind(); }
+  function bindWin(type, fn, opts) { kBinds.push({ t: type, f: fn, o: opts, w: true, on: null }); rebind(); }
+  function onRebind(fn) { kHooks.push({ f: fn, on: null }); rebind(); }
+  function rebind() {
+    var de = document.documentElement;
+    if (!de) return;
+    kBinds.forEach(function (b) {
+      if (b.on === de) return;
+      (b.w ? window : de).addEventListener(b.t, b.f, b.o);
+      b.on = de;
+    });
+    kHooks.forEach(function (h) {
+      if (h.on === de) return;
+      h.on = de;
+      try { h.f(); } catch (e) {}
+    });
+  }
 
   // pesan singkat di layar (dari frame mana pun -> ditampilkan frame utama)
   function notify(msg) {
@@ -72,17 +97,21 @@
       saved = { u: u, p: f.pw.value };
       ask({ type: "save", u: u, p: f.pw.value });
     }
-    document.addEventListener("submit", capture, true);
-    document.addEventListener("click", function (e) {
+    bind("submit", capture, true);
+    bind("click", function (e) {
       if (e.target && e.target.closest && e.target.closest('button,input[type="submit"],input[type="button"],[role="button"],a')) capture();
     }, true);
-    document.addEventListener("keydown", function (e) { if (e.key === "Enter") capture(); }, true);
+    bind("keydown", function (e) { if (e.key === "Enter") capture(); }, true);
     function watch() {
       if (!asked) { asked = true; ask({ type: "get" }); }
-      new MutationObserver(function () { if (!filled) tryFill(); })
-        .observe(document.documentElement, { childList: true, subtree: true });
+      filled = false;
+      if (document.documentElement) {
+        new MutationObserver(function () { if (!filled) tryFill(); })
+          .observe(document.documentElement, { childList: true, subtree: true });
+      }
+      tryFill();
     }
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch); else watch();
+    onRebind(watch);
   }
   initLogin();
 
@@ -136,14 +165,14 @@
     var nameOf = function (a) { return a.getAttribute("download") || "unduhan"; };
 
     // 2) klik biasa pada link file / link unduhan
-    document.addEventListener("click", function (e) {
+    bind("click", function (e) {
       var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
       if (!a) return;
       if (isFileUrl(a.href)) {
-        e.preventDefault(); e.stopPropagation();
+        e.preventDefault(); e.stopImmediatePropagation();
         grab(a.href, nameOf(a));
       } else if (/^https?:/i.test(a.href) && (a.hasAttribute("download") || DL_URL.test(a.href))) {
-        e.preventDefault(); e.stopPropagation();
+        e.preventDefault(); e.stopImmediatePropagation();
         nativeDownload(a.href, a.getAttribute("download") || "");
       }
     }, true);
@@ -180,7 +209,7 @@
     var forward = function (msg) {
       for (var i = 0; i < window.frames.length; i++) { try { window.frames[i].postMessage(msg, "*"); } catch (e) {} }
     };
-    window.addEventListener("message", function (e) {
+    bindWin("message", function (e) {
       var d = e.data;
       if (!d || !d.kendatiGrab) return;
       if (BLOBS.has(d.kendatiGrab)) grab(d.kendatiGrab, d.name);
@@ -253,7 +282,7 @@
     if (window.__kendatiPullInit) return;
     window.__kendatiPullInit = true;
     var y0 = null, x0 = 0, active = false, dist = 0;
-    document.addEventListener("touchstart", function (e) {
+    bind("touchstart", function (e) {
       active = false; dist = 0; y0 = null;
       if (e.touches.length !== 1) return;
       if (window.visualViewport && window.visualViewport.scale > 1.05) return;   // sedang di-zoom
@@ -261,7 +290,7 @@
       if (blocksPull(e.target)) return;
       y0 = e.touches[0].clientY; x0 = e.touches[0].clientX;
     }, { passive: true, capture: true });
-    document.addEventListener("touchmove", function (e) {
+    bind("touchmove", function (e) {
       if (y0 === null) return;
       var dy = e.touches[0].clientY - y0, dx = Math.abs(e.touches[0].clientX - x0);
       if (!active) {
@@ -278,8 +307,8 @@
       if (active) pullSignal(dist >= 150 ? "release" : "cancel");
       y0 = null; active = false; dist = 0;
     }
-    document.addEventListener("touchend", end, { passive: true, capture: true });
-    document.addEventListener("touchcancel", end, { passive: true, capture: true });
+    bind("touchend", end, { passive: true, capture: true });
+    bind("touchcancel", end, { passive: true, capture: true });
   }
 
   // ---------- Mode Web: paksa viewport selebar desktop ----------
@@ -299,9 +328,9 @@
   function keepLinksInApp() {
     if (window.__kendatiLinks) return;
     window.__kendatiLinks = true;
-    document.addEventListener("click", function (e) {
+    bind("click", function (e) {
       var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
-      if (!a || a.hasAttribute("download")) return;
+      if (e.defaultPrevented || !a || a.hasAttribute("download")) return;
       var t = (a.getAttribute("target") || "").toLowerCase();
       if (t !== "_blank" && t !== "_new") return;
       var href = a.href;
@@ -611,17 +640,29 @@
     sendBtn.addEventListener("click", function () {
       if (!chosen) return;
       sendBtn.disabled = true; sendBtn.textContent = "Mengirim…";
-      fetch(SB_URL + "/rest/v1/rpc/submit_feedback", {
-        method: "POST",
-        headers: { "apikey": SB_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ p_device: deviceId(), p_platform: PLATFORM, p_rating: chosen, p_comment: note.value.trim() })
-      }).then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        store.set("kendatiRating", JSON.stringify({ r: chosen, c: note.value.trim() }));
-        closeRating(); toggle(false); toast("Terima kasih atas rating Anda!");
-      }).catch(function () {
-        toast("Rating belum terkirim, coba lagi");
-      }).then(function () { sendBtn.disabled = !chosen; sendBtn.textContent = "Kirim"; });
+      var body = JSON.stringify({ p_device: deviceId(), p_platform: PLATFORM, p_rating: chosen, p_comment: note.value.trim() });
+      var url = SB_URL + "/rest/v1/rpc/submit_feedback";
+      window.__kendatiRatingDone = function (status) {
+        status = Number(status) || 0;
+        if (status >= 200 && status < 300) {
+          store.set("kendatiRating", JSON.stringify({ r: chosen, c: note.value.trim() }));
+          closeRating(); toggle(false); toast("Terima kasih atas rating Anda!");
+        } else if (status === 404) {
+          toast("Rating belum aktif: SQL rating belum dijalankan");
+        } else {
+          toast("Rating belum terkirim (" + (status || "tidak ada koneksi") + ")");
+        }
+        sendBtn.disabled = !chosen; sendBtn.textContent = "Kirim";
+      };
+      // dikirim lewat aplikasi: halaman seperti Apps Script memblokir kiriman ke situs lain (CSP)
+      if (IS_ANDROID && window.KendatiNative.postJson) {
+        window.KendatiNative.postJson(url, SB_KEY, body);
+      } else if (IS_IOS) {
+        window.webkit.messageHandlers.kendati.postMessage({ action: "postJson", value: body, url: url, key: SB_KEY });
+      } else {
+        fetch(url, { method: "POST", headers: { apikey: SB_KEY, "Content-Type": "application/json" }, body: body })
+          .then(function (r) { window.__kendatiRatingDone(r.status); }, function () { window.__kendatiRatingDone(0); });
+      }
     });
 
     var toastEl = document.createElement("div");

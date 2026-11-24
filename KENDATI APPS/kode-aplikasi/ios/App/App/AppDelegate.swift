@@ -205,6 +205,8 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
             downloadURL(value, name: body["name"] as? String ?? "")
         case "login":
             handleLogin(message: message, json: value)
+        case "postJson":
+            postJson(urlString: body["url"] as? String ?? "", key: body["key"] as? String ?? "", json: value)
         default:
             break
         }
@@ -248,6 +250,23 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
             webView?.evaluateJavaScript("window.__kendatiLoginReply && window.__kendatiLoginReply(\(arr)[0])",
                                         in: message.frameInfo, in: .page, completionHandler: nil)
         }
+    }
+
+    // MARK: Kirim rating ke Supabase dari aplikasi (tidak terhalang CSP halaman)
+    private func postJson(urlString: String, key: String, json: String) {
+        guard let url = URL(string: urlString), url.scheme == "https",
+              url.host?.hasSuffix(".supabase.co") == true else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue(key, forHTTPHeaderField: "apikey")
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = json.data(using: .utf8)
+        URLSession.shared.dataTask(with: req) { [weak self] _, response, _ in
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            DispatchQueue.main.async {
+                self?.webView?.evaluateJavaScript("window.__kendatiRatingDone && window.__kendatiRatingDone(\(status))", completionHandler: nil)
+            }
+        }.resume()
     }
 
     // MARK: Unduh alamat http(s) memakai cookie halaman, lalu simpan seperti file lain
