@@ -249,6 +249,12 @@
     else if (!full && /\b(unduh|download|ekspor|export|simpan file)\b/i.test(label)) aksi = "unduh";
     else if (full) aksi = /^https?:\/\/ppbltahun2025\.github\.io(\/|$)/i.test(full) ? "buka fitur" : "buka tautan luar";
     else aksi = "klik";
+    if (aksi === "unduh") {   // unduhan aplikasi KENDATI: sertakan versinya
+      var lv = window.__kendatiLatestVer || {};
+      var pf = /\.apk([?#]|$)/i.test(full || "") || /apk|android/i.test(label) ? "android"
+             : /\.ipa([?#]|$)/i.test(full || "") || /ipa|ios|iphone/i.test(label) ? "ios" : "";
+      if (pf && lv[pf]) label += " · " + (pf === "ios" ? "iOS" : "Android") + " versi " + lv[pf];
+    }
     window.kendatiLog(aksi, menuNow(), label, full || location.href);
   }, true);
   document.addEventListener("submit", function (e) {

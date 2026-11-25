@@ -258,7 +258,7 @@
 </main>
 
 <!-- login Google: opsional di halaman ini (supaya aplikasi versi lama tetap bisa update) -->
-<script src="../assets/kendati-auth.js?v=5" data-required="false" data-logo="../assets/icon-menu.png"></script>
+<script src="../assets/kendati-auth.js?v=6" data-required="false" data-logo="../assets/icon-menu.png"></script>
 <script>
 (function () {
   var REPO = "ppbltahun2025/ppbltahun2025.github.io";
@@ -359,11 +359,12 @@
     // dicatat di Supabase (log unduhan: nama & email akun Google bila sudah login)
     function recordDownload(pf) {
       var c = window.kendatiSB;
-      var p = c ? c.rpc("record_download", { p_platform: pf })
+      var args = { p_platform: pf, p_versi: (window.__kendatiLatestVer || {})[pf] || null };
+      var p = c ? c.rpc("record_download", args)
                 : fetch(SB_URL + "/rest/v1/rpc/record_download", {
                     method: "POST", keepalive: true,
                     headers: { apikey: SB_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ p_platform: pf }) });
+                    body: JSON.stringify(args) });
       Promise.resolve(p).then(function () { setTimeout(showDownloads, 500); }, function () {});
     }
     document.getElementById("apkBtn").addEventListener("click", function () { recordDownload("android"); });
@@ -439,7 +440,14 @@
     });
     fetch("riwayat-versi.json", { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-      .then(function (j) { data = j.versi || []; render(); })
+      .then(function (j) {
+        data = j.versi || [];
+        // versi terbaru per platform, ikut dicatat di log unduhan
+        var lv = {};
+        data.forEach(function (v) { (v.platform || ["android", "ios"]).forEach(function (x) { if (!lv[x]) lv[x] = v.versi; }); });
+        window.__kendatiLatestVer = lv;
+        render();
+      })
       .catch(function () { document.getElementById("newsLatest").innerHTML = '<div class="empty">Riwayat versi belum tersedia.</div>'; });
   })();
 </script>
