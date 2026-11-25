@@ -29,6 +29,25 @@
   var IS_ANDROID = !!(window.KendatiNative && window.KendatiNative.openAuth);
   var IS_IOS = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.kendati);
   var IN_APP = /KendatiApp/.test(navigator.userAgent || "");
+  // aplikasi lama (sebelum 1.0.13) belum punya jembatan login
+  var OLD_APP = IN_APP && !IS_ANDROID && !IS_IOS;
+  var APK_URL = "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/KENDATI.apk";
+  var UNDUH_URL = "https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html";
+
+  // ---------- perbarui aplikasi langsung dari dalam app ----------
+  function updateApp() {
+    var N = window.KendatiNative;
+    if (N && N.download) {   // Android: unduh APK lewat pengunduh aplikasi + notifikasi
+      try {
+        if (N.postJson) N.postJson(SB_URL + "/rest/v1/rpc/record_download", SB_KEY, JSON.stringify({ p_platform: "android" }));
+        else fetch(SB_URL + "/rest/v1/rpc/record_download", { method: "POST", headers: { apikey: SB_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ p_platform: "android" }) });
+      } catch (e) {}
+      N.download(APK_URL, "KENDATI.apk");
+      msg("Mengunduh… Setelah selesai, ketuk notifikasi \"Unduhan selesai\" lalu pilih Instal.");
+    } else {                 // iOS / lainnya: halaman unduh di dalam app
+      location.href = UNDUH_URL;
+    }
+  }
 
   // ---------- tampilan layar login ----------
   var css = document.createElement("style");
@@ -52,7 +71,11 @@
     "#kendatiGate .g-msg{min-height:1.3em;margin-top:14px;font-size:12.5px;color:#ffd873}",
     "#kendatiGate .g-wait{display:none;width:30px;height:30px;margin:6px auto;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:#ffd873;animation:kgs .8s linear infinite}",
     "#kendatiGate.checking .g-wait{display:block}",
-    "#kendatiGate.checking .g-btn,#kendatiGate.checking p{display:none}",
+    "#kendatiGate h1{margin-bottom:26px}",
+    "#kendatiGate .g-upd{display:none;width:100%;height:52px;margin-top:12px;border:0;border-radius:16px;font:inherit;font-size:15px;font-weight:800;color:#08182e;background:linear-gradient(160deg,#ffd873,#f0b429);cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.3)}",
+    "#kendatiGate.need-update .g-btn{display:none}",
+    "#kendatiGate.need-update .g-upd{display:block}",
+    "#kendatiGate.checking .g-btn,#kendatiGate.checking .g-upd{display:none}",
     "#kendatiGate .g-foot{margin-top:26px;font-size:11px;opacity:.45}",
     "@keyframes kgp{0%{transform:scale(1);opacity:.6}75%{transform:scale(1.35);opacity:0}100%{opacity:0}}",
     "@keyframes kgs{to{transform:rotate(360deg)}}"
@@ -71,21 +94,23 @@
       '<div class="g-card">' +
         '<div class="g-orb"><img src="' + LOGO + '" alt="KENDATI"></div>' +
         "<h1>Masuk ke KENDATI</h1>" +
-        "<p>Masuk dengan akun Google sekali saja. Akun dipakai untuk rating, saran, dan catatan unduhan aplikasi.</p>" +
         '<div class="g-wait"></div>' +
         '<button type="button" class="g-btn">' + GOOGLE_SVG + "Masuk dengan Google</button>" +
+        '<button type="button" class="g-upd">Perbarui aplikasi sekarang</button>' +
         '<div class="g-msg"></div>' +
         '<div class="g-foot">© 2026 CIPTA KARYA GRESIK</div>' +
       "</div>";
     (document.body || document.documentElement).appendChild(gate);
     gate.querySelector(".g-btn").addEventListener("click", login);
+    gate.querySelector(".g-upd").addEventListener("click", updateApp);
     return gate;
   }
   function msg(t) { if (gate) gate.querySelector(".g-msg").textContent = t || ""; }
   function lock(checking) {
     if (!REQUIRED) return;
     document.documentElement.classList.add("kendati-locked");
-    buildGate().className = checking ? "checking" : "";
+    buildGate().className = checking ? "checking" : (OLD_APP ? "need-update" : "");
+    if (OLD_APP && !checking) msg("Versi aplikasi ini belum mendukung login. Perbarui dulu, lalu buka lagi.");
   }
   function unlock() {
     document.documentElement.classList.remove("kendati-locked");
@@ -111,7 +136,8 @@
         .catch(function (e) { msg("Login gagal: " + (e && e.message || e)); })
         .then(function () { if (btn) btn.disabled = false; });
     } else if (IN_APP) {
-      msg("Perbarui aplikasi KENDATI ke versi terbaru untuk login.");
+      if (gate) gate.className = "need-update";
+      msg("Versi aplikasi ini belum mendukung login. Perbarui dulu, lalu buka lagi.");
       if (btn) btn.disabled = false;
     } else {
       var back = location.origin + location.pathname;
