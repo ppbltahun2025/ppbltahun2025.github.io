@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
+import android.webkit.WebStorage;
 import android.webkit.WebView;
 import androidx.webkit.JavaScriptReplyProxy;
 import androidx.webkit.WebMessageCompat;
@@ -108,7 +109,9 @@ public class KendatiShellPlugin extends Plugin {
 
     // ---------------- Wajib update bila ada versi baru ----------------
     // file kecil berisi nomor versi APK terbaru, diterbitkan bersama KENDATI.apk
-    private static final String VERSION_URL = "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/versi-android.txt";
+    // kode-android.txt = nomor build (selalu naik); nama-android.txt = nama versi (mis. 1.0.0)
+    private static final String VERSION_URL = "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/kode-android.txt";
+    private static final String NAME_URL = "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/nama-android.txt";
     private static final String HISTORY_URL = "https://ppbltahun2025.github.io/KENDATI%20APPS/riwayat-versi.json";
     private volatile String updateJson = "";
     private long lastCheck = 0;
@@ -117,6 +120,15 @@ public class KendatiShellPlugin extends Plugin {
     protected void handleOnResume() {
         super.handleOnResume();
         if (System.currentTimeMillis() - lastCheck > 15 * 60 * 1000) checkUpdate();
+    }
+
+    private long currentBuild() {
+        try {
+            android.content.pm.PackageInfo pi = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+            return Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : pi.versionCode;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private String currentVersion() {
@@ -161,10 +173,13 @@ public class KendatiShellPlugin extends Plugin {
         lastCheck = System.currentTimeMillis();
         new Thread(() -> {
             try {
-                String latest = httpGet(VERSION_URL).trim();
-                if (!latest.matches("[0-9]+(\\.[0-9]+)*")) return;
+                String code = httpGet(VERSION_URL).trim();
+                if (!code.matches("[0-9]+")) return;
+                if (Long.parseLong(code) <= currentBuild()) { updateJson = ""; return; }
+                String latest = "";
+                try { latest = httpGet(NAME_URL).trim(); } catch (Exception ignored) {}
+                if (!latest.matches("[0-9]+(\\.[0-9]+)*")) latest = "terbaru";
                 String current = currentVersion();
-                if (compareVersion(latest, current) <= 0) { updateJson = ""; return; }
                 JSONArray notes = new JSONArray();
                 try {
                     JSONArray hist = new JSONObject(httpGet(HISTORY_URL)).optJSONArray("versi");
@@ -440,8 +455,18 @@ public class KendatiShellPlugin extends Plugin {
             getActivity().runOnUiThread(() -> {
                 WebView wv = getBridge().getWebView();
                 if (wv == null) return;
-                wv.clearCache(true);       // ambil versi terbaru dari server
-                wv.reload();
+                // seperti Ctrl+Shift+R: buang cache, muat semua file langsung dari server
+                wv.clearCache(true);
+                WebStorage.getInstance().deleteAllData();   // Cache Storage/IndexedDB situs (sesi login tetap di cookie)
+                final WebSettings ws = wv.getSettings();
+                ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
+                String url = wv.getUrl();
+                java.util.Map<String, String> h = new java.util.HashMap<>();
+                h.put("Cache-Control", "no-cache");
+                h.put("Pragma", "no-cache");
+                if (url != null && url.startsWith("http")) wv.loadUrl(url, h); else wv.reload();
+                // setelah halaman & frame termuat, kembali ke cache normal agar tetap cepat
+                wv.postDelayed(() -> ws.setCacheMode(WebSettings.LOAD_DEFAULT), 15000);
             });
         }
 

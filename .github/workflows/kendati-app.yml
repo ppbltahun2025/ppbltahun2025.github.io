@@ -31,10 +31,15 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION_CODE: ${{ github.run_number }}
-      VERSION_NAME: 1.0.${{ github.run_number }}
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
+
+      # Penomoran versi dimulai ulang dari 1.0.0 pada build ke-14.
+      # Nomor build (run_number) tetap naik, dipakai untuk cek update & pemasangan di atas versi lama.
+      - name: Nama versi
+        working-directory: .
+        run: echo "VERSION_NAME=1.0.$(( ${{ github.run_number }} - 14 ))" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v4
         with:
@@ -83,7 +88,10 @@ jobs:
             ./gradlew --no-daemon assembleDebug
             cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/KENDATI.apk"
           fi
-          echo "$VERSION_NAME" > "$GITHUB_WORKSPACE/versi-android.txt"
+          echo "$VERSION_NAME" > "$GITHUB_WORKSPACE/nama-android.txt"
+          echo "${{ github.run_number }}" > "$GITHUB_WORKSPACE/kode-android.txt"
+          # aplikasi lama (sebelum 1.0.0 baru) membaca file ini; angkanya harus lebih besar dari 1.0.13
+          echo "1.0.${{ github.run_number }}" > "$GITHUB_WORKSPACE/versi-android.txt"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -97,18 +105,26 @@ jobs:
           name: Aplikasi KENDATI
           make_latest: true
           body: |
-            Versi 1.0.${{ github.run_number }}
+            Versi ${{ env.VERSION_NAME }} (build ${{ github.run_number }})
             Pasang dari https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html
             Isi aplikasi selalu mengikuti situs live, jadi tidak perlu update untuk perubahan script.
           files: |
             KENDATI.apk
             versi-android.txt
+            nama-android.txt
+            kode-android.txt
 
   ios:
     name: iOS IPA (unsigned)
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+
+      # Penomoran versi dimulai ulang dari 1.0.0 pada build ke-14.
+      # Nomor build (run_number) tetap naik, dipakai untuk cek update & pemasangan di atas versi lama.
+      - name: Nama versi
+        working-directory: .
+        run: echo "VERSION_NAME=1.0.$(( ${{ github.run_number }} - 14 ))" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v4
         with:
@@ -134,11 +150,13 @@ jobs:
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
             -sdk iphoneos -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            CURRENT_PROJECT_VERSION=${{ github.run_number }} MARKETING_VERSION=1.0.${{ github.run_number }} \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} MARKETING_VERSION=$VERSION_NAME \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive
           mkdir -p Payload
           cp -R "$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app" Payload/
           zip -qry "$GITHUB_WORKSPACE/KENDATI-unsigned.ipa" Payload
+          echo "$VERSION_NAME" > "$GITHUB_WORKSPACE/nama-ios.txt"
+          echo "${{ github.run_number }}" > "$GITHUB_WORKSPACE/kode-ios.txt"
           echo "1.0.${{ github.run_number }}" > "$GITHUB_WORKSPACE/versi-ios.txt"
 
       - uses: actions/upload-artifact@v4
@@ -153,9 +171,11 @@ jobs:
           name: Aplikasi KENDATI
           make_latest: true
           body: |
-            Versi 1.0.${{ github.run_number }}
+            Versi ${{ env.VERSION_NAME }} (build ${{ github.run_number }})
             Pasang dari https://ppbltahun2025.github.io/KENDATI%20APPS/unduh.html
             Isi aplikasi selalu mengikuti situs live, jadi tidak perlu update untuk perubahan script.
           files: |
             KENDATI-unsigned.ipa
             versi-ios.txt
+            nama-ios.txt
+            kode-ios.txt

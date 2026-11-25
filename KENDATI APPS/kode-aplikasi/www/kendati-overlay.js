@@ -252,6 +252,18 @@
     } catch (e) { console.warn("[KENDATI]", e); }
   }
 
+  // Muat ulang total (seperti Ctrl+Shift+R): buang Cache Storage & service worker,
+  // lalu aplikasi membuang cache WebView dan memuat ulang tanpa cache.
+  function deepReload() {
+    var jobs = [];
+    try { if (window.caches && caches.keys) jobs.push(caches.keys().then(function (k) { return Promise.all(k.map(function (n) { return caches.delete(n); })); })); } catch (e) {}
+    try { if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) jobs.push(navigator.serviceWorker.getRegistrations().then(function (r) { return Promise.all(r.map(function (x) { return x.unregister(); })); })); } catch (e) {}
+    var done = false;
+    function go() { if (done) return; done = true; send("hardReload"); }
+    Promise.all(jobs).then(go, go);
+    setTimeout(go, 1200);
+  }
+
   var store = {
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -648,7 +660,7 @@
       } else if (act === "home") {
         showProgress(); location.href = HOME;
       } else if (act === "reload") {
-        showProgress(); send("hardReload");
+        showProgress(); deepReload();
       } else if (act === "rate") {
         openRating();
       }

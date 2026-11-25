@@ -1,140 +1,23 @@
 {
-  "_catatan": "Riwayat versi aplikasi KENDATI. Tambahkan entri baru PALING ATAS setiap ada perubahan aplikasi. platform: android / ios.",
+  "_catatan": "Riwayat versi aplikasi KENDATI. Tambahkan entri baru PALING ATAS setiap ada perubahan aplikasi. platform: android / ios. Versi dimulai ulang dari 1.0.0 (build 14).",
   "versi": [
     {
-      "versi": "1.0.13",
+      "versi": "1.0.0",
       "tanggal": "2026-11-25",
       "platform": [
         "android",
         "ios"
       ],
       "catatan": [
-        "Masuk dengan akun Google saat pertama membuka KENDATI (lewat jendela login Google, lalu kembali otomatis)",
-        "Rating & saran memakai nama akun Google",
-        "Unduhan aplikasi tercatat di log"
-      ]
-    },
-    {
-      "versi": "1.0.12",
-      "tanggal": "2026-11-25",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Ganti Mode Mobile ↔ Web langsung di halaman yang sama, tanpa memuat ulang",
-        "Menu KENDATI terakhir diingat, tidak kembali ke dashboard setelah dimuat ulang"
-      ]
-    },
-    {
-      "versi": "1.0.11",
-      "tanggal": "2026-11-25",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Pemberitahuan wajib update: bila ada versi baru, aplikasi meminta pembaruan sebelum bisa dipakai",
-        "Notifikasi \"Unduhan selesai\" muncul di atas layar; ketuk untuk membuka file (Android)",
-        "Izin notifikasi ditanyakan saat aplikasi dibuka",
-        "Tarik layar ke bawah untuk refresh dimatikan agar tidak terpicu tanpa sengaja (pakai menu → Muat ulang)"
-      ]
-    },
-    {
-      "versi": "1.0.10",
-      "tanggal": "2026-11-25",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Tombol Unduh & Ekspor di halaman Apps Script (Retribusi, Arsip, dll.) kini berfungsi",
-        "Rating dikirim lewat aplikasi sehingga tidak terhalang halaman Google"
-      ]
-    },
-    {
-      "versi": "1.0.9",
-      "tanggal": "2026-11-25",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Menu baru: Rating 1–5 bintang dan saran",
-        "Statistik unduhan & rating tampil di halaman unduh"
-      ]
-    },
-    {
-      "versi": "1.0.8",
-      "tanggal": "2026-11-25",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Ingat login: nama & sandi disimpan terenkripsi dan diisi otomatis",
-        "Unduh file dari link Drive & link unduhan biasa",
-        "Pesan proses unduhan: Menyiapkan file / Mengunduh"
-      ]
-    },
-    {
-      "versi": "1.0.7",
-      "tanggal": "2026-11-25",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Perbaikan ekspor PDF/Excel; file tersimpan di Download/KENDATI",
-        "Menu disederhanakan: Mobile/Web, Kembali, Beranda, Muat ulang"
-      ]
-    },
-    {
-      "versi": "1.0.6",
-      "tanggal": "2026-11-24",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
+        "Rilis resmi pertama aplikasi KENDATI untuk Android & iOS",
+        "Masuk sekali dengan akun Google; rating & saran memakai nama akun",
+        "Layar penuh tanpa bar, menu bulat: Mode Mobile/Web, Kembali, Beranda, Muat ulang, Rating",
+        "Muat ulang total seperti Ctrl+Shift+R: selalu memuat versi terbaru dari server",
+        "Semua halaman (termasuk Google Drive/Docs) tetap dibuka di dalam aplikasi",
+        "Unduh & ekspor PDF/Excel tersimpan di Download/KENDATI dengan notifikasi",
+        "Ingat nama pengguna & kata sandi (terenkripsi di perangkat)",
         "Izin lokasi, kamera, galeri & file untuk fitur peta dan unggah foto",
-        "Perbaikan tombol menu bulat yang langsung menutup sendiri"
-      ]
-    },
-    {
-      "versi": "1.0.5",
-      "tanggal": "2026-11-24",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Semua halaman, termasuk Google Drive/Docs, dibuka di dalam aplikasi",
-        "Unduhan diproses aplikasi, tidak lewat Chrome/Safari"
-      ]
-    },
-    {
-      "versi": "1.0.4",
-      "tanggal": "2026-11-24",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Link ke situs lain tetap dibuka di dalam aplikasi"
-      ]
-    },
-    {
-      "versi": "1.0.3",
-      "tanggal": "2026-11-24",
-      "platform": [
-        "android",
-        "ios"
-      ],
-      "catatan": [
-        "Rilis pertama aplikasi KENDATI",
-        "Layar penuh tanpa bar, mode Mobile / Web, menu mengambang",
-        "Isi otomatis mengikuti situs KENDATI terbaru"
+        "Pemberitahuan wajib update saat ada versi baru, unduh langsung dari aplikasi"
       ]
     }
   ]

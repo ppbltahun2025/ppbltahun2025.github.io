@@ -166,7 +166,9 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler, ASWeb
     // MARK: Wajib update bila ada versi baru
     private var lastUpdateCheck = Date.distantPast
     private var updateScriptAdded = false
-    private let versionURL = URL(string: "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/versi-ios.txt")!
+    // kode-ios.txt = nomor build (selalu naik); nama-ios.txt = nama versi (mis. 1.0.0)
+    private let versionURL = URL(string: "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/kode-ios.txt")!
+    private let nameURL = URL(string: "https://github.com/ppbltahun2025/ppbltahun2025.github.io/releases/download/aplikasi/nama-ios.txt")!
     private let historyURL = URL(string: "https://ppbltahun2025.github.io/KENDATI%20APPS/riwayat-versi.json")!
 
     private func isNewer(_ a: String, than b: String) -> Bool {
@@ -181,13 +183,17 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler, ASWeb
     private func checkUpdate() {
         lastUpdateCheck = Date()
         let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+        let build = Int(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0") ?? 0
         var req = URLRequest(url: versionURL)
         req.cachePolicy = .reloadIgnoringLocalCacheData
         URLSession.shared.dataTask(with: req) { [weak self] data, _, _ in
             guard let self = self, let data = data,
-                  let latest = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  latest.range(of: "^[0-9]+(\\.[0-9]+)*$", options: .regularExpression) != nil,
-                  self.isNewer(latest, than: current) else { return }
+                  let code = Int(String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""),
+                  code > build else { return }
+            let ndata = try? Data(contentsOf: self.nameURL)
+            let raw = ndata.flatMap { String(data: $0, encoding: .utf8) }?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let latest = raw.range(of: "^[0-9]+(\\.[0-9]+)*$", options: .regularExpression) != nil ? raw : "terbaru"
+
             var hreq = URLRequest(url: self.historyURL)
             hreq.cachePolicy = .reloadIgnoringLocalCacheData
             URLSession.shared.dataTask(with: hreq) { hdata, _, _ in
@@ -254,7 +260,9 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler, ASWeb
                 if (result as? Bool) != true { self?.webView?.reload() }
             }
         case "hardReload":
-            let types: Set<String> = [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache]
+            // seperti Ctrl+Shift+R: buang semua cache (sesi login di cookie tetap)
+            let types: Set<String> = [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache, WKWebsiteDataTypeFetchCache,
+                                      WKWebsiteDataTypeOfflineWebApplicationCache, WKWebsiteDataTypeServiceWorkerRegistrations]
             WKWebsiteDataStore.default().removeData(ofTypes: types, modifiedSince: .distantPast) { [weak self] in
                 self?.webView?.reloadFromOrigin()
             }
