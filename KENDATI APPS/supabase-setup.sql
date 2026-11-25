@@ -1,9 +1,32 @@
 -- =====================================================================
--- RATING & SARAN APLIKASI KENDATI (Android & iOS)
--- Jalankan SEKALI di Supabase -> SQL Editor (proyek yang sama dengan
--- penghitung pengunjung KENDATI), lalu Run.
+-- SETUP SUPABASE KENDATI (jalankan SEKALI, aman diulang)
+-- Supabase -> SQL Editor -> New query -> tempel SEMUA isi file ini -> Run
+--
+-- 1) Statistik pengunjung pakai tanggal WIB (Asia/Jakarta)
+-- 2) Rating & saran aplikasi
+-- 3) Jumlah unduhan APK & IPA
 -- =====================================================================
 
+-- ---------- 1) PENGUNJUNG: tanggal WIB ----------
+create or replace function record_visit()
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  update visit_total set count = count + 1 where id = 1;
+
+  insert into visit_daily (day, count)
+    values ((now() at time zone 'Asia/Jakarta')::date, 1)
+    on conflict (day) do update set count = visit_daily.count + 1;
+
+  insert into visit_monthly (month, count)
+    values (date_trunc('month', (now() at time zone 'Asia/Jakarta'))::date, 1)
+    on conflict (month) do update set count = visit_monthly.count + 1;
+end;
+$$;
+
+-- ---------- 2) + 3) RATING, SARAN & UNDUHAN ----------
 create table if not exists app_feedback (
   id          bigserial primary key,
   device_id   text        not null,
