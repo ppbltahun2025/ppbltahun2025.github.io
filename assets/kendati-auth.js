@@ -206,6 +206,7 @@
   // Tercatat di tabel Supabase public.log_kendati (lihat view log_kendati_wib).
   var logToken = "", logQueue = [], loginPending = false, lastLogKey = "", lastLogAt = 0;
   var PLATFORM = IN_APP ? (/android/i.test(navigator.userAgent) ? "android" : "ios") : "web";
+  var FILE_RE = /(\.(apk|ipa|zip|rar|7z|crx|xpi|exe|msi|pdf|xlsx?|docx?|pptx?|csv|kml|kmz|gpx|geojson|mp4|mp3)([?#]|$))|\/releases\/download\//i;
   var MENU_NAMES = { simbg: "SIMBG Gresik", ppbl: "Penataan Bangunan Gedung", dll: "Store" };
   function menuNow() {
     var h = (location.hash || "").replace("#", "");
@@ -240,14 +241,45 @@
     var el = e.target && e.target.closest && e.target.closest('a[href],button,[role="button"],.hex-item,.hex,input[type="submit"],input[type="button"],summary,select');
     if (!el || el.closest("#kendatiGate")) return;
     var href = el.getAttribute("href");
-    var full = href && !/^(javascript:|#$)/i.test(href) ? el.href : null;
-    var aksi = full ? (el.target === "_blank" || el.hasAttribute("download") ? "buka tautan/unduh" : "buka fitur") : "klik";
-    window.kendatiLog(aksi, menuNow(), labelOf(el) || href || el.tagName.toLowerCase(), full || location.href);
+    var full = href && !/^(javascript:|#)/i.test(href) ? el.href : null;
+    var label = labelOf(el) || href || el.tagName.toLowerCase();
+    var aksi;
+    if (full && (el.hasAttribute("download") || FILE_RE.test(full))) aksi = "unduh";
+    else if (!full && /\b(unduh|download|ekspor|export|simpan file)\b/i.test(label)) aksi = "unduh";
+    else if (full) aksi = /^https?:\/\/ppbltahun2025\.github\.io(\/|$)/i.test(full) ? "buka fitur" : "buka tautan luar";
+    else aksi = "klik";
+    window.kendatiLog(aksi, menuNow(), label, full || location.href);
   }, true);
   document.addEventListener("submit", function (e) {
     var f = e.target; window.kendatiLog("kirim formulir", menuNow(), labelOf(f.querySelector('[type="submit"],button') || f) || f.id || "formulir");
   }, true);
+  // video & audio di halaman (putar, jeda, selesai)
+  function mediaName(m) {
+    var t = m.getAttribute("title") || m.getAttribute("aria-label") || m.id || "";
+    var src = m.currentSrc || m.src || "";
+    if (src) t = (t ? t + " · " : "") + decodeURIComponent(src.split("/").pop().split("?")[0]);
+    return (m.tagName === "VIDEO" ? "Video " : "Audio ") + (t || "tanpa nama");
+  }
+  function mediaTime(m) {
+    var x = Math.floor(m.currentTime || 0);
+    return Math.floor(x / 60) + ":" + ("0" + (x % 60)).slice(-2);
+  }
+  ["play", "pause", "ended"].forEach(function (ev) {
+    document.addEventListener(ev, function (e) {
+      var m = e.target;
+      if (!m || !/^(VIDEO|AUDIO)$/.test(m.tagName)) return;
+      if (ev === "pause" && m.ended) return;
+      var aksi = { play: "putar", pause: "jeda", ended: "selesai putar" }[ev] + (m.tagName === "VIDEO" ? " video" : " audio");
+      window.kendatiLog(aksi, menuNow(), mediaName(m) + " @" + mediaTime(m));
+    }, true);
+  });
   window.addEventListener("hashchange", function () { if (location.hash) window.kendatiLog("buka menu", menuNow()); });
+  try {   // pertama kali aplikasi dibuka (per sesi)
+    if (IN_APP && !sessionStorage.getItem("kendatiAppOpen")) {
+      sessionStorage.setItem("kendatiAppOpen", "1");
+      window.kendatiLog("buka aplikasi", "Aplikasi KENDATI", PLATFORM);
+    }
+  } catch (e) {}
   window.kendatiLog("buka halaman", menuNow(), document.title || location.pathname);
 
   // ---------- mulai ----------
