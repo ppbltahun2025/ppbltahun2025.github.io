@@ -993,6 +993,8 @@
   </div>
 
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+ <!-- Login Google (wajib sebelum masuk KENDATI) -->
+ <script src="assets/kendati-auth.js" data-required="true"></script>
 
  <script>
 
@@ -1709,7 +1711,7 @@
       return;
     }
 
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const sb = window.kendatiSB || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function fetchTotal(){
       const { data, error } = await sb.from("visit_total").select("count").eq("id", 1).single();

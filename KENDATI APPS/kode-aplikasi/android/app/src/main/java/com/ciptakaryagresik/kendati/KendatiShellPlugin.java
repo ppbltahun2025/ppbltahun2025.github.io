@@ -22,6 +22,8 @@ import android.webkit.CookieManager;
 import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.widget.Toast;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -84,6 +86,24 @@ public class KendatiShellPlugin extends Plugin {
         setupLoginMemory(wv);
         applyMode(isDesktop(), false);
         checkUpdate();
+        // aplikasi dibuka langsung dari tautan login (jarang): teruskan ke halaman
+        Intent start = getActivity().getIntent();
+        if (start != null) deliverAuth(start.getData());
+    }
+
+    // ---------------- Login Google (tab login sistem -> kembali ke aplikasi) ----------------
+    private volatile String authToken = "";
+
+    @Override
+    protected void handleOnNewIntent(Intent intent) {
+        super.handleOnNewIntent(intent);
+        if (intent != null) deliverAuth(intent.getData());
+    }
+
+    private void deliverAuth(Uri data) {
+        if (data == null || !"com.ciptakaryagresik.kendati".equals(data.getScheme()) || !"auth".equals(data.getHost())) return;
+        final String js = "window.__kendatiAuthCallback && window.__kendatiAuthCallback(" + JSONObject.quote(data.toString()) + ")";
+        getActivity().runOnUiThread(() -> getBridge().getWebView().evaluateJavascript(js, null));
     }
 
     // ---------------- Wajib update bila ada versi baru ----------------
@@ -445,6 +465,7 @@ public class KendatiShellPlugin extends Plugin {
                     c.setReadTimeout(15000);
                     c.setDoOutput(true);
                     c.setRequestProperty("apikey", key);
+                    if (!authToken.isEmpty()) c.setRequestProperty("Authorization", "Bearer " + authToken);
                     c.setRequestProperty("Content-Type", "application/json");
                     try (OutputStream os = c.getOutputStream()) {
                         os.write(body.getBytes(StandardCharsets.UTF_8));
@@ -458,6 +479,29 @@ public class KendatiShellPlugin extends Plugin {
         }
 
         /** Info versi baru (JSON) atau "" bila aplikasi sudah terbaru. */
+        /** Buka halaman login Google di Custom Tab (Google melarang login di dalam WebView). */
+        @JavascriptInterface
+        public void openAuth(String url) {
+            Uri u = Uri.parse(url);
+            if (!"https".equals(u.getScheme()) || u.getHost() == null || !u.getHost().endsWith(".supabase.co")) return;
+            getActivity().runOnUiThread(() -> {
+                try {
+                    CustomTabColorSchemeParams colors = new CustomTabColorSchemeParams.Builder()
+                        .setToolbarColor(android.graphics.Color.parseColor("#071b3a")).build();
+                    new CustomTabsIntent.Builder().setDefaultColorSchemeParams(colors).setShowTitle(true)
+                        .build().launchUrl(getActivity(), u);
+                } catch (Exception e) {
+                    try { getActivity().startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) {}
+                }
+            });
+        }
+
+        /** Token login terbaru dari halaman KENDATI (dipakai untuk rating dari halaman mana pun). */
+        @JavascriptInterface
+        public void setAuth(String token) {
+            authToken = token == null ? "" : token;
+        }
+
         @JavascriptInterface
         public String getUpdate() {
             return updateJson;

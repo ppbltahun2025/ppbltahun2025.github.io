@@ -5,6 +5,7 @@ import AVFoundation
 import Photos
 import CoreLocation
 import Security
+import AuthenticationServices
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -125,7 +126,7 @@ private final class KendatiUIDelegate: NSObject, WKUIDelegate {
     }
 }
 
-class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
+class MainViewController: CAPBridgeViewController, WKScriptMessageHandler, ASWebAuthenticationPresentationContextProviding {
 
     private var uiDelegateProxy: KendatiUIDelegate?
 
@@ -267,6 +268,10 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
             downloadURL(value, name: body["name"] as? String ?? "")
         case "login":
             handleLogin(message: message, json: value)
+        case "openAuth":
+            openAuth(value)
+        case "setAuth":
+            authToken = value
         case "postJson":
             postJson(urlString: body["url"] as? String ?? "", key: body["key"] as? String ?? "", json: value)
         default:
@@ -314,6 +319,32 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
         }
     }
 
+    // MARK: Login Google lewat tab login sistem (Google melarang login di dalam WebView)
+    private var authToken = ""
+    private var authSession: ASWebAuthenticationSession?
+
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        return view.window ?? ASPresentationAnchor()
+    }
+
+    private func openAuth(_ string: String) {
+        guard let url = URL(string: string), url.scheme == "https",
+              url.host?.hasSuffix(".supabase.co") == true else { return }
+        let session = ASWebAuthenticationSession(url: url, callbackURLScheme: "com.ciptakaryagresik.kendati") { [weak self] callback, _ in
+            guard let self = self, let callback = callback,
+                  let lit = try? JSONSerialization.data(withJSONObject: [callback.absoluteString]),
+                  let arr = String(data: lit, encoding: .utf8) else { return }
+            DispatchQueue.main.async {
+                self.webView?.evaluateJavaScript("window.__kendatiAuthCallback && window.__kendatiAuthCallback(\(arr)[0])", completionHandler: nil)
+            }
+            self.authSession = nil
+        }
+        session.presentationContextProvider = self
+        session.prefersEphemeralWebBrowserSession = false
+        authSession = session
+        session.start()
+    }
+
     // MARK: Kirim rating ke Supabase dari aplikasi (tidak terhalang CSP halaman)
     private func postJson(urlString: String, key: String, json: String) {
         guard let url = URL(string: urlString), url.scheme == "https",
@@ -321,6 +352,7 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler {
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.setValue(key, forHTTPHeaderField: "apikey")
+        if !authToken.isEmpty { req.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization") }
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = json.data(using: .utf8)
         URLSession.shared.dataTask(with: req) { [weak self] _, response, _ in

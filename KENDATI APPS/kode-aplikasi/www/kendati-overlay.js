@@ -681,15 +681,16 @@
     sendBtn.addEventListener("click", function () {
       if (!chosen) return;
       sendBtn.disabled = true; sendBtn.textContent = "Mengirim…";
-      var body = JSON.stringify({ p_device: deviceId(), p_platform: PLATFORM, p_rating: chosen, p_comment: note.value.trim() });
+      var body = JSON.stringify({ p_platform: PLATFORM, p_rating: chosen, p_comment: note.value.trim() });
       var url = SB_URL + "/rest/v1/rpc/submit_feedback";
       window.__kendatiRatingDone = function (status) {
+        window.__kendatiRatingDone = null;
         status = Number(status) || 0;
         if (status >= 200 && status < 300) {
           store.set("kendatiRating", JSON.stringify({ r: chosen, c: note.value.trim() }));
           closeRating(); toggle(false); toast("Terima kasih atas rating Anda!");
-        } else if (status === 404) {
-          toast("Rating belum aktif: SQL rating belum dijalankan");
+        } else if (status === 401 || status === 403) {
+          toast("Masuk akun Google dulu: buka Beranda, lalu coba lagi");
         } else {
           toast("Rating belum terkirim (" + (status || "tidak ada koneksi") + ")");
         }
@@ -725,6 +726,9 @@
     }
     upd.querySelector(".go").addEventListener("click", function () {
       if (IS_ANDROID && window.KendatiNative.download) {
+        try {   // catat unduhan di Supabase (log + jumlah)
+          if (window.KendatiNative.postJson) window.KendatiNative.postJson(SB_URL + "/rest/v1/rpc/record_download", SB_KEY, JSON.stringify({ p_platform: "android" }));
+        } catch (e) {}
         window.KendatiNative.download(APK, "KENDATI.apk");
         upd.querySelector(".hint").textContent = "Mengunduh… Setelah selesai, ketuk notifikasi \"Unduhan selesai\" lalu pilih Instal.";
       } else {

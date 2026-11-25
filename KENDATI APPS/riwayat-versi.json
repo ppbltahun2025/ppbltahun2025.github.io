@@ -2,6 +2,19 @@
   "_catatan": "Riwayat versi aplikasi KENDATI. Tambahkan entri baru PALING ATAS setiap ada perubahan aplikasi. platform: android / ios.",
   "versi": [
     {
+      "versi": "1.0.13",
+      "tanggal": "2026-11-25",
+      "platform": [
+        "android",
+        "ios"
+      ],
+      "catatan": [
+        "Masuk dengan akun Google saat pertama membuka KENDATI (lewat jendela login Google, lalu kembali otomatis)",
+        "Rating & saran memakai nama akun Google",
+        "Unduhan aplikasi tercatat di log"
+      ]
+    },
+    {
       "versi": "1.0.12",
       "tanggal": "2026-11-25",
       "platform": [

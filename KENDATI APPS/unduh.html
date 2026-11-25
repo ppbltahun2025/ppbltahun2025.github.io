@@ -9,6 +9,7 @@
   <link rel="icon" type="image/png" href="../assets/icon-menu.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -256,6 +257,8 @@
   <footer>© 2026 CIPTA KARYA GRESIK</footer>
 </main>
 
+<!-- login Google: opsional di halaman ini (supaya aplikasi versi lama tetap bisa update) -->
+<script src="../assets/kendati-auth.js" data-required="false" data-logo="../assets/icon-menu.png"></script>
 <script>
 (function () {
   var REPO = "ppbltahun2025/ppbltahun2025.github.io";
@@ -353,12 +356,15 @@
         });
     }
     showDownloads();
+    // dicatat di Supabase (log unduhan: nama & email akun Google bila sudah login)
     function recordDownload(pf) {
-      fetch(SB_URL + "/rest/v1/rpc/record_download", {
-        method: "POST", keepalive: true,
-        headers: { apikey: SB_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ p_platform: pf })
-      }).then(function () { setTimeout(showDownloads, 500); }).catch(function () {});
+      var c = window.kendatiSB;
+      var p = c ? c.rpc("record_download", { p_platform: pf })
+                : fetch(SB_URL + "/rest/v1/rpc/record_download", {
+                    method: "POST", keepalive: true,
+                    headers: { apikey: SB_KEY, "Content-Type": "application/json" },
+                    body: JSON.stringify({ p_platform: pf }) });
+      Promise.resolve(p).then(function () { setTimeout(showDownloads, 500); }, function () {});
     }
     document.getElementById("apkBtn").addEventListener("click", function () { recordDownload("android"); });
     var ipaLink = document.getElementById("ipaLink");
@@ -388,7 +394,7 @@
       list.innerHTML = rs.map(function (r) {
         var tgl = new Date(r.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
         return '<div class="cm"><div class="top"><span class="st">' + starsHtml(r.rating) + '</span><span class="tag ' + r.platform + '">' +
-          (r.platform === "ios" ? "iOS" : "Android") + "</span></div><p>" + esc(r.comment) + "</p><small>" + tgl + "</small></div>";
+          (r.platform === "ios" ? "iOS" : "Android") + "</span></div><p>" + esc(r.comment) + "</p><small>" + esc(r.user_name || "Pengguna") + " · " + tgl + "</small></div>";
       }).join("");
     }
     document.getElementById("ctabs").addEventListener("click", function (e) {
@@ -398,7 +404,7 @@
       this.querySelectorAll("button").forEach(function (x) { x.classList.toggle("act", x === b); });
       renderList();
     });
-    fetch(SB_URL + "/rest/v1/app_feedback_public?select=platform,rating,comment,created_at&order=created_at.desc&limit=1000",
+    fetch(SB_URL + "/rest/v1/app_feedback_public?select=platform,rating,comment,created_at,user_name&order=created_at.desc&limit=1000",
           { headers: { apikey: SB_KEY } })
       .then(function (r) { if (!r.ok) throw 0; return r.json(); })
       .then(function (data) { rows = data || []; renderCards(); renderList(); })
