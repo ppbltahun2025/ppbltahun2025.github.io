@@ -365,6 +365,7 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler, ASWeb
         req.httpBody = json.data(using: .utf8)
         URLSession.shared.dataTask(with: req) { [weak self] _, response, _ in
             let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            guard urlString.contains("submit_feedback") else { return }   // log kegiatan: tanpa balasan ke layar
             DispatchQueue.main.async {
                 self?.webView?.evaluateJavaScript("window.__kendatiRatingDone && window.__kendatiRatingDone(\(status))", completionHandler: nil)
             }

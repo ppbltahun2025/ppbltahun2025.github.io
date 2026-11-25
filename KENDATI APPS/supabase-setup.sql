@@ -94,3 +94,8 @@ begin
 end;
 $$;
 grant execute on function record_download(text) to anon;
+
+-- ================== LOG KENDATI (semua kegiatan pengguna) ==================
+-- Diterapkan lewat migrasi "log_kendati_aktivitas". Lihat isinya di view log_kendati_wib.
+-- Tabel public.log_kendati (user_id, user_name, user_email, aksi, menu, detail, url, platform, created_at)
+-- RPC public.record_activity(p_aksi, p_menu, p_detail, p_url, p_platform) — hanya pengguna yang sudah login Google.

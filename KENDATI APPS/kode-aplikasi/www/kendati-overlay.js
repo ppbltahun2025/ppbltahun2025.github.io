@@ -225,6 +225,26 @@
     };
   }
 
+  // =========== LOG KENDATI (semua frame) ===========
+  // Klik di halaman mana pun dicatat ke tabel log_kendati (lewat frame utama + aplikasi).
+  // Halaman portal KENDATI dicatat oleh assets/kendati-auth.js; SUPERMASTER PROYEK &
+  // SUPERMASTER SIMBG tidak dicatat karena sudah punya log sendiri (dicek di frame utama).
+  function logLabel(el) {
+    var t = el.getAttribute("aria-label") || el.getAttribute("title") || el.innerText || el.value || el.getAttribute("alt") || "";
+    t = String(t).replace(/\s+/g, " ").trim();
+    return t.length > 120 ? t.slice(0, 117) + "…" : t;
+  }
+  bind("click", function (e) {
+    if (window.top === window && location.hostname === "ppbltahun2025.github.io") return;
+    var el = e.target && e.target.closest && e.target.closest('a[href],button,[role="button"],input[type="submit"],input[type="button"],summary,select,[onclick]');
+    if (!el || el.id === "kendati-app-overlay") return;
+    var href = el.getAttribute("href");
+    var full = href && !/^(javascript:|#)/i.test(href) ? el.href : "";
+    var d = { aksi: full ? "buka tautan" : "klik", detail: logLabel(el) || href || el.tagName.toLowerCase(), url: full };
+    if (window.top === window) { if (window.__kendatiAppLog) window.__kendatiAppLog(d.aksi, d.detail, d.url); }
+    else { try { window.top.postMessage({ kendatiLog: d }, "*"); } catch (x) {} }
+  }, true);
+
   if (window.top !== window) { keepLinksInApp(); return; }   // tarik-refresh dimatikan (sering tidak sengaja)   // iframe: link + tarik-refresh; UI di frame utama
   if (window.__kendatiOverlay) return;          // jangan dobel
   window.__kendatiOverlay = true;
@@ -233,6 +253,29 @@
   // Supabase yang sama dengan penghitung pengunjung KENDATI (kunci publik)
   var SB_URL = "https://kvcnbyasnvpmnrbvkjjg.supabase.co";
   var SB_KEY = "sb_publishable_J9EFLRjCWE9gaLgsQLKeLQ_x-Wwu3wF";
+
+  // ----- LOG KENDATI dari aplikasi (frame utama) -----
+  var LOG_SKIP = /AKfycbyg56ZApU1xS0e6dw7yQ8Kp6RsXOVe5BzDmSdU8|AKfycbxYMaIzJyGMnVOhzAef6qb8OgtXobgp0NX7aW2fufd0/;
+  var LOG_PLATFORM = IS_ANDROID ? "android" : (IS_IOS ? "ios" : "web");
+  var lastAppLog = "", lastAppLogAt = 0;
+  window.__kendatiAppLog = function (aksi, detail, url) {
+    if (LOG_SKIP.test(location.href)) return;            // di dalam SUPERMASTER: tidak dicatat
+    var key = aksi + "|" + detail + "|" + url, now = Date.now();
+    if (key === lastAppLog && now - lastAppLogAt < 1500) return;
+    lastAppLog = key; lastAppLogAt = now;
+    var body = JSON.stringify({ p_aksi: aksi, p_menu: document.title || location.hostname, p_detail: detail || null,
+                                p_url: url || location.href, p_platform: LOG_PLATFORM });
+    var rpc = SB_URL + "/rest/v1/rpc/record_activity";
+    try {
+      if (IS_ANDROID && window.KendatiNative.postJson) window.KendatiNative.postJson(rpc, SB_KEY, body);
+      else if (IS_IOS) window.webkit.messageHandlers.kendati.postMessage({ action: "postJson", value: body, url: rpc, key: SB_KEY });
+    } catch (e) {}
+  };
+  // halaman di luar portal (Drive, Docs, Apps Script lain, dll.) dicatat saat dibuka
+  if (location.hostname !== "ppbltahun2025.github.io") {
+    var logOpen = function () { window.__kendatiAppLog("buka halaman", document.title || location.hostname, location.href); };
+    if (document.readyState === "complete") setTimeout(logOpen, 300); else window.addEventListener("load", function () { setTimeout(logOpen, 300); });
+  }
   var UA = navigator.userAgent || "";
   var MODE = /KendatiDesktop/.test(UA) ? "desktop" : "mobile";
 
@@ -546,6 +589,10 @@
     window.addEventListener("message", function (e) {
       if (e.data && e.data.kendatiPull !== undefined) window.__kendatiPullUI(e.data.kendatiPull);
       if (e.data && e.data.kendatiToast && window.__kendatiToast) window.__kendatiToast(e.data.kendatiToast);
+      if (e.data && e.data.kendatiLog && window.__kendatiAppLog) {
+        var d = e.data.kendatiLog;
+        window.__kendatiAppLog(String(d.aksi || "klik"), String(d.detail || ""), String(d.url || ""));
+      }
     });
 
     // ----- posisi tombol: bisa digeser, menempel ke tepi kiri/kanan -----
@@ -647,6 +694,7 @@
       if (!b || b.dataset.mode === MODE) return;
       seg.className = "seg " + b.dataset.mode;
       seg.querySelectorAll("button").forEach(function (x) { x.classList.toggle("act", x === b); });
+      window.__kendatiAppLog("menu aplikasi", "Mode " + (b.dataset.mode === "desktop" ? "Web" : "Mobile"), location.href);
       setTimeout(function () { send("setMode", b.dataset.mode); }, 260);
     });
 
@@ -655,6 +703,7 @@
       if (!b) return;
       var act = b.dataset.act;
       if (act !== "rate") toggle(false);
+      window.__kendatiAppLog("menu aplikasi", { back: "Kembali", home: "Beranda", reload: "Muat ulang", rate: "Rating" }[act] || act, location.href);
       if (act === "back") {
         if (history.length > 1) history.back(); else location.href = HOME;
       } else if (act === "home") {

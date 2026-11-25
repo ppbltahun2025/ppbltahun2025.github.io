@@ -498,6 +498,7 @@ public class KendatiShellPlugin extends Plugin {
                     status = c.getResponseCode();
                     c.disconnect();
                 } catch (Exception ignored) {}
+                if (!url.contains("submit_feedback")) return;   // log kegiatan: tanpa balasan ke layar
                 final String js = "window.__kendatiRatingDone && window.__kendatiRatingDone(" + status + ")";
                 getActivity().runOnUiThread(() -> getBridge().getWebView().evaluateJavascript(js, null));
             }).start();

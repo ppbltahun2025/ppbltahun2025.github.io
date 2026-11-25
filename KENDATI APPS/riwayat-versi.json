@@ -1,5 +1,5 @@
 {
-  "_catatan": "Riwayat versi aplikasi KENDATI. Tambahkan entri baru PALING ATAS setiap ada perubahan aplikasi. platform: android / ios. Versi dimulai ulang dari 1.0.0 (build 14).",
+  "_catatan": "Riwayat versi aplikasi KENDATI. Tambahkan entri baru PALING ATAS setiap ada perubahan aplikasi. platform: android / ios. Versi dimulai ulang dari 1.0.0 (build 15).",
   "versi": [
     {
       "versi": "1.0.0",
@@ -17,7 +17,8 @@
         "Unduh & ekspor PDF/Excel tersimpan di Download/KENDATI dengan notifikasi",
         "Ingat nama pengguna & kata sandi (terenkripsi di perangkat)",
         "Izin lokasi, kamera, galeri & file untuk fitur peta dan unggah foto",
-        "Pemberitahuan wajib update saat ada versi baru, unduh langsung dari aplikasi"
+        "Pemberitahuan wajib update saat ada versi baru, unduh langsung dari aplikasi",
+        "Kegiatan di KENDATI tercatat di LOG KENDATI (kecuali di SUPERMASTER PROYEK & SUPERMASTER SIMBG)"
       ]
     }
   ]

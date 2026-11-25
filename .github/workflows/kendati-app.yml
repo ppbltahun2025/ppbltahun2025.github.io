@@ -35,11 +35,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Penomoran versi dimulai ulang dari 1.0.0 pada build ke-14.
+      # Penomoran versi dimulai ulang dari 1.0.0 pada build ke-15.
       # Nomor build (run_number) tetap naik, dipakai untuk cek update & pemasangan di atas versi lama.
       - name: Nama versi
         working-directory: .
-        run: echo "VERSION_NAME=1.0.$(( ${{ github.run_number }} - 14 ))" >> "$GITHUB_ENV"
+        run: echo "VERSION_NAME=1.0.$(( ${{ github.run_number }} - 15 ))" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v4
         with:
@@ -120,11 +120,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Penomoran versi dimulai ulang dari 1.0.0 pada build ke-14.
+      # Penomoran versi dimulai ulang dari 1.0.0 pada build ke-15.
       # Nomor build (run_number) tetap naik, dipakai untuk cek update & pemasangan di atas versi lama.
       - name: Nama versi
         working-directory: .
-        run: echo "VERSION_NAME=1.0.$(( ${{ github.run_number }} - 14 ))" >> "$GITHUB_ENV"
+        run: echo "VERSION_NAME=1.0.$(( ${{ github.run_number }} - 15 ))" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v4
         with:

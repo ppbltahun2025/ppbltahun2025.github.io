@@ -169,6 +169,7 @@
   };
 
   window.kendatiLogout = function () {
+    window.kendatiLog("logout");
     sb.auth.signOut().then(function () { pushToken(null); if (REQUIRED) lock(false); });
   };
 
@@ -201,6 +202,54 @@
     row.querySelector("button").addEventListener("click", function (e) { e.stopPropagation(); window.kendatiLogout(); });
   }
 
+  // ---------- LOG KENDATI: semua kegiatan pengguna di portal ----------
+  // Tercatat di tabel Supabase public.log_kendati (lihat view log_kendati_wib).
+  var logToken = "", logQueue = [], loginPending = false, lastLogKey = "", lastLogAt = 0;
+  var PLATFORM = IN_APP ? (/android/i.test(navigator.userAgent) ? "android" : "ios") : "web";
+  var MENU_NAMES = { simbg: "SIMBG Gresik", ppbl: "Penataan Bangunan Gedung", dll: "Store" };
+  function menuNow() {
+    var h = (location.hash || "").replace("#", "");
+    return MENU_NAMES[h] || document.title || location.pathname;
+  }
+  function sendLog(row) {
+    try {
+      fetch(SB_URL + "/rest/v1/rpc/record_activity", {
+        method: "POST", keepalive: true,
+        headers: { apikey: SB_KEY, Authorization: "Bearer " + logToken, "Content-Type": "application/json" },
+        body: JSON.stringify(row)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function flushLog() { while (logQueue.length && logToken) sendLog(logQueue.shift()); }
+  window.kendatiLog = function (aksi, menu, detail, url) {
+    var row = { p_aksi: String(aksi || ""), p_menu: menu || menuNow(), p_detail: detail ? String(detail) : null,
+                p_url: url || location.href, p_platform: PLATFORM };
+    var key = row.p_aksi + "|" + row.p_detail + "|" + row.p_url, now = Date.now();
+    if (key === lastLogKey && now - lastLogAt < 1500) return;   // klik ganda
+    lastLogKey = key; lastLogAt = now;
+    if (logToken) sendLog(row); else if (logQueue.length < 30) logQueue.push(row);
+  };
+  function labelOf(el) {
+    var lb = el.querySelector && el.querySelector(".hex-label");
+    var t = (lb && lb.textContent) || el.getAttribute("aria-label") || el.getAttribute("title") ||
+            el.innerText || el.value || el.getAttribute("alt") || "";
+    t = String(t).replace(/\s+/g, " ").trim();
+    return t.length > 120 ? t.slice(0, 117) + "…" : t;
+  }
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest && e.target.closest('a[href],button,[role="button"],.hex-item,.hex,input[type="submit"],input[type="button"],summary,select');
+    if (!el || el.closest("#kendatiGate")) return;
+    var href = el.getAttribute("href");
+    var full = href && !/^(javascript:|#$)/i.test(href) ? el.href : null;
+    var aksi = full ? (el.target === "_blank" || el.hasAttribute("download") ? "buka tautan/unduh" : "buka fitur") : "klik";
+    window.kendatiLog(aksi, menuNow(), labelOf(el) || href || el.tagName.toLowerCase(), full || location.href);
+  }, true);
+  document.addEventListener("submit", function (e) {
+    var f = e.target; window.kendatiLog("kirim formulir", menuNow(), labelOf(f.querySelector('[type="submit"],button') || f) || f.id || "formulir");
+  }, true);
+  window.addEventListener("hashchange", function () { if (location.hash) window.kendatiLog("buka menu", menuNow()); });
+  window.kendatiLog("buka halaman", menuNow(), document.title || location.pathname);
+
   // ---------- mulai ----------
   var ready;
   window.kendatiAuthReady = new Promise(function (res) { ready = res; });
@@ -213,7 +262,11 @@
     .catch(function () { return false; });
 
   function onSession(session) {
+    var wasIn = !!window.kendatiUser;
     window.kendatiUser = session ? session.user : null;
+    logToken = session ? session.access_token : "";
+    if (session) flushLog();
+    if (session && !wasIn && loginPending) { loginPending = false; window.kendatiLog("login", null, "Google"); }
     pushToken(session);
     if (session) { unlock(); showUser(session.user); ready(window.kendatiUser); return; }
     if (!REQUIRED) { ready(null); return; }
@@ -232,6 +285,7 @@
 
   sb.auth.onAuthStateChange(function (event, session) {
     if (event === "INITIAL_SESSION") return;
+    if (event === "SIGNED_IN" && !window.kendatiUser) loginPending = true;
     onSession(session);
     // bersihkan ?code= dari alamat setelah login web
     if (event === "SIGNED_IN" && /[?&]code=/.test(location.search)) {
