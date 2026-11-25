@@ -123,6 +123,7 @@
   // ---------- login ----------
   function login() {
     msg("");
+    try { localStorage.setItem("kendatiLoginClick", String(Date.now())); } catch (e) {}
     var btn = gate && gate.querySelector(".g-btn");
     if (btn) btn.disabled = true;
     if (IN_APP && (IS_ANDROID || IS_IOS)) {
@@ -317,7 +318,13 @@
 
   sb.auth.onAuthStateChange(function (event, session) {
     if (event === "INITIAL_SESSION") return;
-    if (event === "SIGNED_IN" && !window.kendatiUser) loginPending = true;
+    // "login" hanya dicatat bila pengguna benar-benar menekan Masuk dengan Google (bukan tiap halaman dibuka)
+    if (event === "SIGNED_IN" && !window.kendatiUser) {
+      try {
+        var t = Number(localStorage.getItem("kendatiLoginClick") || 0);
+        if (t && Date.now() - t < 10 * 60 * 1000) { loginPending = true; localStorage.removeItem("kendatiLoginClick"); }
+      } catch (e) {}
+    }
     onSession(session);
     // bersihkan ?code= dari alamat setelah login web
     if (event === "SIGNED_IN" && /[?&]code=/.test(location.search)) {
